@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CSV Analyzer — Smart Last 2 Days</title>
+
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1a2e; --line:#24324a;
+  --text:#e5e7eb; --muted:#94a3b8;
+  --primary:#6366f1; --accent:#22d3ee;
+  --success:#22c55e; --error:#ef4444; --warn:#f59e0b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(800px 400px at 15% 0%, rgba(99,102,241,.35), transparent 60%),
+             radial-gradient(600px 350px at 85% 10%, rgba(34,211,238,.25), transparent 60%),
+             var(--bg);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  color:var(--text);
+}
+.container{max-width:1200px;margin:34px auto;padding:0 16px}
+h1{margin:0 0 6px;font-size:20px}
+p{margin:0 0 16px;color:var(--muted);font-size:13px}
+
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+textarea{
+  width:100%;min-height:240px;background:#020617;color:var(--text);
+  border:1px solid var(--line);border-radius:14px;padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  font-size:13px;line-height:1.35;outline:none;
+}
+textarea:focus{border-color:rgba(99,102,241,.9);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+.panel{background:#020617;border:1px solid var(--line);border-radius:14px;padding:14px}
+.kv{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:10px 12px;border-radius:12px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(148,163,184,.12);
+  font-size:13px;margin-bottom:10px
+}
+.kv span{color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{
+  padding:10px 12px;border-radius:12px;border:none;cursor:pointer;
+  font-weight:900;color:white;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+}
+.btn.secondary{background:#020617;border:1px solid var(--line);color:var(--text)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.hr{height:1px;background:rgba(148,163,184,.18);border:none;margin:12px 0}
+
+.mode{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.toggle{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.02);cursor:pointer;font-weight:900;font-size:13px
+}
+.toggle input{accent-color:var(--accent)}
+
+.rangeRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+input[type="number"]{
+  width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+  background:#020617;color:var(--text);font-weight:900;outline:none
+}
+input[type="number"]:focus{border-color:rgba(99,102,241,.9);box-shadow:0 0 0 3px rgba(99,102,241,.18)}
+
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 0}
+.chip{
+  padding:8px 12px;border-radius:999px;border:1px solid var(--line);
+  background:#020617;color:var(--text);cursor:pointer;font-weight:900;
+  display:flex;gap:8px;align-items:center;font-size:13px
+}
+.chip small{color:var(--muted);font-weight:900}
+.chip.active{background:linear-gradient(135deg,var(--primary),var(--accent));border:none}
+
+.table-wrap{
+  margin-top:14px;background:#020617;border:1px solid var(--line);
+  border-radius:16px;overflow:auto;max-height:520px
+}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:#0f1a2e;position:sticky;top:0;z-index:2}
+th,td{padding:10px 12px;border-bottom:1px solid #24324a;white-space:nowrap}
+tbody tr:hover{background:rgba(99,102,241,.08)}
+.empty{text-align:center;padding:20px;color:var(--muted)}
+
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.badge{
+  padding:7px 10px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);font-weight:900;font-size:12px
+}
+.badge b{color:var(--accent)}
+
+.miniList{
+  margin-top:10px;background:#020617;border:1px solid var(--line);border-radius:12px;
+  padding:10px;max-height:220px;overflow:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  font-size:12px;white-space:pre
+}
+.status{
+  margin-top:10px;padding:10px 12px;border-radius:12px;
+  border:1px dashed rgba(148,163,184,.25);color:var(--muted);font-size:13px
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>CSV Analyzer (Smart)</h1>
+  <p>
+    ✅ “Smart last 2 days”: إلا كانو نهارين ورا بعضهم → كيعتمدهم بجوج.  
+    إلا كانو بعاد → كيعتمد غير آخر نهار.
+  </p>
+
+  <div class="card">
+    <div class="grid">
+      <textarea id="csvInput" placeholder="Paste CSV (ID,STATUS,DATETIME)
+1474,input empty,16-12-2024_11-14
+1475,done,16-12-2024_11-15
+1506,done,16-12-2024_11-25"></textarea>
+
+      <div class="panel">
+        <div class="kv"><span>Total rows</span><b id="total">—</b></div>
+        <div class="kv"><span>Smart days used</span><b id="daysEl">—</b></div>
+
+        <div class="row">
+          <button class="btn" id="btnProcess">Process</button>
+          <button class="btn secondary" id="btnCopyVis">Copy visible IDs</button>
+          <button class="btn secondary" id="btnExportVis">Export visible CSV</button>
+        </div>
+
+        <div class="mode">
+          <label class="toggle">
+            <input type="radio" name="mode" value="day" checked>
+            Compare: Selected day
+          </label>
+          <label class="toggle" title="Uses smart days (1 or 2 depending if consecutive)">
+            <input type="radio" name="mode" value="smart">
+            Compare: Smart (last 2 if consecutive)
+          </label>
+        </div>
+
+        <hr class="hr">
+
+        <div class="kv"><span>Selected day</span><b id="activeDayEl">—</b></div>
+
+        <div class="rangeRow">
+          <input id="fromId" type="number" value="1961" min="0" placeholder="From">
+          <input id="toId" type="number" value="2240" min="0" placeholder="To">
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <button class="btn secondary" id="btnRange">Check Range</button>
+          <button class="btn secondary" id="btnCopyMissing">Copy not processed</button>
+          <button class="btn secondary" id="btnExportMissing">Export not processed</button>
+        </div>
+
+        <div class="badges">
+          <div class="badge">Processed unique: <b id="procInRange">0</b></div>
+          <div class="badge">Not processed: <b id="missingCount">0</b></div>
+          <div class="badge">Duplicates: <b id="dupCount">0</b></div>
+        </div>
+
+        <div class="miniList" id="missingBox">Run "Check Range"…</div>
+        <div class="status" id="status">Waiting…</div>
+      </div>
+    </div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>STATUS</th><th>DATETIME</th><th>DAY</th></tr></thead>
+        <tbody id="outputBody"><tr><td colspan="4" class="empty">No data yet</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Smart DAY parser (no hour) ===== */
+function smartParseDay(input){
+  if(!input || typeof input !== "string") return null;
+  input = input.trim();
+  if(!input) return null;
+
+  let datePart = input;
+  if(input.includes("_")) datePart = input.split("_")[0] || "";
+  else if(/\s/.test(input)) datePart = input.split(/\s+/)[0] || "";
+
+  datePart = datePart.replace(/\//g, "-").trim();
+  const d = datePart.split("-");
+  if(d.length !== 3) return null;
+
+  let dd, mm, yyyy;
+  if(d[0].length === 4){
+    yyyy = Number(d[0]); mm = Number(d[1]); dd = Number(d[2]);
+  } else {
+    dd = Number(d[0]); mm = Number(d[1]); yyyy = Number(d[2]);
+  }
+  if([dd,mm,yyyy].some(v=>Number.isNaN(v))) return null;
+  if(yyyy<1900||yyyy>2100||mm<1||mm>12||dd<1||dd>31) return null;
+
+  const pad=n=>String(n).padStart(2,"0");
+  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
+}
+
+/* ===== date utils ===== */
+function toUTCDate(dayKey){ // dayKey: YYYY-MM-DD
+  const [y,m,d] = dayKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m-1, d));
+}
+function daysDiff(a,b){ // a,b dayKey
+  const ms = toUTCDate(a).getTime() - toUTCDate(b).getTime();
+  return Math.round(ms / 86400000);
+}
+function isConsecutive(latest, previous){
+  // previous should be 1 day before latest
+  return daysDiff(latest, previous) === 1;
+}
+
+/* ===== App state ===== */
+let allRows = [];
+let smartDays = [];      // (1) latest only OR (2) latest+previous if consecutive
+let allDaysSorted = [];  // all unique days (sorted desc)
+let activeDay = null;
+let visibleRows = [];
+
+let missingIDs = [];
+let lastMode = "day";
+
+const $ = id => document.getElementById(id);
+
+function modeValue(){
+  const r = document.querySelector('input[name="mode"]:checked');
+  return r ? r.value : "day";
+}
+function setStatus(msg, type="muted"){
+  const el = $("status");
+  el.textContent = msg;
+  el.style.color =
+    type==="success" ? "var(--success)" :
+    type==="error" ? "var(--error)" :
+    type==="warn" ? "var(--warn)" : "var(--muted)";
+}
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function safeCsv(s){
+  s = String(s ?? "");
+  if(/[;\n\r"]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function parseCSVText(text){
+  const lines = text.trim().split(/\r?\n/);
+  const rows = [];
+  for(const line of lines){
+    if(!line.trim()) continue;
+
+    const firstComma = line.indexOf(",");
+    const secondComma = firstComma === -1 ? -1 : line.indexOf(",", firstComma + 1);
+    if(firstComma === -1 || secondComma === -1) continue;
+
+    const idStr = line.slice(0, firstComma).trim();
+    const status = line.slice(firstComma + 1, secondComma).trim();
+    const dtRaw = line.slice(secondComma + 1).trim();
+
+    const idNum = Number(idStr);
+    if(Number.isNaN(idNum)) continue;
+
+    const day = smartParseDay(dtRaw);
+    if(!day) continue;
+
+    rows.push({ id:idNum, idText:idStr, status, datetime:dtRaw, day });
+  }
+  return rows;
+}
+
+/* ===== UI ===== */
+function renderChips(){
+  const wrap = $("chips");
+  wrap.innerHTML = "";
+
+  // ✅ IMPORTANT: show ONLY smartDays (not all dates)
+  smartDays.forEach(d=>{
+    const c = allRows.filter(r=>r.day===d).length;
+    const chip = document.createElement("div");
+    chip.className = "chip" + (d===activeDay ? " active" : "");
+    chip.innerHTML = `${d} <small>${c}</small>`;
+    chip.onclick = ()=>applyDay(d);
+    wrap.appendChild(chip);
+  });
+}
+
+function renderTable(){
+  const body = $("outputBody");
+  body.innerHTML = "";
+  if(!visibleRows.length){
+    body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
+    return;
+  }
+  for(const r of visibleRows){
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(r.idText)}</td>
+      <td>${escapeHtml(r.status)}</td>
+      <td>${escapeHtml(r.datetime)}</td>
+      <td>${escapeHtml(r.day)}</td>`;
+    body.appendChild(tr);
+  }
+}
+
+function resetRangeBox(){
+  $("procInRange").textContent = "0";
+  $("missingCount").textContent = "0";
+  $("dupCount").textContent = "0";
+  $("missingBox").textContent = 'Run "Check Range"…';
+  missingIDs = [];
+}
+
+function applyDay(day){
+  activeDay = day;
+  visibleRows = allRows.filter(r=>r.day===day);
+  document.querySelectorAll(".chip").forEach(ch=>{
+    ch.classList.toggle("active", ch.textContent.startsWith(day));
+  });
+  $("activeDayEl").textContent = day || "—";
+  renderTable();
+  resetRangeBox();
+  setStatus(`Selected day: ${day} (${visibleRows.length} rows)`, "success");
+}
+
+/* ===== Smart days selection ===== */
+function computeSmartDays(allDaysDesc){
+  if(allDaysDesc.length === 0) return [];
+  if(allDaysDesc.length === 1) return [allDaysDesc[0]];
+
+  const latest = allDaysDesc[0];
+  const prev = allDaysDesc[1];
+
+  // ✅ only use last 2 days if consecutive, else only latest
+  if(isConsecutive(latest, prev)) return [latest, prev];
+  return [latest];
+}
+
+/* ===== Actions ===== */
+function processCSV(){
+  const text = $("csvInput").value.trim();
+  if(!text){ setStatus("CSV is empty", "error"); return; }
+
+  allRows = parseCSVText(text);
+  $("total").textContent = String(allRows.length);
+
+  // all days sorted DESC (YYYY-MM-DD)
+  allDaysSorted = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
+
+  smartDays = computeSmartDays(allDaysSorted);
+
+  $("daysEl").textContent = smartDays.length ? smartDays.join(" , ") : "—";
+
+  renderChips();
+
+  if(smartDays.length){
+    applyDay(smartDays[0]); // latest day auto
+    setStatus(smartDays.length === 2 ? "Smart mode: using last 2 consecutive days ✅" : "Smart mode: using only latest day ✅", "success");
+  } else {
+    activeDay = null; visibleRows = [];
+    $("activeDayEl").textContent = "—";
+    renderTable();
+    resetRangeBox();
+    setStatus("No valid dates detected", "error");
+  }
+}
+
+function copyVisibleIDs(){
+  if(!visibleRows.length){ setStatus("No visible rows", "warn"); return; }
+  navigator.clipboard.writeText(visibleRows.map(r=>r.idText).join("\n"))
+    .then(()=>setStatus(`Copied ${visibleRows.length} IDs`, "success"))
+    .catch(()=>setStatus("Clipboard blocked", "error"));
+}
+
+function exportVisibleCSV(){
+  if(!visibleRows.length){ setStatus("No visible rows", "warn"); return; }
+  let csv = "ID;STATUS;DATETIME;DAY\n";
+  for(const r of visibleRows){
+    csv += `${safeCsv(r.idText)};${safeCsv(r.status)};${safeCsv(r.datetime)};${safeCsv(r.day)}\n`;
+  }
+  downloadBlob(csv, `visible_${activeDay||"day"}.csv`, "text/csv;charset=utf-8;");
+  setStatus("Exported visible CSV", "success");
+}
+
+/* ===== Range compare =====
+   - mode "day": only selected day
+   - mode "smart": use smartDays union (1 day if far, 2 days if consecutive)
+*/
+function checkRange(){
+  if(!allRows.length){ setStatus("Process first", "error"); return; }
+
+  const from = Number($("fromId").value);
+  const to = Number($("toId").value);
+  if(Number.isNaN(from)||Number.isNaN(to)||from>to){ setStatus("Invalid range", "error"); return; }
+
+  const mode = modeValue();
+  let scopeRows = [];
+  let scopeLabel = "";
+
+  if(mode === "day"){
+    if(!activeDay){ setStatus("Select a day chip first", "error"); return; }
+    scopeRows = allRows.filter(r=>r.day===activeDay);
+    scopeLabel = `MODE: Day\nDay: ${activeDay}`;
+    lastMode = "day";
+  } else {
+    if(!smartDays.length){ setStatus("No smart days (process first)", "error"); return; }
+    scopeRows = allRows.filter(r=>smartDays.includes(r.day));
+    scopeLabel = smartDays.length === 2
+      ? `MODE: Smart\nDays: ${smartDays.join(" , ")}`
+      : `MODE: Smart\nDay: ${smartDays[0]} (latest only)`;
+    lastMode = "smart";
+  }
+
+  // counts + duplicates inside scope
+  const counts = new Map();
+  for(const r of scopeRows){
+    counts.set(r.id, (counts.get(r.id) || 0) + 1);
+  }
+
+  let dupN = 0;
+  for(const [,c] of counts){ if(c>1) dupN++; }
+  $("dupCount").textContent = String(dupN);
+
+  let processedUniqueInRange = 0;
+  for(const [id] of counts){
+    if(id>=from && id<=to) processedUniqueInRange++;
+  }
+  $("procInRange").textContent = String(processedUniqueInRange);
+
+  missingIDs = [];
+  for(let i=from;i<=to;i++){
+    if(!counts.has(i)) missingIDs.push(i);
+  }
+  $("missingCount").textContent = String(missingIDs.length);
+
+  const preview = missingIDs.slice(0,400).join("\n");
+  $("missingBox").textContent =
+`${scopeLabel}
+Range: ${from} → ${to}
+
+NOT processed IDs (${missingIDs.length}):
+${preview || "—"}
+
+(Preview first 400)`;
+
+  setStatus("Range computed ✅", "success");
+}
+
+function copyMissing(){
+  if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
+  navigator.clipboard.writeText(missingIDs.join("\n"))
+    .then(()=>setStatus(`Copied ${missingIDs.length} IDs`, "success"))
+    .catch(()=>setStatus("Clipboard blocked", "error"));
+}
+
+function exportMissing(){
+  if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
+
+  const from = $("fromId").value, to = $("toId").value;
+  const name =
+    (lastMode==="smart")
+      ? (smartDays.length===2
+          ? `not_processed_smart_last2_${from}-${to}.csv`
+          : `not_processed_smart_latest_${from}-${to}.csv`)
+      : `not_processed_day_${activeDay||"day"}_${from}-${to}.csv`;
+
+  const csv = "ID\n" + missingIDs.join("\n");
+  downloadBlob(csv, name, "text/csv;charset=utf-8;");
+  setStatus("Exported not processed CSV", "success");
+}
+
+/* ===== Wire ===== */
+$("btnProcess").addEventListener("click", processCSV);
+$("btnCopyVis").addEventListener("click", copyVisibleIDs);
+$("btnExportVis").addEventListener("click", exportVisibleCSV);
+
+$("btnRange").addEventListener("click", checkRange);
+$("btnCopyMissing").addEventListener("click", copyMissing);
+$("btnExportMissing").addEventListener("click", exportMissing);
+
+document.querySelectorAll('input[name="mode"]').forEach(r=>{
+  r.addEventListener("change", ()=>{
+    resetRangeBox();
+    setStatus(`Mode: ${modeValue()}`, "success");
+  });
+});
+</script>
+</body>
+</html>
