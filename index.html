@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer — Smart Last 2 Days (Auto Delimiter)</title>
+<title>CSV Analyzer — Smart Last 2 Days (Robust)</title>
 
 <style>
 :root{
@@ -116,17 +116,17 @@ tbody tr:hover{background:rgba(99,102,241,.08)}
 <div class="container">
   <h1>CSV Analyzer (Smart)</h1>
   <p>
-    ✅ Auto detect delimiter (<b>;</b> or <b>,</b>) — ID = first column — DATETIME = last column.<br>
-    ✅ Smart: last 2 days only if consecutive, otherwise latest day only.
+    ✅ Robust parsing: supports quoted lines + comma/semicolon.  
+    ✅ Smart: uses last 2 days only if consecutive, otherwise latest day only.
   </p>
 
   <div class="card">
     <div class="grid">
-      <textarea id="csvInput" placeholder="Paste data here (supports ';' or ',')
-Example:
-3805;Success;Tarek;temporary.011@gmail.com;2025-12-19 19:03
-3813;Failed;2025-12-19 19:15
-1474,input empty,16-12-2024_11-14"></textarea>
+      <textarea id="csvInput" placeholder='Paste data here
+Examples:
+13:47:53
+"2504, search Nathan passed successfully,2026-01-16"
+"2502;Success;someone;email;2025-12-19 19:03"'></textarea>
 
       <div class="panel">
         <div class="kv"><span>Total rows</span><b id="total">—</b></div>
@@ -143,7 +143,7 @@ Example:
             <input type="radio" name="mode" value="day" checked>
             Compare: Selected day
           </label>
-          <label class="toggle" title="Uses smart days (1 or 2 depending if consecutive)">
+          <label class="toggle" title="Union of smart days (1 or 2)">
             <input type="radio" name="mode" value="smart">
             Compare: Smart
           </label>
@@ -154,9 +154,12 @@ Example:
         <div class="kv"><span>Selected day</span><b id="activeDayEl">—</b></div>
 
         <div class="rangeRow">
-          <input id="fromId" type="number" value="1961" min="0" placeholder="From">
-          <input id="toId" type="number" value="2240" min="0" placeholder="To">
+          <input id="fromId" type="number" value="3382" min="0" placeholder="From">
+          <input id="toId" type="number" value="2542" min="0" placeholder="To">
         </div>
+        <small style="color:var(--muted);display:block;margin-top:8px">
+          Tip: if From > To, we auto-swap them.
+        </small>
 
         <div class="row" style="margin-top:10px">
           <button class="btn secondary" id="btnRange">Check Range</button>
@@ -187,16 +190,61 @@ Example:
 </div>
 
 <script>
-/* ===== day parser (handles: YYYY-MM-DD ... or DD-MM-YYYY ... or with / ) ===== */
-function smartParseDay(input){
-  if(!input || typeof input !== "string") return null;
-  input = input.trim();
-  if(!input) return null;
+/* =========================
+   Helpers
+========================= */
+const $ = id => document.getElementById(id);
 
-  // take date part before space/_ if exists
-  let datePart = input;
-  if(input.includes("_")) datePart = input.split("_")[0] || "";
-  else if(/\s/.test(input)) datePart = input.split(/\s+/)[0] || "";
+function setStatus(msg, type="muted"){
+  const el = $("status");
+  el.textContent = msg;
+  el.style.color =
+    type==="success" ? "var(--success)" :
+    type==="error" ? "var(--error)" :
+    type==="warn" ? "var(--warn)" : "var(--muted)";
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function safeCsv(s){
+  s = String(s ?? "");
+  if(/[;\n\r"]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+
+function downloadBlob(content, filename, mime){
+  const blob = new Blob([content], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* =========================
+   Smart day parsing
+   Supports: YYYY-MM-DD, YYYY/MM/DD, DD-MM-YYYY, DD/MM/YYYY
+   and ignores time.
+========================= */
+function smartParseDay(dtRaw){
+  if(!dtRaw || typeof dtRaw !== "string") return null;
+  let s = dtRaw.trim();
+
+  // remove wrapping quotes around the field
+  s = s.replace(/^"+|"+$/g, "").replace(/^'+|'+$/g, "").trim();
+
+  // Keep first token before space/_ if exists
+  let datePart = s;
+  if(s.includes("_")) datePart = s.split("_")[0] || "";
+  else if(/\s/.test(s)) datePart = s.split(/\s+/)[0] || "";
 
   datePart = datePart.replace(/\//g, "-").trim();
   const d = datePart.split("-");
@@ -215,7 +263,9 @@ function smartParseDay(input){
   return `${yyyy}-${pad(mm)}-${pad(dd)}`;
 }
 
-/* ===== date utils ===== */
+/* =========================
+   Smart last 2 days logic
+========================= */
 function toUTCDate(dayKey){
   const [y,m,d] = dayKey.split("-").map(Number);
   return new Date(Date.UTC(y, m-1, d));
@@ -227,100 +277,6 @@ function daysDiff(a,b){
 function isConsecutive(latest, previous){
   return daysDiff(latest, previous) === 1;
 }
-
-/* ===== state ===== */
-let allRows = [];
-let smartDays = [];      // 1 day or 2 consecutive days
-let allDaysSorted = [];
-let activeDay = null;
-let visibleRows = [];
-let missingIDs = [];
-let lastMode = "day";
-
-const $ = id => document.getElementById(id);
-
-function modeValue(){
-  const r = document.querySelector('input[name="mode"]:checked');
-  return r ? r.value : "day";
-}
-function setStatus(msg, type="muted"){
-  const el = $("status");
-  el.textContent = msg;
-  el.style.color =
-    type==="success" ? "var(--success)" :
-    type==="error" ? "var(--error)" :
-    type==="warn" ? "var(--warn)" : "var(--muted)";
-}
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function safeCsv(s){
-  s = String(s ?? "");
-  if(/[;\n\r"]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
-  return s;
-}
-function downloadBlob(content, filename, mime){
-  const blob = new Blob([content], {type:mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-/* ===== delimiter detect ===== */
-function detectDelimiter(lines){
-  let semi = 0, comma = 0;
-  for(const ln of lines){
-    if(!ln.trim()) continue;
-    semi += (ln.match(/;/g) || []).length;
-    comma += (ln.match(/,/g) || []).length;
-    // enough signal from first few lines
-    if(semi + comma > 10) break;
-  }
-  return semi >= comma ? ";" : ",";
-}
-
-/* ===== parse: ID = first col, DATETIME = last col, STATUS = second col ===== */
-function parseText(text){
-  const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length);
-  if(lines.length === 0) return [];
-
-  const delim = detectDelimiter(lines);
-  const rows = [];
-
-  for(const line of lines){
-    const parts = line.split(delim).map(x=>x.trim()).filter(x=>x.length || x==="0");
-    if(parts.length < 2) continue;
-
-    const idStr = parts[0];
-    const idNum = Number(idStr);
-    if(Number.isNaN(idNum)) continue;
-
-    const datetimeRaw = parts[parts.length - 1];     // ✅ last col
-    const day = smartParseDay(datetimeRaw);
-    if(!day) continue;
-
-    const status = parts.length >= 2 ? parts[1] : ""; // ✅ 2nd col
-
-    rows.push({
-      id: idNum,
-      idText: idStr,
-      status: status || "",
-      datetime: datetimeRaw,
-      day
-    });
-  }
-
-  return rows;
-}
-
 function computeSmartDays(allDaysDesc){
   if(allDaysDesc.length === 0) return [];
   if(allDaysDesc.length === 1) return [allDaysDesc[0]];
@@ -329,11 +285,98 @@ function computeSmartDays(allDaysDesc){
   return isConsecutive(latest, prev) ? [latest, prev] : [latest];
 }
 
-/* ===== UI ===== */
+/* =========================
+   Robust parsing
+   - auto delimiter: ',' or ';'
+   - removes wrapping quotes per line
+   - skips lines that are only time like 13:47:53
+   - ID = first field
+   - DATETIME = last field
+   - STATUS = middle fields joined back
+========================= */
+function detectDelimiter(lines){
+  let semi = 0, comma = 0;
+  for(const ln0 of lines){
+    const ln = ln0.trim();
+    if(!ln) continue;
+    semi += (ln.match(/;/g) || []).length;
+    comma += (ln.match(/,/g) || []).length;
+    if(semi + comma > 12) break;
+  }
+  return comma > semi ? "," : ";";
+}
+
+function isTimeOnlyLine(line){
+  const s = line.trim().replace(/^"+|"+$/g,"").replace(/^'+|'+$/g,"").trim();
+  return /^\d{1,2}:\d{2}:\d{2}$/.test(s);
+}
+
+function parseText(text){
+  const rawLines = text.replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean);
+  if(rawLines.length === 0) return [];
+
+  const delim = detectDelimiter(rawLines);
+  const rows = [];
+
+  for(let line of rawLines){
+    if(isTimeOnlyLine(line)) continue;
+
+    // strip wrapping quotes on the whole line
+    line = line.trim();
+    if((line.startsWith('"') && line.endsWith('"')) || (line.startsWith("'") && line.endsWith("'"))){
+      line = line.slice(1,-1);
+    }
+    line = line.trim();
+    if(!line.includes(delim)) continue;
+
+    const parts = line.split(delim).map(x => x.trim());
+    if(parts.length < 2) continue;
+
+    // clean quotes on fields
+    const cleanField = v => String(v ?? "").trim().replace(/^"+|"+$/g,"").replace(/^'+|'+$/g,"").trim();
+
+    const idStr = cleanField(parts[0]);
+    const idNum = parseInt(idStr, 10);
+    if(!Number.isFinite(idNum)) continue;
+
+    const dtRaw = cleanField(parts[parts.length - 1]);
+    const day = smartParseDay(dtRaw);
+    if(!day) continue;
+
+    const statusMid = parts.slice(1, -1).map(cleanField).join(delim).trim(); // keep as-is
+    const status = statusMid || (parts[1] ? cleanField(parts[1]) : "");
+
+    rows.push({
+      id: idNum,
+      idText: String(idNum),
+      status,
+      datetime: dtRaw,
+      day
+    });
+  }
+
+  return rows;
+}
+
+/* =========================
+   App state
+========================= */
+let allRows = [];
+let smartDays = [];
+let allDaysSorted = [];
+let activeDay = null;
+let visibleRows = [];
+let missingIDs = [];
+let lastMode = "day";
+
+/* =========================
+   UI rendering
+========================= */
 function renderChips(){
   const wrap = $("chips");
   wrap.innerHTML = "";
-  // ✅ show ONLY smart days (not all days)
+
+  // Show ONLY smartDays
   smartDays.forEach(d=>{
     const c = allRows.filter(r=>r.day===d).length;
     const chip = document.createElement("div");
@@ -343,6 +386,7 @@ function renderChips(){
     wrap.appendChild(chip);
   });
 }
+
 function renderTable(){
   const body = $("outputBody");
   body.innerHTML = "";
@@ -360,6 +404,7 @@ function renderTable(){
     body.appendChild(tr);
   }
 }
+
 function resetRangeBox(){
   $("procInRange").textContent = "0";
   $("missingCount").textContent = "0";
@@ -367,19 +412,29 @@ function resetRangeBox(){
   $("missingBox").textContent = 'Run "Check Range"…';
   missingIDs = [];
 }
+
 function applyDay(day){
   activeDay = day;
   visibleRows = allRows.filter(r=>r.day===day);
+
   document.querySelectorAll(".chip").forEach(ch=>{
     ch.classList.toggle("active", ch.textContent.startsWith(day));
   });
+
   $("activeDayEl").textContent = day || "—";
   renderTable();
   resetRangeBox();
   setStatus(`Selected day: ${day} (${visibleRows.length} rows)`, "success");
 }
 
-/* ===== actions ===== */
+function modeValue(){
+  const r = document.querySelector('input[name="mode"]:checked');
+  return r ? r.value : "day";
+}
+
+/* =========================
+   Actions
+========================= */
 function processCSV(){
   const text = $("csvInput").value.trim();
   if(!text){ setStatus("Input is empty", "error"); return; }
@@ -391,24 +446,17 @@ function processCSV(){
   smartDays = computeSmartDays(allDaysSorted);
 
   $("daysEl").textContent = smartDays.length ? smartDays.join(" , ") : "—";
-
   renderChips();
 
   if(smartDays.length){
     applyDay(smartDays[0]);
-    setStatus(
-      smartDays.length === 2
-        ? "Smart: using last 2 consecutive days ✅"
-        : "Smart: using latest day only ✅",
-      "success"
-    );
+    setStatus(smartDays.length===2 ? "Smart: using last 2 consecutive days ✅" : "Smart: using latest day only ✅", "success");
   } else {
-    activeDay = null;
-    visibleRows = [];
+    activeDay = null; visibleRows = [];
     $("activeDayEl").textContent = "—";
     renderTable();
     resetRangeBox();
-    setStatus("No valid dates detected (check your datetime column format)", "error");
+    setStatus("No valid dates detected (check last column date like 2026-01-16)", "error");
   }
 }
 
@@ -429,13 +477,19 @@ function exportVisibleCSV(){
   setStatus("Exported visible CSV", "success");
 }
 
-/* ===== range compare ===== */
+function normalizeRange(a,b){
+  let from = Number(a), to = Number(b);
+  if(Number.isNaN(from)||Number.isNaN(to)) return null;
+  if(from > to){ const t=from; from=to; to=t; }
+  return {from, to};
+}
+
 function checkRange(){
   if(!allRows.length){ setStatus("Process first", "error"); return; }
 
-  const from = Number($("fromId").value);
-  const to = Number($("toId").value);
-  if(Number.isNaN(from)||Number.isNaN(to)||from>to){ setStatus("Invalid range", "error"); return; }
+  const rr = normalizeRange($("fromId").value, $("toId").value);
+  if(!rr){ setStatus("Invalid range", "error"); return; }
+  const {from,to} = rr;
 
   const mode = modeValue();
   let scopeRows = [];
@@ -447,17 +501,15 @@ function checkRange(){
     scopeLabel = `MODE: Day\nDay: ${activeDay}`;
     lastMode = "day";
   } else {
-    if(!smartDays.length){ setStatus("No smart days (process first)", "error"); return; }
+    if(!smartDays.length){ setStatus("Process first", "error"); return; }
     scopeRows = allRows.filter(r=>smartDays.includes(r.day));
-    scopeLabel = smartDays.length === 2
-      ? `MODE: Smart\nDays: ${smartDays.join(" , ")}`
-      : `MODE: Smart\nDay: ${smartDays[0]} (latest only)`;
+    scopeLabel = smartDays.length===2 ? `MODE: Smart\nDays: ${smartDays.join(" , ")}` : `MODE: Smart\nDay: ${smartDays[0]} (latest)`;
     lastMode = "smart";
   }
 
   const counts = new Map();
   for(const r of scopeRows){
-    counts.set(r.id, (counts.get(r.id) || 0) + 1);
+    counts.set(r.id, (counts.get(r.id)||0)+1);
   }
 
   let dupN = 0;
@@ -498,7 +550,11 @@ function copyMissing(){
 
 function exportMissing(){
   if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
-  const from = $("fromId").value, to = $("toId").value;
+
+  const rr = normalizeRange($("fromId").value, $("toId").value);
+  const from = rr ? rr.from : $("fromId").value;
+  const to = rr ? rr.to : $("toId").value;
+
   const name =
     (lastMode==="smart")
       ? (smartDays.length===2 ? `not_processed_smart_last2_${from}-${to}.csv`
