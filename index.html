@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer — Classic Output + Date Choice</title>
+<title>CSV Analyzer — Classic Output + Smart Date/Time Detect</title>
 
 <style>
 :root{
@@ -189,16 +189,16 @@ small.hint{color:var(--muted);display:block;margin-top:6px;font-size:12px}
 <body>
 <div class="container">
   <h1>CSV Analyzer</h1>
-  <p>Classic output: table + range check. Choose date (single / range) before checking IDs.</p>
+  <p>Classic output: table + range check. Smart-detect date/time anywhere (supports: 1/20/2026 + 12:51:15 AM).</p>
 
   <div class="card">
     <div class="grid">
 
       <textarea id="csvInput" placeholder='Paste data here...
 Examples:
-"2504, search Nathan passed successfully,2026-01-16"
-"2502;Success;someone;email;2025-12-19 19:03"
-13:47:53 (ignored)'></textarea>
+"4338,Translate succes,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
+"4343,Translate succes,1/20/2026, 12:51:19 AM,Peux-tu fix...,#EANF#,Hebrew"
+'></textarea>
 
       <div class="panel">
         <div class="kv"><span>Total rows parsed</span><b id="total">—</b></div>
@@ -220,8 +220,8 @@ Examples:
         </div>
 
         <div id="singleWrap" style="margin-top:10px">
-          <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY)">
-          <small class="hint">Example: 2026-01-16 or 16-01-2026</small>
+          <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
+          <small class="hint">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026</small>
         </div>
 
         <div id="rangeWrap" style="margin-top:10px;display:none">
@@ -284,7 +284,6 @@ Examples:
 </div>
 
 <script>
-/* ===== Robust parsing (quotes + ; or , + last column date) ===== */
 const $ = id => document.getElementById(id);
 
 function setStatus(msg, type="muted"){
@@ -321,65 +320,135 @@ function downloadBlob(content, filename, mime){
   URL.revokeObjectURL(url);
 }
 
-function isTimeOnlyLine(line){
-  const s = line.trim().replace(/^"+|"+$/g,"").replace(/^'+|'+$/g,"").trim();
-  return /^\d{1,2}:\d{2}:\d{2}$/.test(s);
-}
-
-function detectDelimiter(lines){
-  let semi = 0, comma = 0;
-  for(const ln0 of lines){
-    const ln = ln0.trim();
-    if(!ln) continue;
-    semi += (ln.match(/;/g) || []).length;
-    comma += (ln.match(/,/g) || []).length;
-    if(semi + comma > 12) break;
-  }
-  return comma > semi ? "," : ";";
-}
-
-function smartParseDay(dtRaw){
-  if(!dtRaw || typeof dtRaw !== "string") return null;
-  let s = dtRaw.trim()
-    .replace(/^"+|"+$/g, "")
-    .replace(/^'+|'+$/g, "")
-    .trim();
-
-  // date token before space/_ if exists
-  let datePart = s;
-  if(s.includes("_")) datePart = s.split("_")[0] || "";
-  else if(/\s/.test(s)) datePart = s.split(/\s+/)[0] || "";
-
-  datePart = datePart.replace(/\//g, "-").trim();
-  const d = datePart.split("-");
-  if(d.length !== 3) return null;
-
-  let dd, mm, yyyy;
-  if(d[0].length === 4){
-    yyyy = Number(d[0]); mm = Number(d[1]); dd = Number(d[2]);
-  } else {
-    dd = Number(d[0]); mm = Number(d[1]); yyyy = Number(d[2]);
-  }
-
-  if([dd, mm, yyyy].some(v => Number.isNaN(v))) return null;
-  if(yyyy < 1900 || yyyy > 2100) return null;
-  if(mm < 1 || mm > 12) return null;
-  if(dd < 1 || dd > 31) return null;
-
-  const pad = n => String(n).padStart(2,"0");
-  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
-}
-function toUTCDate(dayKey){
-  const [y,m,d] = dayKey.split("-").map(Number);
-  return new Date(Date.UTC(y, m-1, d));
-}
-
 function cleanField(v){
   return String(v ?? "")
     .trim()
     .replace(/^"+|"+$/g,"")
     .replace(/^'+|'+$/g,"")
     .trim();
+}
+
+function isTimeField(v){
+  v = String(v||"").trim();
+  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
+}
+
+function parseDateOnlyFlexible(v){
+  v = String(v||"").trim();
+  if(!v) return null;
+
+  v = v.replace(/,/g,"").trim();
+  const s = v.replace(/\./g,"/").replace(/-/g,"/");
+
+  const m = s.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,4})$/);
+  if(!m) return null;
+
+  let a = Number(m[1]), b = Number(m[2]), c = Number(m[3]);
+  if([a,b,c].some(n=>Number.isNaN(n))) return null;
+
+  let yyyy, mm, dd;
+
+  if(m[1].length === 4){
+    yyyy = a; mm = b; dd = c;
+  } else if(m[3].length === 4){
+    yyyy = c;
+    if(a > 12){ dd = a; mm = b; }
+    else if(b > 12){ mm = a; dd = b; }
+    else { mm = a; dd = b; } // default MM/DD/YYYY (matches 1/20/2026)
+  } else return null;
+
+  if(yyyy < 1900 || yyyy > 2100) return null;
+  if(mm < 1 || mm > 12) return null;
+  if(dd < 1 || dd > 31) return null;
+
+  return {yyyy, mm, dd};
+}
+
+function dayKeyFrom(yyyy,mm,dd){
+  const pad = n => String(n).padStart(2,"0");
+  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
+}
+
+function toUTCDate(dayKey){
+  const [y,m,d] = dayKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m-1, d));
+}
+
+/* ✅ Smart parser for: "ID,STATUS,DATE,TIME,MESSAGE,#TAG#,LANG" (whole line quoted) */
+function parseWholeQuotedCommaLine(line){
+  let s = line.trim();
+  if(!(s.startsWith('"') && s.endsWith('"'))) return null;
+
+  s = s.slice(1,-1); // remove outer quotes
+
+  const idx = [];
+  for(let i=0;i<s.length;i++){
+    if(s[i] === ",") idx.push(i);
+  }
+  if(idx.length < 6) return null;
+
+  const c1 = idx[0], c2 = idx[1], c3 = idx[2], c4 = idx[3];
+  const last = idx[idx.length-1];
+  const last2 = idx[idx.length-2];
+
+  // ensure last2 is after c4
+  if(last2 <= c4) return null;
+
+  const idStr = s.slice(0,c1).trim();
+  const idNum = parseInt(idStr,10);
+  if(!Number.isFinite(idNum)) return null;
+
+  const status = s.slice(c1+1, c2).trim();
+  const dateStr = s.slice(c2+1, c3).trim();
+  const timeStr = s.slice(c3+1, c4).trim();
+
+  const d = parseDateOnlyFlexible(dateStr);
+  if(!d) return null;
+
+  const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
+  const datetime = (dateStr + (timeStr && isTimeField(timeStr) ? " " + timeStr : "")).trim();
+
+  return {
+    id: idNum,
+    idText: String(idNum),
+    status: status || "(no status)",
+    datetime,
+    day
+  };
+}
+
+/* fallback: parse with delimiter ; or , (normal logs) */
+function detectDelimiter(lines){
+  let semi=0, comma=0;
+  const sample = lines.slice(0, 30);
+  for(const ln of sample){
+    const s = ln.trim();
+    if(!s) continue;
+    semi += (s.match(/;/g)||[]).length;
+    comma += (s.match(/,/g)||[]).length;
+  }
+  return comma >= semi ? "," : ";";
+}
+
+function splitCSVLine(line, delim){
+  const out = [];
+  let cur = "";
+  let inQuotes = false;
+
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; continue; }
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if(!inQuotes && ch === delim){
+      out.push(cur); cur = ""; continue;
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
 }
 
 function parseText(text){
@@ -390,45 +459,44 @@ function parseText(text){
   const rows = [];
 
   for(let line of rawLines){
-    if(isTimeOnlyLine(line)) continue;
+    // try quoted whole-line format first
+    const q = parseWholeQuotedCommaLine(line);
+    if(q){ rows.push(q); continue; }
 
-    // strip wrapping quotes on the whole line
-    line = line.trim();
-    if((line.startsWith('"') && line.endsWith('"')) || (line.startsWith("'") && line.endsWith("'"))){
-      line = line.slice(1,-1).trim();
-    }
-    if(!line.includes(delim)) continue;
-
-    const parts = line.split(delim).map(cleanField);
+    // normal parsing
+    const parts = splitCSVLine(line, delim).map(cleanField).filter(x => x !== "");
     if(parts.length < 2) continue;
 
     const idNum = parseInt(parts[0], 10);
     if(!Number.isFinite(idNum)) continue;
 
-    const dtRaw = parts[parts.length - 1];
-    const day = smartParseDay(dtRaw);
-    if(!day) continue;
+    // find first date field anywhere after ID
+    let dateIdx = -1, dateObj = null;
+    for(let i=1;i<parts.length;i++){
+      const d = parseDateOnlyFlexible(parts[i]);
+      if(d){ dateIdx = i; dateObj = d; break; }
+    }
+    if(dateIdx === -1) continue;
 
-    const status = parts.slice(1, -1).join(delim).trim() || (parts[1] || "");
+    let timeStr = "";
+    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) timeStr = parts[dateIdx + 1].trim();
 
-    rows.push({
-      id: idNum,
-      idText: String(idNum),
-      status,
-      datetime: dtRaw,
-      day
-    });
+    const day = dayKeyFrom(dateObj.yyyy, dateObj.mm, dateObj.dd);
+    const datetime = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
+    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
+
+    rows.push({ id:idNum, idText:String(idNum), status, datetime, day });
   }
 
   return rows;
 }
 
-/* ===== App state ===== */
+/* ---------- App state ---------- */
 let allRows = [];
 let visibleRows = [];
 let missingIDs = [];
 
-/* ===== Render table output (classic) ===== */
+/* ---------- Render ---------- */
 function renderTable(){
   const body = $("outputBody");
   body.innerHTML = "";
@@ -463,15 +531,18 @@ function resetRangeBox(){
   missingIDs = [];
 }
 
-/* ===== Date filter (single or range) ===== */
+/* ---------- Date filter ---------- */
 function dateMode(){
   const r = document.querySelector('input[name="dateMode"]:checked');
   return r ? r.value : "single";
 }
+
 function normalizeDateInput(v){
   v = String(v||"").trim();
   if(!v) return null;
-  return smartParseDay(v);
+  const d = parseDateOnlyFlexible(v.replace(/-/g,"/"));
+  if(!d) return null;
+  return dayKeyFrom(d.yyyy, d.mm, d.dd);
 }
 
 function applyDateFilter(){
@@ -483,21 +554,14 @@ function applyDateFilter(){
   const mode = dateMode();
   if(mode === "single"){
     const day = normalizeDateInput($("singleDate").value);
-    if(!day){
-      setStatus("Invalid single date", "error");
-      return;
-    }
+    if(!day){ setStatus("Invalid single date", "error"); return; }
     visibleRows = allRows.filter(r => r.day === day);
-    renderTable();
-    resetRangeBox();
+    renderTable(); resetRangeBox();
     setStatus(`Filtered by day: ${day}`, "success");
   } else {
     const from = normalizeDateInput($("dateFrom").value);
     const to = normalizeDateInput($("dateTo").value);
-    if(!from || !to){
-      setStatus("Invalid date range", "error");
-      return;
-    }
+    if(!from || !to){ setStatus("Invalid date range", "error"); return; }
     const a = toUTCDate(from).getTime();
     const b = toUTCDate(to).getTime();
     const lo = Math.min(a,b), hi = Math.max(a,b);
@@ -507,8 +571,7 @@ function applyDateFilter(){
       return t >= lo && t <= hi;
     });
 
-    renderTable();
-    resetRangeBox();
+    renderTable(); resetRangeBox();
     setStatus(`Filtered range: ${from} → ${to}`, "success");
   }
 }
@@ -517,15 +580,13 @@ function clearDateFilter(){
   visibleRows = [...allRows];
   renderTable();
   resetRangeBox();
-
   $("singleDate").value = "";
   $("dateFrom").value = "";
   $("dateTo").value = "";
-
   setStatus("Date filter cleared (showing all rows)", "success");
 }
 
-/* ===== ID range check (classic logic) ===== */
+/* ---------- Range check ---------- */
 function normalizeNumRange(a,b){
   let from = Number(a), to = Number(b);
   if(Number.isNaN(from) || Number.isNaN(to)) return null;
@@ -540,36 +601,22 @@ function checkRange(){
   }
 
   const rr = normalizeNumRange($("fromId").value, $("toId").value);
-  if(!rr){
-    setStatus("Invalid ID range", "error");
-    return;
-  }
+  if(!rr){ setStatus("Invalid ID range", "error"); return; }
   const {from, to} = rr;
 
   const counts = new Map();
-  for(const r of visibleRows){
-    counts.set(r.id, (counts.get(r.id) || 0) + 1);
-  }
+  for(const r of visibleRows) counts.set(r.id, (counts.get(r.id) || 0) + 1);
 
-  // duplicates (inside visible scope)
   let dupN = 0;
-  for(const [,c] of counts){
-    if(c > 1) dupN++;
-  }
+  for(const [,c] of counts) if(c > 1) dupN++;
   $("dupCount").textContent = String(dupN);
 
-  // processed unique in ID range
   let processedUniqueInRange = 0;
-  for(const [id] of counts){
-    if(id >= from && id <= to) processedUniqueInRange++;
-  }
+  for(const [id] of counts) if(id >= from && id <= to) processedUniqueInRange++;
   $("procInRange").textContent = String(processedUniqueInRange);
 
-  // missing = full range minus present
   missingIDs = [];
-  for(let i=from; i<=to; i++){
-    if(!counts.has(i)) missingIDs.push(i);
-  }
+  for(let i=from; i<=to; i++) if(!counts.has(i)) missingIDs.push(i);
   $("missingCount").textContent = String(missingIDs.length);
 
   $("missingBox").textContent =
@@ -584,11 +631,9 @@ ${missingIDs.slice(0, 400).join("\n") || "—"}
   setStatus("Range computed ✅", "success");
 }
 
+/* ---------- Copy / Export ---------- */
 function copyIDs(){
-  if(!visibleRows.length){
-    setStatus("No visible rows to copy", "error");
-    return;
-  }
+  if(!visibleRows.length){ setStatus("No visible rows to copy", "error"); return; }
   const ids = visibleRows.map(r=>r.idText).join("\n");
   navigator.clipboard.writeText(ids)
     .then(()=>setStatus(`Copied ${visibleRows.length} IDs`, "success"))
@@ -596,10 +641,7 @@ function copyIDs(){
 }
 
 function exportVisibleCSV(){
-  if(!visibleRows.length){
-    setStatus("No visible rows to export", "error");
-    return;
-  }
+  if(!visibleRows.length){ setStatus("No visible rows to export", "error"); return; }
   let csv = "ID;STATUS;DATETIME;DAY\n";
   for(const r of visibleRows){
     csv += `${safeCsv(r.idText)};${safeCsv(r.status)};${safeCsv(r.datetime)};${safeCsv(r.day)}\n`;
@@ -609,33 +651,24 @@ function exportVisibleCSV(){
 }
 
 function copyMissing(){
-  if(!missingIDs.length){
-    setStatus("No not-processed IDs to copy", "warn");
-    return;
-  }
+  if(!missingIDs.length){ setStatus("No not-processed IDs to copy", "warn"); return; }
   navigator.clipboard.writeText(missingIDs.join("\n"))
     .then(()=>setStatus(`Copied ${missingIDs.length} not processed IDs`, "success"))
     .catch(()=>setStatus("Clipboard blocked by browser", "error"));
 }
 
 function exportMissing(){
-  if(!missingIDs.length){
-    setStatus("No not-processed IDs to export", "warn");
-    return;
-  }
+  if(!missingIDs.length){ setStatus("No not-processed IDs to export", "warn"); return; }
   const rr = normalizeNumRange($("fromId").value, $("toId").value);
   const name = rr ? `not_processed_${rr.from}-${rr.to}.csv` : "not_processed.csv";
   downloadBlob("ID\n" + missingIDs.join("\n"), name, "text/csv;charset=utf-8;");
   setStatus(`Exported ${name}`, "success");
 }
 
-/* ===== Process ===== */
+/* ---------- Process ---------- */
 function processCSV(){
   const text = $("csvInput").value.trim();
-  if(!text){
-    setStatus("Input empty", "error");
-    return;
-  }
+  if(!text){ setStatus("Input empty", "error"); return; }
 
   allRows = parseText(text);
   $("total").textContent = String(allRows.length);
@@ -645,17 +678,16 @@ function processCSV(){
   resetRangeBox();
 
   if(!allRows.length){
-    setStatus("No valid rows parsed (check delimiter / last column date)", "error");
+    setStatus("No valid rows parsed (check format)", "error");
     return;
   }
 
-  // helper default: set singleDate to latest day in data
   const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
   $("singleDate").value = days[0] || "";
   setStatus("Parsed ✅ Choose date and Apply, then Check Range.", "success");
 }
 
-/* ===== Wire ===== */
+/* ---------- Wire ---------- */
 $("btnProcess").addEventListener("click", processCSV);
 $("btnCopy").addEventListener("click", copyIDs);
 $("btnExport").addEventListener("click", exportVisibleCSV);
