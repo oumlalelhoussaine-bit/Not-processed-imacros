@@ -9,7 +9,6 @@
 :root{
   --bg0:#070b14;
   --bg1:#0b1220;
-  --card:#0f1a2e;
   --line:rgba(148,163,184,.18);
 
   --text:#e5e7eb;
@@ -56,26 +55,13 @@ body{
   gap:16px;
   margin-bottom: 14px;
 }
-.brand{
-  display:flex;flex-direction:column;gap:6px;
-}
-.brand h1{
-  margin:0;
-  font-size: 28px;
-  letter-spacing: .2px;
-}
-.brand p{
-  margin:0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height:1.35;
-}
+.brand{display:flex;flex-direction:column;gap:6px;}
+.brand h1{margin:0;font-size:28px;letter-spacing:.2px;}
+.brand p{margin:0;color:var(--muted);font-size:13px;line-height:1.35;}
+
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  border-radius: 999px;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:999px;
   border:1px solid var(--line);
   background: rgba(255,255,255,.03);
   box-shadow: var(--shadow2);
@@ -116,8 +102,7 @@ body{
 }
 .panelTitle{
   display:flex;align-items:center;justify-content:space-between;
-  gap:10px;
-  margin-bottom: 10px;
+  gap:10px;margin-bottom:10px;
 }
 .panelTitle b{font-size: 13px}
 .panelTitle span{color:var(--muted);font-weight:800;font-size:12px}
@@ -155,31 +140,19 @@ textarea:focus{
   flex-direction:column;
   gap:4px;
 }
-.kpi span{
-  color:var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-.kpi b{
-  font-size: 18px;
-  letter-spacing: .2px;
-}
+.kpi span{color:var(--muted);font-size:12px;font-weight:800;}
+.kpi b{font-size:18px;letter-spacing:.2px;}
 
-hr.sep{
-  border:none;height:1px;background:var(--line);
-  margin: 12px 0;
-}
+hr.sep{border:none;height:1px;background:var(--line);margin: 12px 0;}
 
-/* Buttons */
 .controls{
   display:grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
 }
-@media (max-width:1000px){
-  .controls{grid-template-columns:1fr}
-}
-/* ===== Buttons (coherent palette: Blue/Violet + Teal) ===== */
+@media (max-width:1000px){ .controls{grid-template-columns:1fr} }
+
+/* Buttons — coherent palette */
 .btn{
   width:100%;
   border-radius: 14px;
@@ -198,43 +171,24 @@ hr.sep{
   box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);
 }
 .btn:active{transform:scale(.985)}
-.btn:disabled{
-  opacity:.55; cursor:not-allowed; filter:grayscale(.2);
-  box-shadow:none;
-}
+.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2); box-shadow:none;}
 
-/* Primary (Process / Check / Apply) */
-.btn.process,
-.btn.check,
-.btn.apply{
+.btn.process,.btn.check,.btn.apply{
   background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));
   border-color: rgba(99,102,241,.25);
 }
-
-/* Secondary (Copy actions) — calmer teal */
-.btn.copy,
-.btn.copyMissing{
+.btn.copy,.btn.copyMissing{
   background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55));
   border-color: rgba(34,211,238,.18);
 }
-
-/* Export actions — same family but slightly deeper */
-.btn.export,
-.btn.exportMissing{
+.btn.export,.btn.exportMissing{
   background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70));
   border-color: rgba(167,139,250,.22);
 }
-
-/* Neutral (Clear) */
 .btn.clear{
   background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55));
   border-color: rgba(148,163,184,.18);
 }
-
-
-.btn.check{background: linear-gradient(135deg, #201F70, #201F70);}
-.btn.copyMissing{background: linear-gradient(135deg, #201F70, #201F70);}
-.btn.exportMissing{background: linear-gradient(135deg, #201F70, #201F70);}
 
 .sectionTitle{
   display:flex;justify-content:space-between;align-items:center;gap:10px;
@@ -243,9 +197,7 @@ hr.sep{
 .sectionTitle b{font-size:13px}
 .sectionTitle small{color:var(--muted);font-weight:800}
 
-.modeRow{
-  display:flex; gap:10px; flex-wrap:wrap;
-}
+.modeRow{display:flex; gap:10px; flex-wrap:wrap;}
 .mode{
   flex:1;
   min-width: 160px;
@@ -279,24 +231,12 @@ input:focus{
   border-color: rgba(99,102,241,.85);
   box-shadow: 0 0 0 4px var(--focus);
 }
-.hint{
-  margin-top:6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
+.hint{margin-top:6px;color: var(--muted);font-size:12px;font-weight:800;}
 
-.two{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
+.two{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;}
 @media(max-width:500px){.two{grid-template-columns:1fr}}
 
-.badges{
-  display:flex; flex-wrap:wrap; gap:8px;
-  margin-top:10px;
-}
+.badges{display:flex; flex-wrap:wrap; gap:8px;margin-top:10px;}
 .badge{
   padding: 7px 10px;
   border-radius: 999px;
@@ -319,7 +259,6 @@ input:focus{
   font-size: 12px;
   white-space: pre;
 }
-
 .status{
   margin-top:10px;
   border-radius: 14px;
@@ -351,12 +290,7 @@ th,td{
   white-space:nowrap;
 }
 tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{
-  text-align:center;
-  color:var(--muted);
-  padding: 26px;
-  font-weight: 800;
-}
+.empty{text-align:center;color:var(--muted);padding: 26px;font-weight: 800;}
 </style>
 </head>
 
@@ -377,20 +311,19 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
   <div class="shell">
     <div class="grid">
 
-      <!-- LEFT: INPUT -->
       <div class="panel">
         <div class="panelTitle">
           <b>Input</b>
           <span>Paste your CSV / logs here</span>
         </div>
         <textarea id="csvInput" placeholder='Examples:
+"4475,search on Website is done:booking.com,20-01-2026 20-9"
 "4338,Translate succes,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
 2504, search Nathan passed successfully,2026-01-16
 1961,input empty,21-12-2024_11-7
 '></textarea>
       </div>
 
-      <!-- RIGHT: CONTROLS -->
       <div class="panel">
         <div class="panelTitle">
           <b>Controls</b>
@@ -398,14 +331,8 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
         </div>
 
         <div class="kpis">
-          <div class="kpi">
-            <span>Total rows</span>
-            <b id="total">—</b>
-          </div>
-          <div class="kpi">
-            <span>Visible rows</span>
-            <b id="count">—</b>
-          </div>
+          <div class="kpi"><span>Total rows</span><b id="total">—</b></div>
+          <div class="kpi"><span>Visible rows</span><b id="count">—</b></div>
         </div>
 
         <hr class="sep">
@@ -502,9 +429,6 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
 </div>
 
 <script>
-/* =========================
-   Helpers
-========================= */
 const $ = id => document.getElementById(id);
 
 function setPill(type, text){
@@ -553,23 +477,15 @@ function cleanField(v){
     .trim();
 }
 
-/* =========================
-   Date parsing (flex)
-   Supports:
-   - 2026-01-16
-   - 16-01-2026
-   - 1/20/2026
-   - 21-12-2024_11-7 (we take the date)
-========================= */
 function isTimeField(v){
   v = String(v||"").trim();
-  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
+  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v) || /^(\d{1,2})-(\d{1,2})$/.test(v);
 }
+
 function parseDateOnlyFlexible(v){
   v = String(v||"").trim();
   if(!v) return null;
 
-  // If has _ or space => keep before it (date)
   if(v.includes("_")) v = v.split("_")[0].trim();
   if(/\s/.test(v)) v = v.split(/\s+/)[0].trim();
 
@@ -589,7 +505,6 @@ function parseDateOnlyFlexible(v){
   } else if(m[3].length === 4){
     yyyy = c;
     if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
-    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
     else { mm = a; dd = b; }           // default MM/DD/YYYY
   } else return null;
 
@@ -608,12 +523,9 @@ function toUTCDate(dayKey){
   return new Date(Date.UTC(y, m-1, d));
 }
 
-/* =========================
-   Parsing lines
-   - Supports whole quoted comma line:
-     "4338,Translate succes,1/20/2026, 12:51:15 AM, ... ,Romanian"
-   - Supports normal delimited ; or , logs with date anywhere
-========================= */
+/* ✅ FIXED: supports whole quoted line with 2 commas too:
+   "4475,search ...,20-01-2026 20-9"
+*/
 function parseWholeQuotedCommaLine(line){
   let s = line.trim();
   if(!(s.startsWith('"') && s.endsWith('"'))) return null;
@@ -621,25 +533,36 @@ function parseWholeQuotedCommaLine(line){
 
   const commas = [];
   for(let i=0;i<s.length;i++) if(s[i] === ",") commas.push(i);
-  if(commas.length < 3) return null;
+  if(commas.length < 2) return null;
 
-  // assume pattern: id, status, date, time, ...
-  const c1 = commas[0], c2 = commas[1], c3 = commas[2];
-  const c4 = commas[3] ?? -1;
+  const c1 = commas[0], c2 = commas[1];
+  const c3 = commas[2] ?? -1;
 
   const idStr = s.slice(0,c1).trim();
   const id = parseInt(idStr,10);
   if(!Number.isFinite(id)) return null;
 
+  // CASE A: 2 commas => id, status, datetime
+  if(commas.length === 2){
+    const status = s.slice(c1+1, c2).trim();
+    const dtRaw = s.slice(c2+1).trim();
+    const d = parseDateOnlyFlexible(dtRaw);
+    if(!d) return null;
+    const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
+    return { id, idText:String(id), status: status || "(no status)", datetime: dtRaw, day };
+  }
+
+  // CASE B: >=3 commas => id, status, date, time?, ...
   const status = s.slice(c1+1, c2).trim();
   const dateStr = s.slice(c2+1, c3).trim();
-  const timeStr = c4 !== -1 ? s.slice(c3+1, c4).trim() : "";
+  const restAfter = s.slice(c3+1).trim();
 
-  const d = parseDateOnlyFlexible(dateStr);
+  // date may include time already, still OK (we only need day)
+  const d = parseDateOnlyFlexible(dateStr) || parseDateOnlyFlexible(restAfter);
   if(!d) return null;
 
   const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-  const dt = (dateStr + (timeStr && isTimeField(timeStr) ? " " + timeStr : "")).trim();
+  const dt = (dateStr + (restAfter ? " " + restAfter : "")).trim();
 
   return { id, idText:String(id), status: status || "(no status)", datetime: dt, day };
 }
@@ -680,6 +603,7 @@ function parseText(text){
   const rows = [];
 
   for(const line0 of lines){
+    // try quoted-line parser first (handles 2 commas too)
     const q = parseWholeQuotedCommaLine(line0);
     if(q){ rows.push(q); continue; }
 
@@ -759,6 +683,7 @@ function normalizeDateInput(v){
   if(!d) return null;
   return dayKeyFrom(d.yyyy, d.mm, d.dd);
 }
+
 function applyDateFilter(){
   if(!allRows.length){ setStatus("Process first", "bad"); return; }
 
@@ -878,13 +803,11 @@ function processCSV(){
     return;
   }
 
-  // auto-fill latest day into singleDate
   const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
   $("singleDate").value = days[0] || "";
   setStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
 }
 
-/* UI Mode toggle visuals */
 function refreshModeUI(){
   const m = dateMode();
   $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
@@ -896,7 +819,6 @@ function refreshModeUI(){
   setStatus(`Date mode: ${m}`, "ok");
 }
 
-/* Wire */
 $("btnProcess").addEventListener("click", processCSV);
 $("btnCopy").addEventListener("click", copyIDs);
 $("btnExport").addEventListener("click", exportVisibleCSV);
