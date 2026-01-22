@@ -3,285 +3,420 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer — Pro Human UI</title>
+<title>CSV Analyzer imacro</title>
 
 <style>
 :root{
-  --bg0:#070b14;
-  --bg1:#0b1220;
-  --line:rgba(148,163,184,.18);
+  --bg:#0b1020;
+  --surface:#0f1730;
+  --surface2:#101b3a;
+  --panel:#0c1226;
+  --border:rgba(148,163,184,.16);
+  --text:#e9eefc;
+  --muted:#9aa7c2;
 
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-
-  --shadow: 0 18px 60px rgba(0,0,0,.45);
-  --shadow2: 0 10px 30px rgba(0,0,0,.35);
-
-  --focus: rgba(99,102,241,.22);
-
-  --c1:#6366f1;
-  --c2:#22d3ee;
+  --brand:#6d5efc;
+  --brand2:#27d7ff;
   --ok:#22c55e;
   --bad:#ef4444;
   --warn:#f59e0b;
 
+  --shadow: 0 18px 60px rgba(0,0,0,.45);
+  --shadow2: 0 10px 25px rgba(0,0,0,.35);
+  --ring: 0 0 0 4px rgba(109,94,252,.18);
+
   --r:18px;
   --r2:14px;
+
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
   margin:0;
+  font-family:var(--sans);
   color:var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   background:
-    radial-gradient(900px 520px at 10% 0%, rgba(99,102,241,.35), transparent 60%),
-    radial-gradient(650px 420px at 92% 8%, rgba(34,211,238,.22), transparent 60%),
-    radial-gradient(800px 520px at 45% 100%, rgba(34,197,94,.10), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
+    radial-gradient(1200px 600px at 10% 0%, rgba(109,94,252,.25), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(39,215,255,.14), transparent 60%),
+    radial-gradient(900px 500px at 60% 100%, rgba(34,197,94,.10), transparent 55%),
+    linear-gradient(180deg, #070b16, var(--bg));
 }
 
-.container{
-  max-width: 1380px;
-  margin: 34px auto;
-  padding: 0 18px 34px;
+.wrap{
+  max-width: 1440px;
+  margin: 28px auto;
+  padding: 0 18px 28px;
 }
 
-.header{
+/* Topbar */
+.topbar{
   display:flex;
-  align-items:flex-end;
+  align-items:center;
   justify-content:space-between;
-  gap:16px;
+  gap:14px;
   margin-bottom: 14px;
 }
-.brand{display:flex;flex-direction:column;gap:6px;}
-.brand h1{margin:0;font-size:28px;letter-spacing:.2px;}
-.brand p{margin:0;color:var(--muted);font-size:13px;line-height:1.35;}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo{
+  width:40px;height:40px;border-radius:14px;
+  background: linear-gradient(135deg, rgba(109,94,252,.95), rgba(39,215,255,.65));
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  position:relative;
+}
+.logo:after{
+  content:"";
+  position:absolute; inset:10px;
+  border-radius:10px;
+  background: rgba(255,255,255,.15);
+}
+.brand h1{
+  font-size: 20px;
+  margin:0;
+  letter-spacing:.2px;
+}
+.brand p{
+  margin:3px 0 0;
+  font-size:12.5px;
+  color:var(--muted);
+}
 
+.rightStatus{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
 .pill{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:999px;
-  border:1px solid var(--line);
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  border-radius: 999px;
+  border:1px solid var(--border);
   background: rgba(255,255,255,.03);
   box-shadow: var(--shadow2);
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 12px;
+  color:var(--muted);
+  font-weight:800;
+  font-size:12px;
+  max-width: 520px;
 }
 .dot{
-  width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);
-  box-shadow:0 0 0 3px rgba(148,163,184,.12);
+  width:9px;height:9px;border-radius:999px;
+  background: rgba(148,163,184,.55);
+  box-shadow: 0 0 0 3px rgba(148,163,184,.12);
 }
-.dot.ok{background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14);}
-.dot.bad{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14);}
-.dot.warn{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14);}
+.dot.ok{ background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14); }
+.dot.bad{ background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14); }
+.dot.warn{ background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14); }
 
+.hotkeys{
+  display:none;
+  padding:10px 12px;
+  border-radius: 999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+@media(min-width:1100px){ .hotkeys{display:block;} }
+
+/* Layout */
 .shell{
-  border:1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: var(--r);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   box-shadow: var(--shadow);
-  padding: 16px;
+  padding: 14px;
 }
 
 .grid{
   display:grid;
-  grid-template-columns: 1.25fr .75fr;
-  gap: 16px;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 14px;
 }
-@media (max-width: 1000px){
-  .grid{grid-template-columns:1fr}
+@media(max-width:1050px){
+  .grid{grid-template-columns:1fr;}
 }
 
-.panel{
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.82);
+.card{
+  border: 1px solid var(--border);
+  background: rgba(10,14,30,.78);
   border-radius: var(--r);
   padding: 14px;
 }
-.panelTitle{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;margin-bottom:10px;
-}
-.panelTitle b{font-size: 13px}
-.panelTitle span{color:var(--muted);font-weight:800;font-size:12px}
 
-textarea{
-  width:100%;
-  min-height: 310px;
-  border-radius: var(--r);
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  color: var(--text);
-  padding: 14px 14px;
-  outline:none;
-  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12.7px;
-  line-height: 1.42;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+/* Headers inside cards */
+.cardHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:10px;
+  margin-bottom: 10px;
 }
-textarea:focus{
-  border-color: rgba(99,102,241,.85);
-  box-shadow: 0 0 0 4px var(--focus);
-}
-
-.kpis{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.kpi{
-  padding: 12px 12px;
-  border-radius: var(--r2);
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
+.cardHead .title{
   display:flex;
   flex-direction:column;
   gap:4px;
 }
-.kpi span{color:var(--muted);font-size:12px;font-weight:800;}
-.kpi b{font-size:18px;letter-spacing:.2px;}
+.cardHead .title b{
+  font-size: 13px;
+  letter-spacing:.3px;
+}
+.cardHead .title span{
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.smallTag{
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(233,238,252,.9);
+  padding: 8px 10px;
+  border-radius: 999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.03);
+}
 
-hr.sep{border:none;height:1px;background:var(--line);margin: 12px 0;}
+/* Input */
+textarea{
+  width:100%;
+  min-height: 360px;
+  border-radius: var(--r);
+  border:1px solid var(--border);
+  background: rgba(6,10,22,.88);
+  color: var(--text);
+  padding: 14px;
+  outline:none;
+  font-family: var(--mono);
+  font-size: 12.6px;
+  line-height: 1.45;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+textarea:focus{
+  border-color: rgba(109,94,252,.55);
+  box-shadow: var(--ring);
+}
 
-.controls{
+/* KPI Row */
+.kpis{
   display:grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  gap:10px;
+  margin-bottom: 12px;
 }
-@media (max-width:1000px){ .controls{grid-template-columns:1fr} }
+@media(max-width:520px){ .kpis{grid-template-columns:1fr;} }
+.kpi{
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  border-radius: var(--r2);
+  padding: 12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.kpi span{
+  color: var(--muted);
+  font-weight:800;
+  font-size: 12px;
+}
+.kpi b{
+  font-size: 18px;
+  letter-spacing:.2px;
+}
+.kpi .mini{
+  font-family: var(--mono);
+  font-size: 12px;
+  color: rgba(154,167,194,.9);
+}
 
-/* Buttons — coherent palette */
+/* Buttons */
+.btnRow{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:10px;
+}
+@media(max-width:520px){ .btnRow{grid-template-columns:1fr;} }
+
 .btn{
-  width:100%;
+  border:none;
   border-radius: 14px;
-  border:1px solid rgba(255,255,255,.10);
-  padding: 11px 12px;
-  cursor:pointer;
-  color:white;
+  padding: 12px 12px;
   font-weight: 900;
   letter-spacing:.2px;
-  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
-  background: linear-gradient(135deg, rgba(99,102,241,.85), rgba(34,211,238,.55));
-  box-shadow: 0 10px 22px rgba(0,0,0,.28);
-}
-.btn:hover{
-  filter:brightness(1.05);
-  box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);
+  color:white;
+  cursor:pointer;
+  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, opacity .12s ease;
+  box-shadow: 0 12px 24px rgba(0,0,0,.28);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
 }
 .btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2); box-shadow:none;}
+.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.btn.primary{
+  background: linear-gradient(135deg, rgba(109,94,252,.95), rgba(39,215,255,.65));
+}
+.btn.secondary{
+  background: linear-gradient(135deg, rgba(39,215,255,.45), rgba(109,94,252,.55));
+}
+.btn.ghost{
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  box-shadow:none;
+}
+.btn:hover{filter:brightness(1.05)}
 
-.btn.process,.btn.check,.btn.apply{
-  background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));
-  border-color: rgba(99,102,241,.25);
+/* Sections inside control card */
+.section{
+  margin-top: 12px;
+  border-top: 1px solid rgba(148,163,184,.12);
+  padding-top: 12px;
 }
-.btn.copy,.btn.copyMissing{
-  background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55));
-  border-color: rgba(34,211,238,.18);
-}
-.btn.export,.btn.exportMissing{
-  background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70));
-  border-color: rgba(167,139,250,.22);
-}
-.btn.clear{
-  background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55));
-  border-color: rgba(148,163,184,.18);
-}
-
-.sectionTitle{
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-  margin: 2px 0 8px;
-}
-.sectionTitle b{font-size:13px}
-.sectionTitle small{color:var(--muted);font-weight:800}
-
-.modeRow{display:flex; gap:10px; flex-wrap:wrap;}
-.mode{
-  flex:1;
-  min-width: 160px;
-  display:flex; align-items:center; justify-content:center;
+.sectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap:10px;
+  margin-bottom: 8px;
+}
+.sectionHead b{font-size:13px}
+.sectionHead small{color:var(--muted);font-weight:800}
+
+/* Segmented controls */
+.segment{
+  display:flex;
+  gap:10px;
+}
+.segBtn{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding: 11px 12px;
   border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  padding: 10px 12px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.03);
   font-weight: 900;
   cursor:pointer;
+  user-select:none;
 }
-.mode input{accent-color: var(--c2)}
-.mode.active{
-  border-color: rgba(99,102,241,.7);
-  box-shadow: 0 0 0 4px rgba(99,102,241,.14);
-  background: rgba(99,102,241,.08);
+.segBtn input{accent-color: var(--brand2)}
+.segBtn.active{
+  border-color: rgba(109,94,252,.6);
+  background: rgba(109,94,252,.12);
+  box-shadow: 0 0 0 4px rgba(109,94,252,.12);
 }
+
+.two{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+@media(max-width:520px){ .two{grid-template-columns:1fr;} }
 
 input{
   width:100%;
   border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
+  border:1px solid var(--border);
+  background: rgba(6,10,22,.88);
   color:var(--text);
   padding: 11px 12px;
   outline:none;
   font-weight: 900;
 }
 input:focus{
-  border-color: rgba(99,102,241,.85);
-  box-shadow: 0 0 0 4px var(--focus);
+  border-color: rgba(109,94,252,.55);
+  box-shadow: var(--ring);
 }
-.hint{margin-top:6px;color: var(--muted);font-size:12px;font-weight:800;}
+.hint{
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
 
-.two{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;}
-@media(max-width:500px){.two{grid-template-columns:1fr}}
+/* Status pills */
+.pills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.pillOpt{
+  cursor:pointer;
+  user-select:none;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(148,163,184,.22);
+  background: rgba(255,255,255,.03);
+  font-weight: 900;
+  font-size: 12px;
+}
+.pillOpt.on{
+  border-color: rgba(39,215,255,.35);
+  background: rgba(39,215,255,.10);
+  box-shadow: 0 0 0 3px rgba(39,215,255,.08);
+}
+.pillOpt small{opacity:.75;font-weight:900}
+.miniActions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.miniBtn{
+  padding: 8px 10px;
+  border-radius: 12px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  font-weight: 900;
+  cursor:pointer;
+}
 
-.badges{display:flex; flex-wrap:wrap; gap:8px;margin-top:10px;}
+/* Results box */
+.box{
+  border:1px solid var(--border);
+  background: rgba(6,10,22,.88);
+  border-radius: 14px;
+  padding: 10px;
+  max-height: 220px;
+  overflow:auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre;
+}
+.badges{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;
+}
 .badge{
   padding: 7px 10px;
   border-radius: 999px;
-  border:1px solid var(--line);
+  border:1px solid var(--border);
   background: rgba(255,255,255,.03);
   font-size: 12px;
   font-weight: 900;
 }
-.badge b{color: var(--c2);}
-
-.box{
-  margin-top:10px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  border-radius: 14px;
-  padding: 10px;
-  max-height: 210px;
-  overflow:auto;
-  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12px;
-  white-space: pre;
-}
-.status{
-  margin-top:10px;
-  border-radius: 14px;
-  border:1px dashed rgba(148,163,184,.25);
-  padding: 10px 12px;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--muted);
-}
+.badge b{color: var(--brand2);}
 
 /* Table */
 .tableWrap{
-  margin-top:16px;
-  border:1px solid var(--line);
+  margin-top: 14px;
+  border:1px solid var(--border);
   border-radius: var(--r);
   overflow:auto;
-  background: rgba(2,6,23,.82);
+  background: rgba(10,14,30,.70);
   max-height: 560px;
 }
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead{
   position:sticky; top:0; z-index:2;
-  background: rgba(15,26,46,.95);
+  background: rgba(16,27,58,.92);
   backdrop-filter: blur(8px);
 }
 th,td{
@@ -289,124 +424,188 @@ th,td{
   border-bottom: 1px solid rgba(148,163,184,.14);
   white-space:nowrap;
 }
-tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{text-align:center;color:var(--muted);padding: 26px;font-weight: 800;}
+tbody tr:hover{background: rgba(109,94,252,.08)}
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding: 26px;
+  font-weight: 800;
+}
+
+/* Footer status line */
+.statusLine{
+  margin-top: 10px;
+  border-radius: 14px;
+  border:1px dashed rgba(148,163,184,.24);
+  padding: 10px 12px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+}
 </style>
 </head>
 
 <body>
-<div class="container">
+<div class="wrap">
 
-  <div class="header">
+  <div class="topbar">
     <div class="brand">
-      <h1>CSV Analyzer</h1>
-      <p>Paste logs → filter by date (single/range) → check ID range → get NOT processed IDs.</p>
+      <div class="logo"></div>
+      <div>
+        <h1>CSV Analyzer</h1>
+        <p>Process logs → filter (date + status) → check ID range → list NOT processed IDs.</p>
+      </div>
     </div>
-    <div class="pill" id="pill">
-      <span class="dot" id="pillDot"></span>
-      <span id="pillText">Ready</span>
+
+    <div class="rightStatus">
+      <div class="hotkeys">Tip: Process → Apply filters → Check</div>
+      <div class="pill" id="pill">
+        <span class="dot" id="pillDot"></span>
+        <span id="pillText">Ready</span>
+      </div>
     </div>
   </div>
 
   <div class="shell">
     <div class="grid">
 
-      <div class="panel">
-        <div class="panelTitle">
-          <b>Input</b>
-          <span>Paste your CSV / logs here</span>
+      <!-- LEFT: INPUT -->
+      <div class="card">
+        <div class="cardHead">
+          <div class="title">
+            <b>Input</b>
+            <span>Paste CSV / logs (date can be anywhere in the line)</span>
+          </div>
+          <div class="smallTag">Smart parse</div>
         </div>
+
         <textarea id="csvInput" placeholder='Examples:
-"4475,search on Website is done:booking.com,20-01-2026 20-9"
-"4338,Translate succes,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
-2504, search Nathan passed successfully,2026-01-16
-1961,input empty,21-12-2024_11-7
+"5377,FAILED,2025-11-17 17:00"
+"5385,Alright ..,SUCCESS,Verify your email,2025-11-17 17:02"
+13:47:53,"2504, search Nathan...,2026-01-16"
+4476;Failed;20-01-2026 20-10;something
 '></textarea>
       </div>
 
-      <div class="panel">
-        <div class="panelTitle">
-          <b>Controls</b>
-          <span>Classic output (table + box)</span>
+      <!-- RIGHT: CONTROLS -->
+      <div class="card">
+        <div class="cardHead">
+          <div class="title">
+            <b>Controls</b>
+            <span>Filters affect table + range check</span>
+          </div>
+          <div class="smallTag">Professional</div>
         </div>
 
         <div class="kpis">
-          <div class="kpi"><span>Total rows</span><b id="total">—</b></div>
-          <div class="kpi"><span>Visible rows</span><b id="count">—</b></div>
-        </div>
-
-        <hr class="sep">
-
-        <div class="controls">
-          <button class="btn process" id="btnProcess">Process</button>
-          <button class="btn copy" id="btnCopy">📋 Copy IDs</button>
-          <button class="btn export" id="btnExport">⬇ Export CSV</button>
-        </div>
-
-        <hr class="sep">
-
-        <div class="sectionTitle">
-          <b>Date filter</b>
-          <small id="dateModeLabel">Single day</small>
-        </div>
-
-        <div class="modeRow">
-          <label class="mode active" id="modeSingle">
-            <input type="radio" name="dateMode" value="single" checked>
-            Single day
-          </label>
-          <label class="mode" id="modeRange">
-            <input type="radio" name="dateMode" value="range">
-            Date range
-          </label>
-        </div>
-
-        <div id="singleWrap" style="margin-top:10px">
-          <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
-          <div class="hint">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026</div>
-        </div>
-
-        <div id="rangeWrap" style="margin-top:10px;display:none">
-          <div class="two">
-            <input id="dateFrom" placeholder="From day">
-            <input id="dateTo" placeholder="To day">
+          <div class="kpi">
+            <span>Total parsed</span>
+            <b id="total">—</b>
+            <div class="mini" id="kpiDays">—</div>
           </div>
-          <div class="hint">Tip: if From > To we auto-swap</div>
+          <div class="kpi">
+            <span>Visible rows</span>
+            <b id="count">—</b>
+            <div class="mini" id="kpiScope">—</div>
+          </div>
+          <div class="kpi">
+            <span>Not processed</span>
+            <b id="missingCount">0</b>
+            <div class="mini">after Check</div>
+          </div>
         </div>
 
-        <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
-          <button class="btn apply" id="btnApplyDate">Apply date</button>
-          <button class="btn clear" id="btnClearDate">Clear</button>
+        <div class="btnRow">
+          <button class="btn primary" id="btnProcess">⚡ Process</button>
+          <button class="btn secondary" id="btnCopy">📋 Copy IDs</button>
+          <button class="btn ghost" id="btnExport">⬇ Export CSV</button>
         </div>
 
-        <hr class="sep">
+        <!-- Date filter -->
+        <div class="section">
+          <div class="sectionHead">
+            <b>Date filter</b>
+            <small id="dateModeLabel">Single day</small>
+          </div>
 
-        <div class="sectionTitle">
-          <b>ID range check</b>
-          <small id="scopeLabel">—</small>
+          <div class="segment">
+            <label class="segBtn active" id="modeSingle">
+              <input type="radio" name="dateMode" value="single" checked>
+              Single day
+            </label>
+            <label class="segBtn" id="modeRange">
+              <input type="radio" name="dateMode" value="range">
+              Date range
+            </label>
+          </div>
+
+          <div id="singleWrap" style="margin-top:10px">
+            <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
+            <div class="hint">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026</div>
+          </div>
+
+          <div id="rangeWrap" style="margin-top:10px;display:none">
+            <div class="two">
+              <input id="dateFrom" placeholder="From day">
+              <input id="dateTo" placeholder="To day">
+            </div>
+            <div class="hint">If From > To we auto-swap</div>
+          </div>
         </div>
 
-        <div class="two">
-          <input id="fromId" type="number" value="1961" min="0" placeholder="From ID">
-          <input id="toId" type="number" value="2240" min="0" placeholder="To ID">
+        <!-- Status filter -->
+        <div class="section">
+          <div class="sectionHead">
+            <b>Status filter</b>
+            <small>Multi-select</small>
+          </div>
+
+          <div class="miniActions" style="margin-bottom:8px">
+            <button class="miniBtn" id="btnStatusClear">Clear status</button>
+            <div class="hint" style="margin:0;">If none selected → all statuses</div>
+          </div>
+
+          <div class="pills" id="statusPills">
+            <div class="empty" style="padding:8px;">Process first…</div>
+          </div>
         </div>
 
-        <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr">
-          <button class="btn check" id="btnRange">Check</button>
-          <button class="btn copyMissing" id="btnCopyMissing">Copy not</button>
-          <button class="btn exportMissing" id="btnExportMissing">Export not</button>
+        <!-- Apply / Clear -->
+        <div class="section">
+          <div class="btnRow" style="grid-template-columns: 1fr 1fr;">
+            <button class="btn primary" id="btnApplyFilters">✅ Apply filters</button>
+            <button class="btn ghost" id="btnClearFilters">↩ Clear filters</button>
+          </div>
         </div>
 
-        <div class="badges">
-          <div class="badge">Processed unique: <b id="procInRange">0</b></div>
-          <div class="badge">Not processed: <b id="missingCount">0</b></div>
-          <div class="badge">Duplicates: <b id="dupCount">0</b></div>
+        <!-- Range -->
+        <div class="section">
+          <div class="sectionHead">
+            <b>ID range check</b>
+            <small id="scopeLabel">—</small>
+          </div>
+
+          <div class="two">
+            <input id="fromId" type="number" value="1961" min="0" placeholder="From ID">
+            <input id="toId" type="number" value="2240" min="0" placeholder="To ID">
+          </div>
+
+          <div class="btnRow" style="margin-top:10px;">
+            <button class="btn primary" id="btnRange">🔎 Check</button>
+            <button class="btn secondary" id="btnCopyMissing">📋 Copy not</button>
+            <button class="btn ghost" id="btnExportMissing">⬇ Export not</button>
+          </div>
+
+          <div class="badges">
+            <div class="badge">Processed unique: <b id="procInRange">0</b></div>
+            <div class="badge">Duplicates: <b id="dupCount">0</b></div>
+          </div>
+
+          <div class="box" id="missingBox" style="margin-top:10px">Run “Check”…</div>
+          <div class="statusLine" id="status">Waiting…</div>
         </div>
 
-        <div class="box" id="missingBox">Run “Check”…</div>
-        <div class="status" id="status">Waiting…</div>
       </div>
-
     </div>
 
     <div class="tableWrap">
@@ -424,11 +623,13 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
 <script>
+/* =========================
+   Helpers
+========================= */
 const $ = id => document.getElementById(id);
 
 function setPill(type, text){
@@ -446,7 +647,6 @@ function setStatus(msg, type="muted"){
     type === "warn" ? "var(--warn)" : "var(--muted)";
   setPill(type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "", msg);
 }
-
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -477,15 +677,18 @@ function cleanField(v){
     .trim();
 }
 
+/* =========================
+   Smart date + time detection
+========================= */
 function isTimeField(v){
   v = String(v||"").trim();
-  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v) || /^(\d{1,2})-(\d{1,2})$/.test(v);
+  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
 }
-
 function parseDateOnlyFlexible(v){
   v = String(v||"").trim();
   if(!v) return null;
 
+  // if token contains time after space or underscore, keep date only for parsing
   if(v.includes("_")) v = v.split("_")[0].trim();
   if(/\s/.test(v)) v = v.split(/\s+/)[0].trim();
 
@@ -505,6 +708,7 @@ function parseDateOnlyFlexible(v){
   } else if(m[3].length === 4){
     yyyy = c;
     if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
+    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
     else { mm = a; dd = b; }           // default MM/DD/YYYY
   } else return null;
 
@@ -523,50 +727,9 @@ function toUTCDate(dayKey){
   return new Date(Date.UTC(y, m-1, d));
 }
 
-/* ✅ FIXED: supports whole quoted line with 2 commas too:
-   "4475,search ...,20-01-2026 20-9"
-*/
-function parseWholeQuotedCommaLine(line){
-  let s = line.trim();
-  if(!(s.startsWith('"') && s.endsWith('"'))) return null;
-  s = s.slice(1,-1);
-
-  const commas = [];
-  for(let i=0;i<s.length;i++) if(s[i] === ",") commas.push(i);
-  if(commas.length < 2) return null;
-
-  const c1 = commas[0], c2 = commas[1];
-  const c3 = commas[2] ?? -1;
-
-  const idStr = s.slice(0,c1).trim();
-  const id = parseInt(idStr,10);
-  if(!Number.isFinite(id)) return null;
-
-  // CASE A: 2 commas => id, status, datetime
-  if(commas.length === 2){
-    const status = s.slice(c1+1, c2).trim();
-    const dtRaw = s.slice(c2+1).trim();
-    const d = parseDateOnlyFlexible(dtRaw);
-    if(!d) return null;
-    const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-    return { id, idText:String(id), status: status || "(no status)", datetime: dtRaw, day };
-  }
-
-  // CASE B: >=3 commas => id, status, date, time?, ...
-  const status = s.slice(c1+1, c2).trim();
-  const dateStr = s.slice(c2+1, c3).trim();
-  const restAfter = s.slice(c3+1).trim();
-
-  // date may include time already, still OK (we only need day)
-  const d = parseDateOnlyFlexible(dateStr) || parseDateOnlyFlexible(restAfter);
-  if(!d) return null;
-
-  const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-  const dt = (dateStr + (restAfter ? " " + restAfter : "")).trim();
-
-  return { id, idText:String(id), status: status || "(no status)", datetime: dt, day };
-}
-
+/* =========================
+   CSV splitting
+========================= */
 function detectDelimiter(lines){
   let semi=0, comma=0;
   for(const ln of lines.slice(0,30)){
@@ -595,59 +758,143 @@ function splitCSVLine(line, delim){
   return out;
 }
 
+/* =========================
+   NEW: robust row parser
+   - find first numeric ID anywhere
+   - find date token anywhere (scan from end)
+   - extract STATUS token if exists (SUCCESS/FAILED/etc)
+========================= */
+const KNOWN_STATUS = new Set([
+  "success","succeeded","ok","passed","pass",
+  "failed","fail","error","done","completed","complete",
+  "pending","processing","not processed","skipped","skip"
+]);
+
+function looksLikeStatusToken(v){
+  const s = String(v||"").trim();
+  if(!s) return false;
+  const k = s.toLowerCase();
+  if(KNOWN_STATUS.has(k)) return true;
+  // handle things like SUCCESS, FAILED, DONE, ERROR with punctuation
+  const k2 = k.replace(/[^a-z\s]/g,"").trim();
+  return KNOWN_STATUS.has(k2);
+}
+
+function parseLineToRow(line, delim){
+  let ln = line.trim();
+  if(!ln) return null;
+
+  // If whole line is quoted: strip outer quotes (common in your data)
+  if((ln.startsWith('"') && ln.endsWith('"')) || (ln.startsWith("'") && ln.endsWith("'"))){
+    ln = ln.slice(1,-1).trim();
+  }
+
+  // Split
+  const partsRaw = splitCSVLine(ln, delim).map(cleanField).filter(v => v !== "");
+  if(partsRaw.length < 2) return null;
+
+  // Find ID anywhere
+  let idIndex = -1;
+  let id = null;
+  for(let i=0;i<partsRaw.length;i++){
+    const candidate = parseInt(partsRaw[i], 10);
+    if(Number.isFinite(candidate)){
+      idIndex = i;
+      id = candidate;
+      break;
+    }
+  }
+  if(idIndex === -1) return null;
+
+  // Consider only tail after ID
+  const tail = partsRaw.slice(idIndex + 1);
+  if(!tail.length) return null;
+
+  // Find date token anywhere in tail (scan from end is safer)
+  let dateIdx = -1;
+  let parsedDate = null;
+  for(let i=tail.length-1;i>=0;i--){
+    const maybe = parseDateOnlyFlexible(tail[i]);
+    if(maybe){
+      dateIdx = i;
+      parsedDate = maybe;
+      break;
+    }
+  }
+  if(dateIdx === -1) return null;
+
+  const day = dayKeyFrom(parsedDate.yyyy, parsedDate.mm, parsedDate.dd);
+
+  // Build datetime string (keep original token + time if next token is time)
+  let datetime = tail[dateIdx];
+  const next = tail[dateIdx + 1];
+  if(next && isTimeField(next) && !/\d{1,2}:\d{2}/.test(datetime)){
+    datetime = (datetime + " " + next).trim();
+  }
+
+  // Extract status: look for known status token within tail excluding date zone
+  let status = "";
+  for(let i=0;i<tail.length;i++){
+    if(i === dateIdx || i === dateIdx+1) continue;
+    if(looksLikeStatusToken(tail[i])){
+      status = tail[i];
+      break;
+    }
+  }
+  // fallback: first token in tail (before date) if no known status
+  if(!status){
+    const beforeDate = tail.slice(0, dateIdx);
+    status = beforeDate.find(x => x.trim()) || "(no status)";
+  }
+
+  return {
+    id,
+    idText: String(id),
+    status,
+    datetime,
+    day
+  };
+}
+
 function parseText(text){
   const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
   if(!lines.length) return [];
-
   const delim = detectDelimiter(lines);
+
   const rows = [];
-
-  for(const line0 of lines){
-    // try quoted-line parser first (handles 2 commas too)
-    const q = parseWholeQuotedCommaLine(line0);
-    if(q){ rows.push(q); continue; }
-
-    const parts = splitCSVLine(line0, delim).map(cleanField).filter(x => x !== "");
-    if(parts.length < 2) continue;
-
-    const id = parseInt(parts[0],10);
-    if(!Number.isFinite(id)) continue;
-
-    // find first date token anywhere
-    let dateIdx = -1, d = null;
-    for(let i=1;i<parts.length;i++){
-      const maybe = parseDateOnlyFlexible(parts[i]);
-      if(maybe){ dateIdx = i; d = maybe; break; }
-    }
-    if(dateIdx === -1) continue;
-
-    let timeStr = "";
-    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) timeStr = parts[dateIdx + 1];
-
-    const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-    const dt = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
-    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
-
-    rows.push({ id, idText:String(id), status, datetime: dt, day });
+  for(const line of lines){
+    // Try with detected delimiter
+    const row = parseLineToRow(line, delim);
+    if(row){ rows.push(row); continue; }
+    // Fallback: try other delimiter (sometimes mixed files)
+    const alt = delim === "," ? ";" : ",";
+    const row2 = parseLineToRow(line, alt);
+    if(row2) rows.push(row2);
   }
-
   return rows;
 }
 
 /* =========================
-   App state + UI
+   App state
 ========================= */
 let allRows = [];
 let visibleRows = [];
 let missingIDs = [];
+let statusSet = new Set();
+let selectedStatuses = new Set();
 
+function statusKey(s){ return String(s||"").trim().toLowerCase(); }
+
+/* =========================
+   UI Render
+========================= */
 function renderTable(){
   const body = $("outputBody");
   body.innerHTML = "";
-
   if(!visibleRows.length){
     body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
     $("count").textContent = "0";
+    $("kpiScope").textContent = "—";
     $("scopeLabel").textContent = "—";
     return;
   }
@@ -662,7 +909,9 @@ function renderTable(){
     `;
     body.appendChild(tr);
   }
+
   $("count").textContent = String(visibleRows.length);
+  $("kpiScope").textContent = "Filters applied";
   $("scopeLabel").textContent = `${visibleRows.length} rows`;
 }
 
@@ -674,6 +923,43 @@ function resetRangeBox(){
   missingIDs = [];
 }
 
+function buildStatusPills(){
+  const el = $("statusPills");
+  el.innerHTML = "";
+
+  if(!statusSet.size){
+    el.innerHTML = `<div class="empty" style="padding:8px;">No statuses found</div>`;
+    return;
+  }
+
+  const counts = new Map();
+  const labelByKey = new Map();
+  for(const r of allRows){
+    const k = statusKey(r.status);
+    counts.set(k, (counts.get(k)||0)+1);
+    if(!labelByKey.has(k)) labelByKey.set(k, r.status);
+  }
+
+  const keys = [...counts.keys()].sort((a,b)=> (counts.get(b)-counts.get(a)) || a.localeCompare(b));
+  for(const k of keys){
+    const label = labelByKey.get(k) || k;
+    const count = counts.get(k) || 0;
+
+    const pill = document.createElement("div");
+    pill.className = "pillOpt" + (selectedStatuses.has(k) ? " on" : "");
+    pill.innerHTML = `${escapeHtml(label)} <small>(${count})</small>`;
+    pill.addEventListener("click", ()=>{
+      if(selectedStatuses.has(k)) selectedStatuses.delete(k);
+      else selectedStatuses.add(k);
+      buildStatusPills();
+    });
+    el.appendChild(pill);
+  }
+}
+
+/* =========================
+   Date mode + filters
+========================= */
 function dateMode(){
   const r = document.querySelector('input[name="dateMode"]:checked');
   return r ? r.value : "single";
@@ -684,16 +970,16 @@ function normalizeDateInput(v){
   return dayKeyFrom(d.yyyy, d.mm, d.dd);
 }
 
-function applyDateFilter(){
+function applyFilters(){
   if(!allRows.length){ setStatus("Process first", "bad"); return; }
 
   const mode = dateMode();
+  let filtered = [];
+
   if(mode === "single"){
     const day = normalizeDateInput($("singleDate").value);
     if(!day){ setStatus("Invalid day", "bad"); return; }
-    visibleRows = allRows.filter(r => r.day === day);
-    renderTable(); resetRangeBox();
-    setStatus(`Filtered by day: ${day}`, "ok");
+    filtered = allRows.filter(r => r.day === day);
   } else {
     const from = normalizeDateInput($("dateFrom").value);
     const to = normalizeDateInput($("dateTo").value);
@@ -701,36 +987,58 @@ function applyDateFilter(){
     const a = toUTCDate(from).getTime();
     const b = toUTCDate(to).getTime();
     const lo = Math.min(a,b), hi = Math.max(a,b);
-
-    visibleRows = allRows.filter(r=>{
+    filtered = allRows.filter(r=>{
       const t = toUTCDate(r.day).getTime();
       return t >= lo && t <= hi;
     });
-    renderTable(); resetRangeBox();
-    setStatus(`Filtered range: ${from} → ${to}`, "ok");
   }
+
+  if(selectedStatuses.size){
+    filtered = filtered.filter(r => selectedStatuses.has(statusKey(r.status)));
+  }
+
+  visibleRows = filtered;
+  renderTable();
+  resetRangeBox();
+
+  const stInfo = selectedStatuses.size ? ` + status(${selectedStatuses.size})` : " + status(ALL)";
+  setStatus(`Applied ✅ (${visibleRows.length} rows${stInfo})`, "ok");
 }
-function clearDateFilter(){
+
+function clearFilters(){
   visibleRows = [...allRows];
   $("singleDate").value = "";
   $("dateFrom").value = "";
   $("dateTo").value = "";
-  renderTable(); resetRangeBox();
-  setStatus("Date filter cleared (showing all rows)", "ok");
+  selectedStatuses.clear();
+  buildStatusPills();
+  renderTable();
+  resetRangeBox();
+  setStatus("Filters cleared (all rows)", "ok");
 }
 
+function clearStatusSelection(){
+  selectedStatuses.clear();
+  buildStatusPills();
+  setStatus("Status cleared (ALL statuses)", "ok");
+}
+
+/* =========================
+   Range check
+========================= */
 function normalizeNumRange(a,b){
   let from = Number(a), to = Number(b);
   if(Number.isNaN(from) || Number.isNaN(to)) return null;
   if(from > to){ const t=from; from=to; to=t; }
   return {from,to};
 }
+
 function checkRange(){
-  if(!visibleRows.length){ setStatus("No visible rows (apply date first)", "bad"); return; }
+  if(!visibleRows.length){ setStatus("No visible rows (apply filters first)", "bad"); return; }
   const rr = normalizeNumRange($("fromId").value, $("toId").value);
   if(!rr){ setStatus("Invalid ID range", "bad"); return; }
-  const {from,to} = rr;
 
+  const {from,to} = rr;
   const counts = new Map();
   for(const r of visibleRows) counts.set(r.id, (counts.get(r.id)||0)+1);
 
@@ -744,10 +1052,11 @@ function checkRange(){
 
   missingIDs = [];
   for(let i=from;i<=to;i++) if(!counts.has(i)) missingIDs.push(i);
+
   $("missingCount").textContent = String(missingIDs.length);
 
   $("missingBox").textContent =
-`Scope = visible rows (your date filter)
+`Scope = visible rows (date + status filters)
 ID Range: ${from} → ${to}
 
 NOT processed (${missingIDs.length}):
@@ -758,6 +1067,9 @@ ${missingIDs.slice(0, 400).join("\n") || "—"}
   setStatus("Range computed ✅", "ok");
 }
 
+/* =========================
+   Copy / Export
+========================= */
 function copyIDs(){
   if(!visibleRows.length){ setStatus("No visible rows to copy", "warn"); return; }
   navigator.clipboard.writeText(visibleRows.map(r=>r.idText).join("\n"))
@@ -787,12 +1099,23 @@ function exportMissing(){
   setStatus(`Exported ${name}`, "ok");
 }
 
+/* =========================
+   Process
+========================= */
 function processCSV(){
   const text = $("csvInput").value.trim();
   if(!text){ setStatus("Input empty", "bad"); return; }
 
   allRows = parseText(text);
   $("total").textContent = String(allRows.length);
+
+  const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
+  $("kpiDays").textContent = days.length ? `Days: ${days.slice(0,3).join(", ")}${days.length>3?" …":""}` : "Days: —";
+
+  statusSet = new Set();
+  for(const r of allRows) statusSet.add(statusKey(r.status));
+  selectedStatuses.clear();
+  buildStatusPills();
 
   visibleRows = [...allRows];
   renderTable();
@@ -803,11 +1126,12 @@ function processCSV(){
     return;
   }
 
-  const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
   $("singleDate").value = days[0] || "";
-  setStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
+  $("kpiScope").textContent = "No filter yet";
+  setStatus("Parsed ✅ Select date/status then Apply filters.", "ok");
 }
 
+/* Mode UI */
 function refreshModeUI(){
   const m = dateMode();
   $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
@@ -819,12 +1143,15 @@ function refreshModeUI(){
   setStatus(`Date mode: ${m}`, "ok");
 }
 
+/* Wire */
 $("btnProcess").addEventListener("click", processCSV);
 $("btnCopy").addEventListener("click", copyIDs);
 $("btnExport").addEventListener("click", exportVisibleCSV);
 
-$("btnApplyDate").addEventListener("click", applyDateFilter);
-$("btnClearDate").addEventListener("click", clearDateFilter);
+$("btnApplyFilters").addEventListener("click", applyFilters);
+$("btnClearFilters").addEventListener("click", clearFilters);
+
+$("btnStatusClear").addEventListener("click", clearStatusSelection);
 
 $("btnRange").addEventListener("click", checkRange);
 $("btnCopyMissing").addEventListener("click", copyMissing);
