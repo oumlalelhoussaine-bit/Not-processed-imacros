@@ -3,14 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer — Pro (Date + Normalized Status + Range Missing)</title>
+<title>Imacros Analyzer</title>
 
 <style>
 :root{
   --bg0:#070b14;
   --bg1:#0b1220;
   --panel:rgba(2,6,23,.82);
-  --card:rgba(255,255,255,.04);
   --line:rgba(148,163,184,.16);
 
   --text:#e5e7eb;
@@ -45,334 +44,163 @@ body{
     linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
-.container{
-  max-width: 1420px;
-  margin: 28px auto;
-  padding: 0 18px 30px;
-}
-
-.header{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom: 14px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.container{max-width:1420px;margin:28px auto;padding:0 18px 30px}
+.header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:12px}
 .logo{
   width:42px;height:42px;border-radius:14px;
   background: radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.35), transparent 60%),
               linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));
-  box-shadow: 0 12px 26px rgba(0,0,0,.35);
+  box-shadow:0 12px 26px rgba(0,0,0,.35);
 }
-.brand h1{
-  margin:0;
-  font-size: 24px;
-  letter-spacing: .2px;
-}
-.brand p{
-  margin:3px 0 0;
-  color: var(--muted);
-  font-size: 12.8px;
-}
+.brand h1{margin:0;font-size:24px;letter-spacing:.2px}
+.brand p{margin:3px 0 0;color:var(--muted);font-size:12.8px}
 .rightBadges{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  border-radius: 999px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  box-shadow: var(--shadow2);
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 12px;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);box-shadow:var(--shadow2);
+  color:var(--muted);font-weight:800;font-size:12px
 }
-.dot{
-  width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);
-  box-shadow:0 0 0 3px rgba(148,163,184,.12);
-}
-.dot.ok{background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14);}
-.dot.bad{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14);}
-.dot.warn{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14);}
+.dot{width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);box-shadow:0 0 0 3px rgba(148,163,184,.12)}
+.dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.14)}
+.dot.bad{background:var(--bad);box-shadow:0 0 0 3px rgba(239,68,68,.14)}
+.dot.warn{background:var(--warn);box-shadow:0 0 0 3px rgba(245,158,11,.14)}
 
 .shell{
   border:1px solid var(--line);
-  border-radius: var(--r);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  box-shadow: var(--shadow);
-  padding: 16px;
+  border-radius:var(--r);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow:var(--shadow);
+  padding:16px;
 }
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
+@media (max-width:1050px){.grid{grid-template-columns:1fr}}
 
-.grid{
-  display:grid;
-  grid-template-columns: 1.25fr .75fr;
-  gap: 16px;
-}
-@media (max-width: 1050px){
-  .grid{grid-template-columns:1fr}
-}
-
-.panel{
-  border:1px solid var(--line);
-  background: var(--panel);
-  border-radius: var(--r);
-  padding: 14px;
-}
-.panelTitle{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;
-  margin-bottom: 10px;
-}
-.panelTitle b{font-size: 13px}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:14px}
+.panelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.panelTitle b{font-size:13px}
 .panelTitle span{color:var(--muted);font-weight:800;font-size:12px}
 
 textarea{
-  width:100%;
-  min-height: 320px;
-  border-radius: var(--r);
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  color: var(--text);
-  padding: 14px;
-  outline:none;
+  width:100%;min-height:320px;border-radius:var(--r);
+  border:1px solid var(--line);background:rgba(2,6,23,.88);color:var(--text);
+  padding:14px;outline:none;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12.7px;
-  line-height: 1.45;
+  font-size:12.7px;line-height:1.45;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
-textarea:focus{
-  border-color: rgba(99,102,241,.85);
-  box-shadow: 0 0 0 4px var(--focus);
-}
+textarea:focus{border-color:rgba(99,102,241,.85);box-shadow:0 0 0 4px var(--focus)}
 
-.kpis{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-@media(max-width:1050px){ .kpis{grid-template-columns:1fr 1fr} }
+.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:1050px){.kpis{grid-template-columns:1fr 1fr}}
 .kpi{
-  padding: 12px 12px;
-  border-radius: var(--r2);
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  display:flex;
-  flex-direction:column;
-  gap:4px;
+  padding:12px;border-radius:var(--r2);border:1px solid var(--line);
+  background:rgba(255,255,255,.03);display:flex;flex-direction:column;gap:4px
 }
-.kpi span{
-  color:var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-.kpi b{font-size: 18px; letter-spacing: .2px;}
+.kpi span{color:var(--muted);font-size:12px;font-weight:800}
+.kpi b{font-size:18px;letter-spacing:.2px}
 
 hr.sep{border:none;height:1px;background:var(--line);margin:12px 0}
 
-.controls{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width:1050px){ .controls{grid-template-columns:1fr} }
-
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media (max-width:1050px){.controls{grid-template-columns:1fr}}
 .btn{
-  width:100%;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,.10);
-  padding: 11px 12px;
-  cursor:pointer;
-  color:white;
-  font-weight: 900;
-  letter-spacing:.2px;
-  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
-  box-shadow: 0 10px 22px rgba(0,0,0,.28);
+  width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.10);
+  padding:11px 12px;cursor:pointer;color:white;font-weight:900;letter-spacing:.2px;
+  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease;
+  box-shadow:0 10px 22px rgba(0,0,0,.28);
 }
-.btn:hover{
-  filter:brightness(1.05);
-  box-shadow: 0 0 0 3px rgba(99,102,241,.14), 0 14px 28px rgba(0,0,0,.38);
-}
+.btn:hover{filter:brightness(1.05);box-shadow:0 0 0 3px rgba(99,102,241,.14),0 14px 28px rgba(0,0,0,.38)}
 .btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.55; cursor:not-allowed; box-shadow:none; filter:grayscale(.2);}
+.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;filter:grayscale(.2)}
+.btn.process{background:linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70))}
+.btn.copy{background:linear-gradient(135deg, rgba(34,211,238,.58), rgba(99,102,241,.58))}
+.btn.export{background:linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70))}
+.btn.apply{background:linear-gradient(135deg, rgba(99,102,241,.90), rgba(34,211,238,.55))}
+.btn.clear{background:linear-gradient(135deg, rgba(148,163,184,.30), rgba(51,65,85,.55))}
+.btn.check{background:linear-gradient(135deg, rgba(245,158,11,.75), rgba(99,102,241,.65))}
+.btn.copyMissing{background:linear-gradient(135deg, rgba(34,197,94,.75), rgba(34,211,238,.55))}
+.btn.exportMissing{background:linear-gradient(135deg, rgba(239,68,68,.75), rgba(99,102,241,.55))}
 
-.btn.process{background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));}
-.btn.copy{background: linear-gradient(135deg, rgba(34,211,238,.58), rgba(99,102,241,.58));}
-.btn.export{background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70));}
-.btn.apply{background: linear-gradient(135deg, rgba(99,102,241,.90), rgba(34,211,238,.55));}
-.btn.clear{background: linear-gradient(135deg, rgba(148,163,184,.30), rgba(51,65,85,.55));}
-.btn.check{background: linear-gradient(135deg, rgba(245,158,11,.75), rgba(99,102,241,.65));}
-.btn.copyMissing{background: linear-gradient(135deg, rgba(34,197,94,.75), rgba(34,211,238,.55));}
-.btn.exportMissing{background: linear-gradient(135deg, rgba(239,68,68,.75), rgba(99,102,241,.55));}
-
-.sectionTitle{
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-  margin: 2px 0 8px;
-}
+.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 8px}
 .sectionTitle b{font-size:13px}
 .sectionTitle small{color:var(--muted);font-weight:800}
 
-.modeRow{
-  display:flex; gap:10px; flex-wrap:wrap;
-}
+.modeRow{display:flex;gap:10px;flex-wrap:wrap}
 .mode{
-  flex:1;
-  min-width: 160px;
-  display:flex; align-items:center; justify-content:center;
-  gap:10px;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  padding: 10px 12px;
-  font-weight: 900;
-  cursor:pointer;
+  flex:1;min-width:160px;display:flex;align-items:center;justify-content:center;gap:10px;
+  border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.02);
+  padding:10px 12px;font-weight:900;cursor:pointer
 }
-.mode input{accent-color: var(--teal)}
-.mode.active{
-  border-color: rgba(99,102,241,.7);
-  box-shadow: 0 0 0 4px rgba(99,102,241,.12);
-  background: rgba(99,102,241,.07);
-}
+.mode input{accent-color:var(--teal)}
+.mode.active{border-color:rgba(99,102,241,.7);box-shadow:0 0 0 4px rgba(99,102,241,.12);background:rgba(99,102,241,.07)}
 
-input, select{
-  width:100%;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  color:var(--text);
-  padding: 11px 12px;
-  outline:none;
-  font-weight: 900;
+input{
+  width:100%;border-radius:14px;border:1px solid var(--line);
+  background:rgba(2,6,23,.88);color:var(--text);
+  padding:11px 12px;outline:none;font-weight:900
 }
-input:focus, select:focus{
-  border-color: rgba(99,102,241,.85);
-  box-shadow: 0 0 0 4px var(--focus);
-}
-.hint{
-  margin-top:6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
+input:focus{border-color:rgba(99,102,241,.85);box-shadow:0 0 0 4px var(--focus)}
+.hint{margin-top:6px;color:var(--muted);font-size:12px;font-weight:800}
 
-.two{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.two{grid-template-columns:1fr}}
 
-.badges{
-  display:flex; flex-wrap:wrap; gap:8px;
-  margin-top:10px;
-}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .badge{
-  padding: 7px 10px;
-  border-radius: 999px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  font-size: 12px;
-  font-weight: 900;
+  padding:7px 10px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03);font-size:12px;font-weight:900
 }
-.badge b{color: var(--teal);}
+.badge b{color:var(--teal)}
 
 .box{
-  margin-top:10px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  border-radius: 14px;
-  padding: 10px;
-  max-height: 220px;
-  overflow:auto;
+  margin-top:10px;border:1px solid var(--line);background:rgba(2,6,23,.88);
+  border-radius:14px;padding:10px;max-height:220px;overflow:auto;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12px;
-  white-space: pre;
+  font-size:12px;white-space:pre;
 }
-
 .status{
-  margin-top:10px;
-  border-radius: 14px;
-  border:1px dashed rgba(148,163,184,.25);
-  padding: 10px 12px;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--muted);
+  margin-top:10px;border-radius:14px;border:1px dashed rgba(148,163,184,.25);
+  padding:10px 12px;font-weight:800;font-size:13px;color:var(--muted);
 }
 
-/* Status list (compact, scroll) */
-.statusList{
-  margin-top:10px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  border-radius: 14px;
-  padding:10px;
-}
-.statusHeader{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
-}
+.statusList{margin-top:10px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:14px;padding:10px}
+.statusHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .statusHeader b{font-size:12.5px}
 .statusHeader small{color:var(--muted);font-weight:900}
 .statusItems{
   display:flex;flex-wrap:wrap;gap:8px;
-  max-height:120px;
-  overflow:auto;
-  padding-right:4px;
+  max-height:120px;overflow:auto;padding-right:4px
 }
 .pillItem{
   display:inline-flex;align-items:center;gap:8px;
-  padding:7px 10px;
-  border-radius:999px;
+  padding:7px 10px;border-radius:999px;
   border:1px solid rgba(255,255,255,.10);
-  background: rgba(2,6,23,.65);
-  cursor:pointer;
-  font-weight:900;
-  font-size:12px;
+  background:rgba(2,6,23,.65);
+  cursor:pointer;font-weight:900;font-size:12px;
 }
-.pillItem:hover{border-color: rgba(34,211,238,.25)}
+.pillItem:hover{border-color:rgba(34,211,238,.25)}
 .pillItem.active{
-  background: linear-gradient(135deg, rgba(99,102,241,.75), rgba(34,211,238,.45));
-  border-color: rgba(99,102,241,.35);
+  background:linear-gradient(135deg, rgba(99,102,241,.75), rgba(34,211,238,.45));
+  border-color:rgba(99,102,241,.35);
 }
 .pillItem em{font-style:normal;color:var(--muted);font-weight:900}
 
-/* Table */
 .tableWrap{
-  margin-top:16px;
-  border:1px solid var(--line);
-  border-radius: var(--r);
-  overflow:auto;
-  background: rgba(2,6,23,.78);
-  max-height: 560px;
+  margin-top:16px;border:1px solid var(--line);border-radius:var(--r);
+  overflow:auto;background:rgba(2,6,23,.78);max-height:560px
 }
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead{
-  position:sticky; top:0; z-index:2;
-  background: rgba(15,26,46,.95);
-  backdrop-filter: blur(8px);
-}
-th,td{
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(148,163,184,.14);
-  white-space:nowrap;
-}
-tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{
-  text-align:center;
-  color:var(--muted);
-  padding: 26px;
-  font-weight: 800;
-}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:2;background:rgba(15,26,46,.95);backdrop-filter:blur(8px)}
+th,td{padding:12px;border-bottom:1px solid rgba(148,163,184,.14);white-space:nowrap}
+tbody tr:hover{background:rgba(99,102,241,.08)}
+.empty{text-align:center;color:var(--muted);padding:26px;font-weight:800}
 </style>
 </head>
 
 <body>
 <div class="container">
-
   <div class="header">
     <div class="brand">
       <div class="logo"></div>
@@ -393,21 +221,19 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
 
   <div class="shell">
     <div class="grid">
-
-      <!-- LEFT: INPUT -->
       <div class="panel">
         <div class="panelTitle">
           <b>Input</b>
           <span>Paste CSV / logs (date can be anywhere in the line)</span>
         </div>
         <textarea id="csvInput" placeholder='Examples:
+"4276,success,profile picture changed 23-01-2026 3-42"
 "4338,Translate succes,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
 2504, search Nathan passed successfully,2026-01-16
 1961,input empty,21-12-2024_11-7
 '></textarea>
       </div>
 
-      <!-- RIGHT: CONTROLS -->
       <div class="panel">
         <div class="panelTitle">
           <b>Controls</b>
@@ -523,32 +349,22 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
         <div class="box" id="missingBox">Run “Check”…</div>
         <div class="status" id="status">Waiting…</div>
       </div>
-
     </div>
 
     <div class="tableWrap">
       <table>
         <thead>
-          <tr>
-            <th>ID</th>
-            <th>STATUS</th>
-            <th>DATETIME</th>
-            <th>DAY</th>
-          </tr>
+          <tr><th>ID</th><th>STATUS</th><th>DATETIME</th><th>DAY</th></tr>
         </thead>
         <tbody id="outputBody">
           <tr><td colspan="4" class="empty">No data yet</td></tr>
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
 <script>
-/* =========================
-   Helpers
-========================= */
 const $ = id => document.getElementById(id);
 
 function setPill(type, text){
@@ -595,18 +411,29 @@ function cleanField(v){
     .replace(/^'+|'+$/g,"")
     .trim();
 }
+function normalizeLine(line){
+  return String(line ?? "")
+    .replace(/[\u201C\u201D\u00AB\u00BB]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\u00A0/g, " ")
+    .trim();
+}
+function extractFirstInt(s){
+  const m = String(s ?? "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : NaN;
+}
 
-/* =========================
-   Date parsing (flex)
-   Supports:
-   - 2026-01-16
-   - 16-01-2026
-   - 1/20/2026
-   - 21-12-2024_11-7 (we take the date)
-========================= */
-function isTimeField(v){
-  v = String(v||"").trim();
-  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
+/* ===== date utils ===== */
+function dayKeyFrom(yyyy,mm,dd){
+  const pad = n => String(n).padStart(2,"0");
+  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
+}
+function toUTCDate(dayKey){
+  const [y,m,d] = dayKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m-1, d));
+}
+function isValidYMD(y,m,d){
+  return y>=1900 && y<=2100 && m>=1 && m<=12 && d>=1 && d<=31;
 }
 function parseDateOnlyFlexible(v){
   v = String(v||"").trim();
@@ -625,34 +452,54 @@ function parseDateOnlyFlexible(v){
   if([a,b,c].some(n=>Number.isNaN(n))) return null;
 
   let yyyy, mm, dd;
-
   if(m[1].length === 4){
-    yyyy = a; mm = b; dd = c;          // YYYY/MM/DD
+    yyyy = a; mm = b; dd = c;
   } else if(m[3].length === 4){
     yyyy = c;
-    if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
-    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
-    else { mm = a; dd = b; }           // default MM/DD/YYYY
+    if(a > 12){ dd = a; mm = b; }
+    else if(b > 12){ mm = a; dd = b; }
+    else { mm = a; dd = b; }
   } else return null;
 
-  if(yyyy < 1900 || yyyy > 2100) return null;
-  if(mm < 1 || mm > 12) return null;
-  if(dd < 1 || dd > 31) return null;
-
+  if(!isValidYMD(yyyy,mm,dd)) return null;
   return {yyyy, mm, dd};
 }
-function dayKeyFrom(yyyy,mm,dd){
-  const pad = n => String(n).padStart(2,"0");
-  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
-}
-function toUTCDate(dayKey){
-  const [y,m,d] = dayKey.split("-").map(Number);
-  return new Date(Date.UTC(y, m-1, d));
+
+/* ✅ NEW: find date anywhere in a string (fix your case) */
+function findDateInString(text){
+  const s = String(text || "");
+
+  // 1) yyyy-mm-dd / yyyy/mm/dd
+  let m = s.match(/\b(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\b/);
+  let yyyy, mm, dd, dateRaw;
+
+  if(m){
+    yyyy = Number(m[1]); mm = Number(m[2]); dd = Number(m[3]); dateRaw = m[0];
+  } else {
+    // 2) dd-mm-yyyy OR mm-dd-yyyy (we apply same heuristic)
+    m = s.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})\b/);
+    if(!m) return null;
+
+    const a = Number(m[1]), b = Number(m[2]);
+    yyyy = Number(m[3]);
+    if(a > 12){ dd = a; mm = b; } else { mm = a; dd = b; }
+    dateRaw = m[0];
+  }
+
+  if(!isValidYMD(yyyy,mm,dd)) return null;
+
+  // optional time right after date: " 3-42" or " 12:51:15 AM"
+  const after = s.slice(s.indexOf(dateRaw) + dateRaw.length);
+  const tm = after.match(/^\s+(\d{1,2})[-:](\d{2})(?:[-:](\d{2}))?\s*(AM|PM)?/i);
+  const timeRaw = tm ? tm[0].trim() : "";
+
+  const day = dayKeyFrom(yyyy,mm,dd);
+  const datetime = (dateRaw + (timeRaw ? " " + timeRaw : "")).trim();
+
+  return { yyyy, mm, dd, day, datetime };
 }
 
-/* =========================
-   CSV splitting
-========================= */
+/* ===== delimiter + csv split ===== */
 function detectDelimiter(lines){
   let semi=0, comma=0;
   for(const ln of lines.slice(0,30)){
@@ -681,10 +528,7 @@ function splitCSVLine(line, delim){
   return out;
 }
 
-/* =========================
-   STATUS NORMALIZATION (FIX)
-   - prevents thousands of “statuses”
-========================= */
+/* ===== status normalization ===== */
 const STATUS_RULES = [
   { re: /\b(passed successfully|success|succeeded|ok|activated|completed|done|forwarded)\b/i, out: "SUCCESS" },
   { re: /\b(failed|fail|error|wrong password|captcha|disconnected|blocked|denied)\b/i, out: "FAILED" },
@@ -692,7 +536,6 @@ const STATUS_RULES = [
   { re: /\b(skipped|skip|ignored)\b/i, out: "SKIPPED" },
   { re: /\b(not processed|not_processed|unprocessed)\b/i, out: "NOT_PROCESSED" },
 ];
-
 function normalizeStatusFromText(fullLine, partsAfterId){
   const text = String(fullLine || "");
   for (const r of STATUS_RULES){
@@ -702,56 +545,45 @@ function normalizeStatusFromText(fullLine, partsAfterId){
   for (const r of STATUS_RULES){
     if (r.re.test(joined)) return r.out;
   }
+  if(partsAfterId && partsAfterId.length){
+    const t = String(partsAfterId[0] || "").toUpperCase();
+    if(["SUCCESS","SUCCES","OK","PASSED"].includes(t)) return "SUCCESS";
+    if(["FAILED","FAIL","ERROR"].includes(t)) return "FAILED";
+  }
   return "UNKNOWN";
 }
 
-/* =========================
-   Line parsing
-   Supports:
-   - quoted whole comma line (id, status, date, time, ...)
-   - normal delimited lines ; or , with date anywhere
-========================= */
-function parseWholeQuotedCommaLine(line){
-  let s = line.trim();
+/* ===== parsing ===== */
+function parseQuotedLine(line){
+  let s = normalizeLine(line);
   if(!(s.startsWith('"') && s.endsWith('"'))) return null;
-  s = s.slice(1,-1);
+  const inside = s.slice(1,-1).trim();
 
-  const commas = [];
-  for(let i=0;i<s.length;i++) if(s[i] === ",") commas.push(i);
-  if(commas.length < 2) return null;
-
-  const idStr = s.slice(0, commas[0]).trim();
-  const id = parseInt(idStr,10);
+  const firstComma = inside.indexOf(",");
+  if(firstComma === -1) return null;
+  const id = extractFirstInt(inside.slice(0, firstComma));
   if(!Number.isFinite(id)) return null;
 
-  // find date token anywhere after id
-  const rest = s.slice(commas[0]+1);
+  const rest = inside.slice(firstComma+1);
   const parts = rest.split(",").map(x=>x.trim()).filter(Boolean);
 
-  // find first date token
-  let dateIdx = -1, d = null;
-  for(let i=0;i<parts.length;i++){
-    const maybe = parseDateOnlyFlexible(parts[i]);
-    if(maybe){ dateIdx=i; d=maybe; break; }
+  // find date anywhere (fix)
+  let found = null;
+  for(const p of parts){
+    found = findDateInString(p) || (parseDateOnlyFlexible(p) ? { ...parseDateOnlyFlexible(p), day: dayKeyFrom(parseDateOnlyFlexible(p).yyyy, parseDateOnlyFlexible(p).mm, parseDateOnlyFlexible(p).dd), datetime: p } : null);
+    if(found) break;
   }
-  if(dateIdx === -1) return null;
+  if(!found) found = findDateInString(inside) || findDateInString(line);
+  if(!found) return null;
 
-  const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-  const timeStr = parts[dateIdx+1] && isTimeField(parts[dateIdx+1]) ? parts[dateIdx+1] : "";
-  const datetime = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
-
-  // status = everything between first token and date token (rough)
-  const statusText = parts.slice(0, dateIdx).join(" ").trim();
   const status = normalizeStatusFromText(line, parts);
-
-  return { id, idText:String(id), status, datetime, day, _rawStatus: statusText };
+  return { id, idText:String(id), status, datetime: found.datetime, day: found.day };
 }
 
-function parseLineToRow(line, delim){
-  let ln = line.trim();
+function parseUnquotedLine(line, delim){
+  let ln = normalizeLine(line);
   if(!ln) return null;
 
-  // Strip outer quotes if any
   if((ln.startsWith('"') && ln.endsWith('"')) || (ln.startsWith("'") && ln.endsWith("'"))){
     ln = ln.slice(1,-1).trim();
   }
@@ -759,89 +591,64 @@ function parseLineToRow(line, delim){
   const partsRaw = splitCSVLine(ln, delim).map(cleanField).filter(v => v !== "");
   if(partsRaw.length < 2) return null;
 
-  // Find ID anywhere
-  let idIndex = -1;
-  let id = null;
+  // find ID anywhere
+  let id = NaN;
+  let cutIdx = -1;
   for(let i=0;i<partsRaw.length;i++){
-    const candidate = parseInt(partsRaw[i], 10);
-    if(Number.isFinite(candidate)){
-      idIndex = i;
-      id = candidate;
-      break;
-    }
+    const candidate = extractFirstInt(partsRaw[i]);
+    if(Number.isFinite(candidate)){ id = candidate; cutIdx = i; break; }
   }
-  if(idIndex === -1) return null;
+  if(!Number.isFinite(id)) return null;
 
-  const tail = partsRaw.slice(idIndex + 1);
-  if(!tail.length) return null;
+  const tail = partsRaw.slice(cutIdx+1);
 
-  // Find date token anywhere (scan from end)
-  let dateIdx = -1;
-  let parsedDate = null;
-  for(let i=tail.length-1;i>=0;i--){
-    const maybe = parseDateOnlyFlexible(tail[i]);
-    if(maybe){
-      dateIdx = i;
-      parsedDate = maybe;
-      break;
-    }
+  // find date anywhere
+  let found = null;
+  for(const t of tail){
+    found = findDateInString(t);
+    if(found) break;
+    const d = parseDateOnlyFlexible(t);
+    if(d){ found = { day: dayKeyFrom(d.yyyy,d.mm,d.dd), datetime: t }; break; }
   }
-  if(dateIdx === -1) return null;
+  if(!found) found = findDateInString(line);
+  if(!found) return null;
 
-  const day = dayKeyFrom(parsedDate.yyyy, parsedDate.mm, parsedDate.dd);
-
-  // Datetime
-  let datetime = tail[dateIdx];
-  const next = tail[dateIdx + 1];
-  if(next && isTimeField(next) && !/\d{1,2}:\d{2}/.test(datetime)){
-    datetime = (datetime + " " + next).trim();
-  }
-
-  // ✅ Normalized status (few categories only)
   const status = normalizeStatusFromText(line, tail);
-
-  return { id, idText: String(id), status, datetime, day };
+  return { id, idText:String(id), status, datetime: found.datetime, day: found.day };
 }
 
 function parseText(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+  const lines = String(text||"")
+    .replace(/\r/g,"")
+    .split("\n")
+    .map(normalizeLine)
+    .filter(Boolean);
   if(!lines.length) return [];
-
   const delim = detectDelimiter(lines);
   const rows = [];
-
-  for(const line0 of lines){
-    const q = parseWholeQuotedCommaLine(line0);
-    if(q){ rows.push(q); continue; }
-
-    const r = parseLineToRow(line0, delim);
+  for(const line of lines){
+    const r = parseQuotedLine(line) || parseUnquotedLine(line, delim);
     if(r) rows.push(r);
   }
-
   return rows;
 }
 
-/* =========================
-   App state + UI
-========================= */
+/* ===== app state ===== */
 let allRows = [];
 let visibleRows = [];
 let missingIDs = [];
-
-let statusCounts = new Map();     // status -> count (in allRows)
-let selectedStatuses = new Set(); // statuses chosen
+let statusCounts = new Map();
+let selectedStatuses = new Set();
 
 function renderTable(){
   const body = $("outputBody");
   body.innerHTML = "";
-
   if(!visibleRows.length){
     body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
     $("count").textContent = "0";
     $("scopeLabel").textContent = "—";
     return;
   }
-
   for(const r of visibleRows){
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -855,7 +662,6 @@ function renderTable(){
   $("count").textContent = String(visibleRows.length);
   $("scopeLabel").textContent = `${visibleRows.length} rows`;
 }
-
 function resetRangeBox(){
   $("procInRange").textContent = "0";
   $("missingCount").textContent = "0";
@@ -870,15 +676,13 @@ function dateMode(){
   return r ? r.value : "single";
 }
 function normalizeDateInput(v){
-  const d = parseDateOnlyFlexible(v);
+  const d = parseDateOnlyFlexible(v) || (findDateInString(v) ? {yyyy:findDateInString(v).yyyy,mm:findDateInString(v).mm,dd:findDateInString(v).dd} : null);
   if(!d) return null;
   return dayKeyFrom(d.yyyy, d.mm, d.dd);
 }
 
 function applyFilters(){
   if(!allRows.length){ setStatus("Process first", "bad"); return; }
-
-  // date filter
   const mode = dateMode();
   let rows = allRows;
 
@@ -899,7 +703,6 @@ function applyFilters(){
     });
   }
 
-  // status filter (if none selected => keep all)
   if(selectedStatuses.size){
     rows = rows.filter(r => selectedStatuses.has(r.status));
   }
@@ -907,9 +710,7 @@ function applyFilters(){
   visibleRows = rows;
   renderTable();
   resetRangeBox();
-
-  const statusMsg = selectedStatuses.size ? ` + status(${[...selectedStatuses].join(",")})` : "";
-  setStatus(`Filters applied (${visibleRows.length} rows)${statusMsg}`, "ok");
+  setStatus(`Filters applied (${visibleRows.length} rows)`, "ok");
 }
 
 function clearFilters(){
@@ -971,7 +772,6 @@ function copyIDs(){
     .then(()=>setStatus(`Copied ${visibleRows.length} IDs`, "ok"))
     .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
 }
-
 function exportVisibleCSV(){
   if(!visibleRows.length){ setStatus("No visible rows to export", "warn"); return; }
   let csv = "ID;STATUS;DATETIME;DAY\n";
@@ -981,14 +781,12 @@ function exportVisibleCSV(){
   downloadBlob(csv, "visible.csv", "text/csv;charset=utf-8;");
   setStatus(`Exported visible.csv (${visibleRows.length})`, "ok");
 }
-
 function copyMissing(){
   if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
   navigator.clipboard.writeText(missingIDs.join("\n"))
     .then(()=>setStatus(`Copied ${missingIDs.length} not processed IDs`, "ok"))
     .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
 }
-
 function exportMissing(){
   if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
   const rr = normalizeNumRange($("fromId").value, $("toId").value);
@@ -997,33 +795,25 @@ function exportMissing(){
   setStatus(`Exported ${name}`, "ok");
 }
 
-/* ===== Status UI ===== */
+/* ===== status UI ===== */
 function buildStatusCounts(){
   statusCounts = new Map();
   for(const r of allRows){
-    const k = r.status;
-    statusCounts.set(k, (statusCounts.get(k)||0)+1);
+    statusCounts.set(r.status, (statusCounts.get(r.status)||0)+1);
   }
 }
 function renderStatusPills(){
   const wrap = $("statusItems");
   wrap.innerHTML = "";
+  const entries = [...statusCounts.entries()].sort((a,b)=> b[1]-a[1]);
 
-  const entries = [...statusCounts.entries()]
-    .sort((a,b)=> b[1]-a[1]); // by count desc
-
-  // Optional: hide UNKNOWN if you want
-  // entries = entries.filter(([k]) => k !== "UNKNOWN");
-
-  if(!entries.length){
+  const filtered = entries.filter(([k]) => k !== "UNKNOWN"); // hide UNKNOWN (noise)
+  if(!filtered.length){
     wrap.innerHTML = `<span class="hint">No statuses found</span>`;
     return;
   }
 
-  for(const [k,c] of entries){
-    // Hide UNKNOWN from UI (prevents noise). Comment this line if you want it visible.
-    if(k === "UNKNOWN") continue;
-
+  for(const [k,c] of filtered){
     const el = document.createElement("div");
     el.className = "pillItem" + (selectedStatuses.has(k) ? " active" : "");
     el.innerHTML = `${escapeHtml(k)} <em>(${c})</em>`;
@@ -1036,12 +826,7 @@ function renderStatusPills(){
     };
     wrap.appendChild(el);
   }
-
-  if(!wrap.children.length){
-    wrap.innerHTML = `<span class="hint">Only UNKNOWN statuses detected</span>`;
-  }
 }
-
 function clearStatusSelection(){
   selectedStatuses.clear();
   renderStatusPills();
@@ -1049,7 +834,7 @@ function clearStatusSelection(){
   setStatus("Status cleared (all statuses)", "ok");
 }
 
-/* ===== Date mode toggle visuals ===== */
+/* ===== date mode UI ===== */
 function refreshModeUI(){
   const m = dateMode();
   $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
@@ -1068,7 +853,6 @@ function processCSV(){
   allRows = parseText(text);
   $("total").textContent = String(allRows.length);
 
-  // days label
   const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
   $("daysLabel").textContent = days.length ? ("Days: " + days.slice(0,3).join(", ") + (days.length>3 ? " …" : "")) : "Days: —";
 
@@ -1076,17 +860,15 @@ function processCSV(){
   renderTable();
   resetRangeBox();
 
-  // Status counts + UI
   buildStatusCounts();
   selectedStatuses.clear();
   renderStatusPills();
 
   if(!allRows.length){
-    setStatus("No valid rows parsed (check format)", "bad");
+    setStatus("No valid rows parsed (check format). This version detects date inside text like '... 23-01-2026 3-42'.", "bad");
     return;
   }
 
-  // auto-fill latest day into singleDate
   $("singleDate").value = days[0] || "";
   setStatus("Parsed ✅ Now set date/status then Apply filters → Check.", "ok");
 }
