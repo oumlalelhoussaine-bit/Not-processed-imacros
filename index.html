@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer —webautomate and imacros</title>
+<title>CSV Analyzer — Analyzer + Keyword Checker</title>
 
 <style>
 :root{
@@ -20,8 +20,8 @@
 
   --focus: rgba(99,102,241,.22);
 
-  --c1:#6366f1;
-  --c2:#22d3ee;
+  --c1:#6366f1;   /* primary */
+  --c2:#22d3ee;   /* secondary */
   --ok:#22c55e;
   --bad:#ef4444;
   --warn:#f59e0b;
@@ -43,25 +43,56 @@ body{
     linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
-.container{max-width: 1380px;margin: 28px auto;padding: 0 18px 34px;}
-.header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom: 12px;}
-.brand{display:flex;align-items:center;gap:12px;}
+.container{
+  max-width: 1380px;
+  margin: 26px auto;
+  padding: 0 18px 34px;
+}
+
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom: 14px;
+}
+.brand{
+  display:flex;align-items:center;gap:12px;
+}
 .logo{
-  width:38px;height:38px;border-radius:14px;
-  background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.60));
+  width:42px;height:42px;border-radius:14px;
+  background: linear-gradient(135deg, rgba(99,102,241,.85), rgba(34,211,238,.65));
   box-shadow: 0 14px 30px rgba(0,0,0,.35);
 }
-.brand h1{margin:0;font-size: 22px;letter-spacing: .2px;}
-.brand p{margin:0;color: var(--muted);font-size: 12px;font-weight:800;}
-
-.pills{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.pill{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:999px;border:1px solid var(--line);
-  background: rgba(255,255,255,.03);box-shadow: var(--shadow2);
-  color: var(--muted);font-weight:900;font-size: 12px;
+.brandText{display:flex;flex-direction:column;gap:4px}
+.brandText h1{
+  margin:0;font-size: 24px;letter-spacing:.2px;
 }
-.dot{width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);box-shadow:0 0 0 3px rgba(148,163,184,.12);}
+.brandText p{
+  margin:0;color:var(--muted);font-size: 12.5px;
+}
+
+.topRight{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius: 999px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  box-shadow: var(--shadow2);
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 12px;
+}
+.dot{
+  width:8px;height:8px;border-radius:999px;background:rgba(148,163,184,.55);
+  box-shadow:0 0 0 3px rgba(148,163,184,.12);
+}
 .dot.ok{background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14);}
 .dot.bad{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14);}
 .dot.warn{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14);}
@@ -71,31 +102,37 @@ body{
   border-radius: var(--r);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   box-shadow: var(--shadow);
-  padding: 14px;
+  padding: 16px;
 }
 
 .tabs{
-  display:flex;gap:10px;flex-wrap:wrap;
+  display:flex; gap:10px; flex-wrap:wrap;
   margin-bottom: 12px;
 }
-.tabBtn{
+.tab{
   border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  color: var(--text);
+  background: rgba(2,6,23,.65);
+  color: var(--muted);
+  font-weight: 900;
   padding: 10px 14px;
   border-radius: 14px;
-  font-weight: 900;
   cursor:pointer;
-  transition: .12s ease;
 }
-.tabBtn.active{
-  border-color: rgba(99,102,241,.7);
+.tab.active{
+  color: var(--text);
+  border-color: rgba(99,102,241,.65);
   box-shadow: 0 0 0 4px rgba(99,102,241,.12);
   background: rgba(99,102,241,.10);
 }
 
-.grid{display:grid;grid-template-columns: 1.25fr .75fr;gap: 14px;}
-@media (max-width: 1000px){.grid{grid-template-columns:1fr}}
+.grid{
+  display:grid;
+  grid-template-columns: 1.25fr .75fr;
+  gap: 16px;
+}
+@media (max-width: 1000px){
+  .grid{grid-template-columns:1fr}
+}
 
 .panel{
   border:1px solid var(--line);
@@ -103,8 +140,10 @@ body{
   border-radius: var(--r);
   padding: 14px;
 }
-
-.panelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom: 10px;}
+.panelTitle{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom: 10px;
+}
 .panelTitle b{font-size: 13px}
 .panelTitle span{color:var(--muted);font-weight:900;font-size:12px}
 
@@ -115,171 +154,296 @@ textarea{
   border:1px solid var(--line);
   background: rgba(2,6,23,.88);
   color: var(--text);
-  padding: 14px;
+  padding: 14px 14px;
   outline:none;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12.6px;
+  font-size: 12.7px;
   line-height: 1.42;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
-textarea:focus{border-color: rgba(99,102,241,.85);box-shadow: 0 0 0 4px var(--focus);}
-
-.kpis{display:grid;grid-template-columns: 1fr 1fr 1fr;gap: 10px;}
-@media (max-width: 520px){.kpis{grid-template-columns:1fr}}
-.kpi{
-  padding: 12px;border-radius: var(--r2);border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  display:flex;flex-direction:column;gap:4px;
+textarea:focus{
+  border-color: rgba(99,102,241,.85);
+  box-shadow: 0 0 0 4px var(--focus);
 }
-.kpi span{color:var(--muted);font-size: 12px;font-weight: 900;}
-.kpi b{font-size: 18px;letter-spacing: .2px;}
 
-hr.sep{border:none;height:1px;background:var(--line);margin: 12px 0;}
+.kpis{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 520px){
+  .kpis{grid-template-columns:1fr}
+}
+.kpi{
+  padding: 12px 12px;
+  border-radius: var(--r2);
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.kpi span{
+  color:var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+.kpi b{
+  font-size: 18px;
+  letter-spacing: .2px;
+}
 
-.controls{display:grid;grid-template-columns: 1fr 1fr 1fr;gap: 10px;}
-@media (max-width:1000px){.controls{grid-template-columns:1fr}}
+hr.sep{
+  border:none;height:1px;background:var(--line);
+  margin: 12px 0;
+}
+
+/* Buttons */
+.controls{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width:1000px){
+  .controls{grid-template-columns:1fr}
+}
 
 .btn{
-  width:100%;border-radius: 14px;border:1px solid rgba(255,255,255,.10);
-  padding: 11px 12px;cursor:pointer;color:white;font-weight: 900;letter-spacing:.2px;
+  width:100%;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.10);
+  padding: 11px 12px;
+  cursor:pointer;
+  color:white;
+  font-weight: 900;
+  letter-spacing:.2px;
   transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
   box-shadow: 0 10px 22px rgba(0,0,0,.28);
+  background: rgba(148,163,184,.18);
 }
-.btn:hover{filter:brightness(1.05);box-shadow: 0 0 0 3px rgba(99,102,241,.14), 0 14px 28px rgba(0,0,0,.38);}
+.btn:hover{
+  filter:brightness(1.05);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);
+}
 .btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.2);box-shadow:none;}
+.btn:disabled{opacity:.55; cursor:not-allowed; box-shadow:none}
 
-.btn.primary{background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));border-color: rgba(99,102,241,.25);}
-.btn.copy{background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55));border-color: rgba(34,211,238,.18);}
-.btn.export{background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70));border-color: rgba(167,139,250,.22);}
-.btn.neutral{background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55));border-color: rgba(148,163,184,.18);}
+/* coherent palette */
+.btn.primary{ background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70)); border-color: rgba(99,102,241,.25); }
+.btn.secondary{ background: linear-gradient(135deg, rgba(34,211,238,.45), rgba(99,102,241,.45)); border-color: rgba(34,211,238,.18); }
+.btn.purple{ background: linear-gradient(135deg, rgba(99,102,241,.65), rgba(167,139,250,.65)); border-color: rgba(167,139,250,.22); }
+.btn.neutral{ background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55)); border-color: rgba(148,163,184,.18); }
+.btn.warn{ background: linear-gradient(135deg, rgba(245,158,11,.55), rgba(99,102,241,.45)); border-color: rgba(245,158,11,.18); }
+.btn.good{ background: linear-gradient(135deg, rgba(34,197,94,.55), rgba(34,211,238,.35)); border-color: rgba(34,197,94,.18); }
 
-.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin: 2px 0 8px;}
+.sectionTitle{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin: 2px 0 8px;
+}
 .sectionTitle b{font-size:13px}
 .sectionTitle small{color:var(--muted);font-weight:900}
 
-.modeRow{display:flex; gap:10px; flex-wrap:wrap;}
+.modeRow{
+  display:flex; gap:10px; flex-wrap:wrap;
+}
 .mode{
-  flex:1;min-width: 160px;display:flex;align-items:center;justify-content:center;gap:10px;
-  border-radius: 14px;border:1px solid var(--line);background: rgba(255,255,255,.02);
-  padding: 10px 12px;font-weight: 900;cursor:pointer;
+  flex:1;
+  min-width: 160px;
+  display:flex; align-items:center; justify-content:center;
+  gap:10px;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.02);
+  padding: 10px 12px;
+  font-weight: 900;
+  cursor:pointer;
 }
 .mode input{accent-color: var(--c2)}
-.mode.active{border-color: rgba(99,102,241,.7);box-shadow: 0 0 0 4px rgba(99,102,241,.14);background: rgba(99,102,241,.08);}
+.mode.active{
+  border-color: rgba(99,102,241,.7);
+  box-shadow: 0 0 0 4px rgba(99,102,241,.14);
+  background: rgba(99,102,241,.08);
+}
 
 input{
-  width:100%;border-radius: 14px;border:1px solid var(--line);
-  background: rgba(2,6,23,.88);color:var(--text);
-  padding: 11px 12px;outline:none;font-weight: 900;
+  width:100%;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(2,6,23,.88);
+  color:var(--text);
+  padding: 11px 12px;
+  outline:none;
+  font-weight: 900;
 }
-input:focus{border-color: rgba(99,102,241,.85);box-shadow: 0 0 0 4px var(--focus);}
-.hint{margin-top:6px;color: var(--muted);font-size: 12px;font-weight: 900;}
+input:focus{
+  border-color: rgba(99,102,241,.85);
+  box-shadow: 0 0 0 4px var(--focus);
+}
+.hint{
+  margin-top:6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
 
-.two{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;}
-@media(max-width:520px){.two{grid-template-columns:1fr}}
+.two{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media(max-width:500px){.two{grid-template-columns:1fr}}
 
-.badges{display:flex; flex-wrap:wrap; gap:8px;margin-top:10px;}
+.badges{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:10px;
+}
 .badge{
-  padding: 7px 10px;border-radius: 999px;border:1px solid var(--line);
-  background: rgba(255,255,255,.03);font-size: 12px;font-weight: 900;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  font-size: 12px;
+  font-weight: 900;
 }
 .badge b{color: var(--c2);}
 
 .box{
-  margin-top:10px;border:1px solid var(--line);background: rgba(2,6,23,.88);
-  border-radius: 14px;padding: 10px;max-height: 210px;overflow:auto;
+  margin-top:10px;
+  border:1px solid var(--line);
+  background: rgba(2,6,23,.88);
+  border-radius: 14px;
+  padding: 10px;
+  max-height: 210px;
+  overflow:auto;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12px;white-space: pre;
+  font-size: 12px;
+  white-space: pre;
 }
 
 .status{
-  margin-top:10px;border-radius: 14px;border:1px dashed rgba(148,163,184,.25);
-  padding: 10px 12px;font-weight: 900;font-size: 13px;color: var(--muted);
+  margin-top:10px;
+  border-radius: 14px;
+  border:1px dashed rgba(148,163,184,.25);
+  padding: 10px 12px;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* Table */
 .tableWrap{
-  margin-top:14px;border:1px solid var(--line);border-radius: var(--r);
-  overflow:auto;background: rgba(2,6,23,.82);max-height: 560px;
+  margin-top:16px;
+  border:1px solid var(--line);
+  border-radius: var(--r);
+  overflow:auto;
+  background: rgba(2,6,23,.82);
+  max-height: 560px;
 }
 table{width:100%;border-collapse:collapse;font-size:13px;}
-thead{position:sticky; top:0; z-index:2;background: rgba(15,26,46,.95);backdrop-filter: blur(8px);}
-th,td{padding: 12px 12px;border-bottom: 1px solid rgba(148,163,184,.14);white-space:nowrap;}
+thead{
+  position:sticky; top:0; z-index:2;
+  background: rgba(15,26,46,.95);
+  backdrop-filter: blur(8px);
+}
+th,td{
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(148,163,184,.14);
+  white-space:nowrap;
+}
 tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{text-align:center;color:var(--muted);padding: 26px;font-weight: 900;}
-
-.hidden{display:none}
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding: 26px;
+  font-weight: 900;
+}
 
 /* Keyword chips */
-.chipWrap{
+.chipRow{
   display:flex;flex-wrap:wrap;gap:8px;
+  max-height: 120px;
+  overflow:auto;
   border:1px solid var(--line);
   background: rgba(255,255,255,.02);
   border-radius: 14px;
   padding: 10px;
-  max-height: 130px;
-  overflow:auto;
 }
 .chip{
   display:inline-flex;align-items:center;gap:8px;
-  padding:6px 10px;border-radius:999px;
-  border:1px solid rgba(148,163,184,.20);
-  background: rgba(15,26,46,.85);
-  font-weight: 900;font-size: 12px;color: var(--text);
-}
-.chip .x{
-  width:18px;height:18px;border-radius:99px;
-  display:inline-flex;align-items:center;justify-content:center;
-  background: rgba(239,68,68,.15);
-  border:1px solid rgba(239,68,68,.25);
-  color: #fecaca;
-  cursor:pointer;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(148,163,184,.22);
+  background: rgba(2,6,23,.70);
+  font-weight: 900;
   font-size: 12px;
-  line-height: 1;
+  color: var(--text);
 }
-.smallNote{color:var(--muted);font-weight:900;font-size:12px;margin-top:8px}
+.chip button{
+  all:unset;
+  cursor:pointer;
+  width:18px;height:18px;border-radius:999px;
+  display:grid;place-items:center;
+  color:rgba(239,68,68,.95);
+  border:1px solid rgba(239,68,68,.25);
+  background: rgba(239,68,68,.10);
+}
+.smallNote{color:var(--muted);font-weight:900;font-size:12px;margin-top:6px}
+.flexRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
 </style>
 </head>
 
 <body>
 <div class="container">
+
   <div class="header">
     <div class="brand">
       <div class="logo"></div>
-      <div>
+      <div class="brandText">
         <h1>CSV Analyzer</h1>
-        <p>Analyzer (old logic) + Keyword Checker (fixed)</p>
+        <p>Analyzer (old logic) + Keyword Checker (Google Sheets style) — fixed parsing for quoted lines.</p>
       </div>
     </div>
 
-    <div class="pills">
-      <div class="pill"><span class="dot" id="pillDot"></span><span id="pillText">Ready</span></div>
-      <div class="pill"><span style="opacity:.9">Tip:</span> <span>Process → Apply filters → Check</span></div>
+    <div class="topRight">
+      <div class="pill" id="pillTip">
+        <span class="dot warn"></span>
+        <span>Tip: Process → Apply filters → Check</span>
+      </div>
+      <div class="pill" id="pill">
+        <span class="dot" id="pillDot"></span>
+        <span id="pillText">Ready</span>
+      </div>
     </div>
   </div>
 
   <div class="shell">
+
     <div class="tabs">
-      <button class="tabBtn active" id="tabAnalyzer">imacros</button>
-      <button class="tabBtn" id="tabKeyword">webautomate</button>
+      <button class="tab active" id="tabAnalyzer">Analyzer</button>
+      <button class="tab" id="tabKeyword">Keyword Checker</button>
     </div>
 
-    <!-- ===================== ANALYZER TAB ===================== -->
-    <div id="pageAnalyzer">
+    <!-- =================== Analyzer Tab =================== -->
+    <div id="viewAnalyzer">
+
       <div class="grid">
 
+        <!-- LEFT: INPUT -->
         <div class="panel">
           <div class="panelTitle">
             <b>Input</b>
             <span>Paste CSV / logs here</span>
           </div>
           <textarea id="csvInput" placeholder='Examples:
+"1814, Error: Email/Subject/Message not written, 18-12-2024 9-39"
+1815, Error: Something, 18-12-2024 9-40
 "4338,Translate succes,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
 2504, search Nathan passed successfully,2026-01-16
-1961,input empty,21-12-2024_11-7
 '></textarea>
         </div>
 
+        <!-- RIGHT: CONTROLS -->
         <div class="panel">
           <div class="panelTitle">
             <b>Controls</b>
@@ -287,17 +451,26 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
           </div>
 
           <div class="kpis">
-            <div class="kpi"><span>Total rows</span><b id="total">—</b></div>
-            <div class="kpi"><span>Visible rows</span><b id="count">—</b></div>
-            <div class="kpi"><span>Not processed</span><b id="missingCount">0</b></div>
+            <div class="kpi">
+              <span>Total rows</span>
+              <b id="total">—</b>
+            </div>
+            <div class="kpi">
+              <span>Visible rows</span>
+              <b id="count">—</b>
+            </div>
+            <div class="kpi">
+              <span>Not processed</span>
+              <b id="missingCountTop">—</b>
+            </div>
           </div>
 
           <hr class="sep">
 
           <div class="controls">
             <button class="btn primary" id="btnProcess">⚡ Process</button>
-            <button class="btn copy" id="btnCopy">📋 Copy IDs</button>
-            <button class="btn export" id="btnExport">⬇ Export CSV</button>
+            <button class="btn secondary" id="btnCopy">📋 Copy IDs</button>
+            <button class="btn purple" id="btnExport">⬇ Export CSV</button>
           </div>
 
           <hr class="sep">
@@ -340,15 +513,16 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
 
           <div class="sectionTitle">
             <b>ID range check</b>
-            <small>Type: <span style="color:var(--c2)">3376 - 4375</span></small>
+            <small>Type: <code style="color:var(--c2)">3376 - 4375</code></small>
           </div>
 
-          <input id="idRange" placeholder="ex: 1961 - 2240  |  1961-2240  |  1961:2240" value="1961 - 2240">
+          <!-- ✅ single input: "3376 - 4375" -->
+          <input id="idRangeInput" placeholder="ID range (ex: 3376 - 4375)" value="1961 - 2240">
 
           <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr">
-            <button class="btn primary" id="btnRange">🔎 Check</button>
-            <button class="btn copy" id="btnCopyMissing">📋 Copy NOT</button>
-            <button class="btn export" id="btnExportMissing">⬇ Export NOT</button>
+            <button class="btn warn" id="btnRange">🔎 Check</button>
+            <button class="btn secondary" id="btnCopyMissing">📋 Copy NOT</button>
+            <button class="btn purple" id="btnExportMissing">⬇ Export NOT</button>
           </div>
 
           <div class="badges">
@@ -377,80 +551,95 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
           </tbody>
         </table>
       </div>
+
     </div>
 
-    <!-- ===================== KEYWORD TAB ===================== -->
-    <div id="pageKeyword" class="hidden">
+    <!-- =================== Keyword Checker Tab =================== -->
+    <div id="viewKeyword" style="display:none">
+
       <div class="grid">
+
+        <!-- LEFT: input -->
         <div class="panel">
           <div class="panelTitle">
             <b>Input</b>
-            <span>Paste table text (TAB) or CSV lines</span>
+            <span>Paste table text (must include: profile_Name ... log ... details)</span>
           </div>
-          <textarea id="kwInput" placeholder="Must contain columns:
-profile_Name  tag  status_name  log  cnx_problems  details
+          <textarea id="kwInput" placeholder='Paste from Google Sheets (TAB delimited) or CSV lines.
 
-Tip: you can paste from Google Sheets (TAB delimited)."></textarea>
-          <div class="smallNote">We detect headers by name (case-insensitive). We search keywords inside log + details.</div>
+Columns expected (any order):
+profile_Name | tag | status_name | log | details (or cnx_problems + details)
+
+Example:
+profile_Name	tag	status_name	log	cnx_problems	details
+302	[AAAB...]	Completed	[ Status => ... Updated!]		Theme already changed
+'></textarea>
+
+          <div class="smallNote">
+            Best format = paste from Google Sheets (TAB delimited). CSV also works.
+          </div>
         </div>
 
+        <!-- RIGHT: controls -->
         <div class="panel">
           <div class="panelTitle">
             <b>Keyword Checker</b>
-            <span>PROCESSED if success keyword exists AND no fail keyword exists</span>
+            <span>Mark row PROCESSED if log/details contains any keyword</span>
           </div>
 
           <div class="kpis">
-            <div class="kpi"><span>Total rows</span><b id="kwTotal">0</b></div>
-            <div class="kpi"><span>Processed</span><b id="kwProcessed">0</b></div>
-            <div class="kpi"><span>Not processed</span><b id="kwNotProcessed">0</b></div>
+            <div class="kpi">
+              <span>Total rows</span>
+              <b id="kwTotal">—</b>
+            </div>
+            <div class="kpi">
+              <span>Processed</span>
+              <b id="kwProcessed">—</b>
+            </div>
+            <div class="kpi">
+              <span>Not processed</span>
+              <b id="kwNotProcessed">—</b>
+            </div>
           </div>
 
           <hr class="sep">
 
           <div class="controls">
             <button class="btn primary" id="btnKwCheck">✅ Check keywords</button>
-            <button class="btn copy" id="btnKwCopy">📋 Copy NOT (profile_Name)</button>
-            <button class="btn export" id="btnKwExport">⬇ Export NOT</button>
+            <button class="btn secondary" id="btnKwCopyNot">📋 Copy NOT</button>
+            <button class="btn purple" id="btnKwExportNot">⬇ Export NOT</button>
           </div>
 
           <hr class="sep">
 
           <div class="sectionTitle">
-            <b>Success keywords</b>
-            <small>stored in browser</small>
+            <b>Keywords</b>
+            <small>stored in browser (localStorage)</small>
           </div>
-          <div class="two">
-            <input id="kwAddSuccess" placeholder="Add success keyword (ex: done, successfully...)">
-            <button class="btn primary" id="btnAddSuccess">+ Add</button>
-          </div>
-          <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
-            <button class="btn neutral" id="btnSuccessDefault">↩ Default list</button>
-            <button class="btn neutral" id="btnSuccessClear">🧹 Clear list</button>
-          </div>
-          <div class="chipWrap" id="successChips" style="margin-top:10px"></div>
 
-          <hr class="sep">
+          <div class="flexRow">
+            <input class="grow" id="kwNew" placeholder="Add keyword (ex: success, done, Already...)">
+            <button class="btn good" id="btnKwAdd" style="width:auto;min-width:120px">➕ Add</button>
+          </div>
 
-          <div class="sectionTitle">
-            <b>Fail keywords</b>
-            <small>fail overrides success</small>
+          <div class="flexRow" style="margin-top:10px">
+            <button class="btn neutral" id="btnKwDefault" style="flex:1">↩ Default list</button>
+            <button class="btn neutral" id="btnKwClear" style="flex:1">🧹 Clear keywords</button>
           </div>
-          <div class="two">
-            <input id="kwAddFail" placeholder="Add fail keyword (ex: disconnected, failed...)">
-            <button class="btn primary" id="btnAddFail">+ Add</button>
-          </div>
-          <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
-            <button class="btn neutral" id="btnFailDefault">↩ Default list</button>
-            <button class="btn neutral" id="btnFailClear">🧹 Clear list</button>
-          </div>
-          <div class="chipWrap" id="failChips" style="margin-top:10px"></div>
 
-          <div class="status" id="kwStatus" style="margin-top:12px">Waiting…</div>
+          <div class="smallNote">
+            Matching is case-insensitive. If no keyword matches → row becomes NOT PROCESSED.
+          </div>
+
+          <div style="margin-top:10px" class="chipRow" id="kwChips"></div>
+
+          <div class="box" id="kwBox">Paste data then “Check keywords”…</div>
+          <div class="status" id="kwStatus">Waiting…</div>
         </div>
+
       </div>
 
-      <div class="tableWrap" style="margin-top:14px">
+      <div class="tableWrap">
         <table>
           <thead>
             <tr>
@@ -467,6 +656,7 @@ Tip: you can paste from Google Sheets (TAB delimited)."></textarea>
           </tbody>
         </table>
       </div>
+
     </div>
 
   </div>
@@ -531,24 +721,30 @@ function cleanField(v){
     .replace(/^'+|'+$/g,"")
     .trim();
 }
-function normalizeText(v){
-  return String(v ?? "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 /* =========================
-   Analyzer date parsing (old logic)
+   Analyzer: date parsing (flex)
 ========================= */
 function isTimeField(v){
   v = String(v||"").trim();
-  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
+  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v) || /^(\d{1,2})-(\d{2})(?::(\d{2}))?$/.test(v);
 }
+function normalizeWeirdTime(t){
+  // support 9-39 => 09:39
+  t = String(t||"").trim();
+  const m = t.match(/^(\d{1,2})-(\d{2})(?::(\d{2}))?$/);
+  if(!m) return t;
+  const hh = String(m[1]).padStart(2,"0");
+  const mm = String(m[2]).padStart(2,"0");
+  const ss = m[3] ? String(m[3]).padStart(2,"0") : "";
+  return ss ? `${hh}:${mm}:${ss}` : `${hh}:${mm}`;
+}
+
 function parseDateOnlyFlexible(v){
   v = String(v||"").trim();
   if(!v) return null;
 
+  // If has _ or space => keep before it (date)
   if(v.includes("_")) v = v.split("_")[0].trim();
   if(/\s/.test(v)) v = v.split(/\s+/)[0].trim();
 
@@ -564,12 +760,12 @@ function parseDateOnlyFlexible(v){
   let yyyy, mm, dd;
 
   if(m[1].length === 4){
-    yyyy = a; mm = b; dd = c;
+    yyyy = a; mm = b; dd = c;          // YYYY/MM/DD
   } else if(m[3].length === 4){
     yyyy = c;
-    if(a > 12){ dd = a; mm = b; }
-    else if(b > 12){ mm = a; dd = b; }
-    else { mm = a; dd = b; }
+    if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
+    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
+    else { mm = a; dd = b; }           // default MM/DD/YYYY
   } else return null;
 
   if(yyyy < 1900 || yyyy > 2100) return null;
@@ -587,49 +783,86 @@ function toUTCDate(dayKey){
   return new Date(Date.UTC(y, m-1, d));
 }
 
-/* Parsing lines */
+/* =========================
+   Analyzer: parsing lines
+========================= */
+function unwrapOuterQuotes(line) {
+  let s = (line ?? "").trim();
+  if (!s) return s;
+
+  // support smart quotes
+  const starts = s[0];
+  const ends = s[s.length - 1];
+
+  const isNormal = starts === '"' && ends === '"';
+  const isSmart1 = starts === "“" && ends === "”";
+  const isSmart2 = starts === "”" && ends === "“";
+
+  if (isNormal || isSmart1 || isSmart2) {
+    s = s.slice(1, -1).trim();
+  } else {
+    // sometimes copy/paste adds only one side quote
+    if (starts === '"' || starts === "“" || starts === "”") s = s.slice(1).trim();
+    if (ends === '"' || ends === "”" || ends === "“") s = s.slice(0, -1).trim();
+  }
+  return s;
+}
+
 function parseWholeQuotedCommaLine(line){
+  // Keep this for the specific "id,status,date,time,..." pattern
   let s = line.trim();
-  // support smart quotes too
-  s = s.replace(/^[“”]/, '"').replace(/[“”]$/, '"');
-  if(!(s.startsWith('"') && s.endsWith('"'))) return null;
-  s = s.slice(1,-1);
+  // if wrapped, unwrap (so we can still parse)
+  s = unwrapOuterQuotes(s);
 
   const commas = [];
   for(let i=0;i<s.length;i++) if(s[i] === ",") commas.push(i);
-  if(commas.length < 3) return null;
+  if(commas.length < 2) return null;
 
-  const c1 = commas[0], c2 = commas[1], c3 = commas[2];
-  const c4 = commas[3] ?? -1;
-
-  const idStr = s.slice(0,c1).trim();
+  // try: id, status, date, time, ...
+  const idStr = s.slice(0, commas[0]).trim();
   const id = parseInt(idStr,10);
   if(!Number.isFinite(id)) return null;
 
-  const status = s.slice(c1+1, c2).trim();
-  const dateStr = s.slice(c2+1, c3).trim();
-  const timeStr = c4 !== -1 ? s.slice(c3+1, c4).trim() : "";
+  // locate a date token in segments after id
+  const pieces = s.split(",").map(x=>x.trim()).filter(Boolean);
+  if(pieces.length < 2) return null;
 
-  const d = parseDateOnlyFlexible(dateStr);
-  if(!d) return null;
+  // find date part
+  let dateIdx = -1, d = null;
+  for(let i=1;i<pieces.length;i++){
+    const maybe = parseDateOnlyFlexible(pieces[i]);
+    if(maybe){ dateIdx = i; d = maybe; break; }
+  }
+  if(dateIdx === -1) return null;
+
+  const status = pieces.slice(1, dateIdx).join(" ").trim() || "(no status)";
+  let timeStr = "";
+  if(dateIdx+1 < pieces.length && isTimeField(pieces[dateIdx+1])) timeStr = normalizeWeirdTime(pieces[dateIdx+1]);
 
   const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-  const dt = (dateStr + (timeStr && isTimeField(timeStr) ? " " + timeStr : "")).trim();
+  const dt = (pieces[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
 
-  return { id, idText:String(id), status: status || "(no status)", datetime: dt, day };
+  return { id, idText:String(id), status, datetime: dt, day };
 }
+
 function detectDelimiter(lines){
-  let semi=0, comma=0;
-  for(const ln of lines.slice(0,30)){
+  let semi=0, comma=0, tab=0;
+  for(const ln0 of lines.slice(0,30)){
+    const ln = unwrapOuterQuotes(ln0);
     semi += (ln.match(/;/g)||[]).length;
     comma += (ln.match(/,/g)||[]).length;
+    tab += (ln.match(/\t/g)||[]).length;
   }
+  // prefer TAB if exists (common from Sheets)
+  if(tab > semi && tab > comma) return "\t";
   return comma >= semi ? "," : ";";
 }
+
 function splitCSVLine(line, delim){
   const out = [];
   let cur = "";
   let inQuotes = false;
+
   for(let i=0;i<line.length;i++){
     const ch = line[i];
     if(ch === '"'){
@@ -645,23 +878,37 @@ function splitCSVLine(line, delim){
   out.push(cur);
   return out;
 }
-function parseText(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+
+function parseText(text) {
+  const lines = text
+    .replace(/\r/g,"")
+    .split("\n")
+    .map(x=>x.trim())
+    .filter(Boolean);
+
   if(!lines.length) return [];
 
   const delim = detectDelimiter(lines);
   const rows = [];
 
-  for(const line0 of lines){
-    const q = parseWholeQuotedCommaLine(line0);
+  for (let raw of lines) {
+    const line = unwrapOuterQuotes(raw);
+
+    // try the flexible quoted parser first
+    const q = parseWholeQuotedCommaLine(line);
     if(q){ rows.push(q); continue; }
 
-    const parts = splitCSVLine(line0, delim).map(cleanField).filter(x => x !== "");
+    // normal split
+    const parts = splitCSVLine(line, delim)
+      .map(cleanField)
+      .filter(x => x !== "");
+
     if(parts.length < 2) continue;
 
     const id = parseInt(parts[0],10);
     if(!Number.isFinite(id)) continue;
 
+    // find first date token anywhere
     let dateIdx = -1, d = null;
     for(let i=1;i<parts.length;i++){
       const maybe = parseDateOnlyFlexible(parts[i]);
@@ -670,19 +917,34 @@ function parseText(text){
     if(dateIdx === -1) continue;
 
     let timeStr = "";
-    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) timeStr = parts[dateIdx + 1];
+    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) {
+      timeStr = normalizeWeirdTime(parts[dateIdx + 1]);
+    } else {
+      // also support "18-12-2024 9-39" inside one field (after unwrap)
+      const maybeTime = (parts[dateIdx] || "").match(/(\d{1,2})-(\d{2})(?::(\d{2}))?$/);
+      if(maybeTime){
+        timeStr = normalizeWeirdTime(maybeTime[0]);
+      }
+    }
 
     const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-    const dt = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
-    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
 
+    // if date field contains time too (ex: 18-12-2024 9-39), keep original as datetime
+    let dt = parts[dateIdx].trim();
+    if(timeStr && !dt.toLowerCase().includes("am") && !dt.toLowerCase().includes("pm") && !dt.includes(":")){
+      // attach time only if not already contains time
+      dt = (parts[dateIdx] + " " + timeStr).trim();
+    }
+
+    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
     rows.push({ id, idText:String(id), status, datetime: dt, day });
   }
+
   return rows;
 }
 
 /* =========================
-   Analyzer state + UI
+   Analyzer: App state + UI
 ========================= */
 let allRows = [];
 let visibleRows = [];
@@ -691,29 +953,34 @@ let missingIDs = [];
 function renderTable(){
   const body = $("outputBody");
   body.innerHTML = "";
+
   if(!visibleRows.length){
     body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
     $("count").textContent = "0";
+    $("missingCountTop").textContent = String(missingIDs.length || 0);
     return;
   }
+
   for(const r of visibleRows){
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${escapeHtml(r.idText)}</td>
       <td>${escapeHtml(r.status)}</td>
       <td>${escapeHtml(r.datetime)}</td>
-      <td>${escapeHtml(r.day)}</td>`;
+      <td>${escapeHtml(r.day)}</td>
+    `;
     body.appendChild(tr);
   }
   $("count").textContent = String(visibleRows.length);
+  $("missingCountTop").textContent = String(missingIDs.length || 0);
 }
 
 function resetRangeBox(){
   $("procInRange").textContent = "0";
   $("dupCount").textContent = "0";
-  $("missingCount").textContent = "0";
   $("missingBox").textContent = 'Run “Check”…';
   missingIDs = [];
+  $("missingCountTop").textContent = "0";
 }
 
 function dateMode(){
@@ -760,23 +1027,23 @@ function clearDateFilter(){
   setStatus("Date filter cleared (showing all rows)", "ok");
 }
 
-function parseIdRange(s){
-  s = String(s||"").trim();
-  if(!s) return null;
-  // accept: 3376 - 4375 | 3376-4375 | 3376:4375 | 3376 , 4375
-  const m = s.match(/(\d+)\s*[-:,\s]\s*(\d+)/);
+/* ✅ ID range input: "3376 - 4375" */
+function parseIdRangeInput(v){
+  v = String(v||"").trim();
+  if(!v) return null;
+  // allow: 3376-4375 | 3376 - 4375 | 3376 — 4375
+  const m = v.match(/^\s*(\d+)\s*[-–—]\s*(\d+)\s*$/);
   if(!m) return null;
-  let a = parseInt(m[1],10);
-  let b = parseInt(m[2],10);
-  if(!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  if(a>b){ const t=a; a=b; b=t; }
-  return {from:a,to:b};
+  let from = Number(m[1]), to = Number(m[2]);
+  if(Number.isNaN(from) || Number.isNaN(to)) return null;
+  if(from > to){ const t=from; from=to; to=t; }
+  return {from,to};
 }
 
 function checkRange(){
   if(!visibleRows.length){ setStatus("No visible rows (apply date first)", "bad"); return; }
-  const rr = parseIdRange($("idRange").value);
-  if(!rr){ setStatus("Invalid ID range (ex: 3376 - 4375)", "bad"); return; }
+  const rr = parseIdRangeInput($("idRangeInput").value);
+  if(!rr){ setStatus("Invalid ID range (use: 3376 - 4375)", "bad"); return; }
   const {from,to} = rr;
 
   const counts = new Map();
@@ -792,16 +1059,16 @@ function checkRange(){
 
   missingIDs = [];
   for(let i=from;i<=to;i++) if(!counts.has(i)) missingIDs.push(i);
-  $("missingCount").textContent = String(missingIDs.length);
+  $("missingCountTop").textContent = String(missingIDs.length);
 
   $("missingBox").textContent =
 `Scope = visible rows (your date filter)
 ID Range: ${from} → ${to}
 
 NOT processed (${missingIDs.length}):
-${missingIDs.slice(0, 500).join("\n") || "—"}
+${missingIDs.slice(0, 400).join("\n") || "—"}
 
-(Preview first 500)`;
+(Preview first 400)`;
 
   setStatus("Range computed ✅", "ok");
 }
@@ -829,7 +1096,7 @@ function copyMissing(){
 }
 function exportMissing(){
   if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
-  const rr = parseIdRange($("idRange").value);
+  const rr = parseIdRangeInput($("idRangeInput").value);
   const name = rr ? `not_processed_${rr.from}-${rr.to}.csv` : "not_processed.csv";
   downloadBlob("ID\n" + missingIDs.join("\n"), name, "text/csv;charset=utf-8;");
   setStatus(`Exported ${name}`, "ok");
@@ -854,9 +1121,10 @@ function processCSV(){
   // auto-fill latest day into singleDate
   const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
   $("singleDate").value = days[0] || "";
-  setStatus("Parsed ✅ Choose date → Apply → Check.", "ok");
+  setStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
 }
 
+/* UI Mode toggle visuals */
 function refreshModeUI(){
   const m = dateMode();
   $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
@@ -869,284 +1137,303 @@ function refreshModeUI(){
 }
 
 /* =========================
-   Keyword Checker (fixed logic)
-   - PROCESSED if SUCCESS keyword exists AND no FAIL keyword exists
-   - Copy NOT returns profile_Name
+   Keyword Checker (Google Sheets style)
+   - Paste table text (TAB) or CSV
+   - Match keywords in log + details
+   - Output: PROCESSED / NOT PROCESSED
+   - Copy/Export NOT PROCESSED as profile_Name (✅ your requirement)
 ========================= */
-const KC_SUCCESS_DEFAULT = [
+
+const KEY_STORAGE = "csv_analyzer_keywords_v1";
+const DEFAULT_KEYWORDS = [
   "done","already","reply","forward","search completed for","markunread","sendmessage",
   "successfully","birthdaychanged","click","gender updated","theme already changed",
-  "gmail template updated","languagevalue updated","english has been added",
-  "updated","completed","success","connected","activated"
-];
-const KC_FAIL_DEFAULT = [
-  "disconnected","notconnected","not connected","cnx_problems","captcha","error","failed",
-  "wrong password","verify","proxy","timeout","api problem"
-];
+  "gmail template updated","languagevalue updated","english has been added","success"
+].map(s=>s.trim()).filter(Boolean);
 
-function kcLoadLists(){
-  const raw = localStorage.getItem("kc_lists_v1");
-  if(raw){
-    try{
-      const obj = JSON.parse(raw);
-      const ok = Array.isArray(obj?.success) ? obj.success : KC_SUCCESS_DEFAULT;
-      const bad = Array.isArray(obj?.fail) ? obj.fail : KC_FAIL_DEFAULT;
-      return {
-        success: ok.map(x=>String(x).trim()).filter(Boolean),
-        fail: bad.map(x=>String(x).trim()).filter(Boolean),
-      };
-    }catch(e){}
+function loadKeywords(){
+  try{
+    const raw = localStorage.getItem(KEY_STORAGE);
+    if(!raw) return [...DEFAULT_KEYWORDS];
+    const arr = JSON.parse(raw);
+    if(!Array.isArray(arr)) return [...DEFAULT_KEYWORDS];
+    return arr.map(x=>String(x).trim()).filter(Boolean);
+  }catch(e){
+    return [...DEFAULT_KEYWORDS];
   }
-  return { success: [...KC_SUCCESS_DEFAULT], fail: [...KC_FAIL_DEFAULT] };
 }
-function kcSaveLists(lists){
-  localStorage.setItem("kc_lists_v1", JSON.stringify(lists));
+function saveKeywords(list){
+  localStorage.setItem(KEY_STORAGE, JSON.stringify(list));
 }
-let kcLists = kcLoadLists();
-
-function renderChips(){
-  const sWrap = $("successChips");
-  const fWrap = $("failChips");
-  sWrap.innerHTML = "";
-  fWrap.innerHTML = "";
-
-  const mkChip = (txt, onRemove) => {
-    const el = document.createElement("span");
-    el.className = "chip";
-    el.innerHTML = `<span>${escapeHtml(txt)}</span><span class="x">×</span>`;
-    el.querySelector(".x").addEventListener("click", onRemove);
-    return el;
-  };
-
-  kcLists.success.forEach((k,idx)=>{
-    sWrap.appendChild(mkChip(k, ()=>{
-      kcLists.success.splice(idx,1);
-      kcSaveLists(kcLists);
-      renderChips();
-    }));
-  });
-  kcLists.fail.forEach((k,idx)=>{
-    fWrap.appendChild(mkChip(k, ()=>{
-      kcLists.fail.splice(idx,1);
-      kcSaveLists(kcLists);
-      renderChips();
-    }));
-  });
-
-  if(!kcLists.success.length) sWrap.innerHTML = `<div class="empty" style="padding:12px">No success keywords</div>`;
-  if(!kcLists.fail.length) fWrap.innerHTML = `<div class="empty" style="padding:12px">No fail keywords</div>`;
+function normKW(s){
+  return String(s||"").toLowerCase().trim();
 }
-
-function parseTabOrCSV(text){
-  const lines = text.replace(/\r/g,"").split("\n").filter(l=>l.trim().length>0);
-  if(!lines.length) return { rows:[], msg:"Empty input" };
-
-  // detect TAB vs delimiter
-  const first = lines[0];
-  const isTab = first.includes("\t");
-  const delim = isTab ? "\t" : (first.includes(";") ? ";" : ",");
-
-  const splitLine = (line)=>{
-    if(delim === "\t") return line.split("\t");
-    return splitCSVLine(line, delim);
-  };
-
-  const rawHeader = splitLine(lines[0]).map(x=>normalizeText(cleanField(x)));
-  const idx = (name)=>{
-    const n = normalizeText(name);
-    return rawHeader.indexOf(n);
-  };
-
-  const iProfile = idx("profile_name");
-  const iTag = idx("tag");
-  const iStatus = idx("status_name");
-  const iLog = idx("log");
-  const iCnx = idx("cnx_problems");
-  const iDetails = idx("details");
-
-  if(iProfile === -1 || iLog === -1 || iDetails === -1){
-    return { rows:[], msg:"Headers missing. Need at least: profile_Name, log, details" };
+function buildKwChips(){
+  const wrap = $("kwChips");
+  wrap.innerHTML = "";
+  const kws = state.keywords;
+  if(!kws.length){
+    wrap.innerHTML = `<div class="smallNote">No keywords</div>`;
+    return;
   }
+  kws.forEach((k, idx)=>{
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.innerHTML = `
+      <span>${escapeHtml(k)}</span>
+      <button title="Remove">×</button>
+    `;
+    chip.querySelector("button").addEventListener("click", ()=>{
+      state.keywords.splice(idx,1);
+      saveKeywords(state.keywords);
+      buildKwChips();
+      setKwStatus("Keyword removed", "ok");
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+/* robust split: TAB, comma, semicolon */
+function splitAnyLine(line, delim){
+  return splitCSVLine(line, delim).map(cleanField);
+}
+function detectTableDelimiter(lines){
+  // If TAB exists, prefer TAB
+  let tab=0, semi=0, comma=0;
+  for(const l of lines.slice(0,20)){
+    tab += (l.match(/\t/g)||[]).length;
+    semi += (l.match(/;/g)||[]).length;
+    comma += (l.match(/,/g)||[]).length;
+  }
+  if(tab >= semi && tab >= comma && tab>0) return "\t";
+  return comma >= semi ? "," : ";";
+}
+
+function normalizeHeader(h){
+  return String(h||"").trim().toLowerCase().replace(/\s+/g,"_");
+}
+
+function parseKeywordTable(text){
+  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+  if(lines.length < 2) return {headers:[], rows:[]};
+
+  const delim = detectTableDelimiter(lines);
+  const headerParts = splitAnyLine(lines[0], delim).map(normalizeHeader);
+
+  // find indexes
+  const idxProfile = headerParts.indexOf("profile_name");
+  const idxTag = headerParts.indexOf("tag");
+  const idxStatus = headerParts.indexOf("status_name");
+
+  // log can be "log" or "process_log" etc
+  let idxLog = headerParts.indexOf("log");
+  if(idxLog === -1) idxLog = headerParts.findIndex(h=>h.includes("log"));
+
+  // details might be "details"
+  let idxDetails = headerParts.indexOf("details");
+  // some files have cnx_problems + details; we only care log + details
+  if(idxDetails === -1) idxDetails = headerParts.findIndex(h=>h.includes("details"));
 
   const rows = [];
   for(let i=1;i<lines.length;i++){
-    const parts = splitLine(lines[i]).map(cleanField);
+    const parts = splitAnyLine(lines[i], delim);
     if(!parts.length) continue;
 
-    const profile = parts[iProfile] ?? "";
-    if(String(profile).trim() === "") continue;
+    const profileName = idxProfile !== -1 ? (parts[idxProfile] ?? "") : "";
+    const tag = idxTag !== -1 ? (parts[idxTag] ?? "") : "";
+    const statusName = idxStatus !== -1 ? (parts[idxStatus] ?? "") : "";
+    const log = idxLog !== -1 ? (parts[idxLog] ?? "") : "";
+    const details = idxDetails !== -1 ? (parts[idxDetails] ?? "") : "";
+
+    // Skip completely empty row (common with pasted tables)
+    if(!String(profileName||tag||statusName||log||details).trim()) continue;
 
     rows.push({
-      profile_name: String(profile).trim(),
-      tag: String(parts[iTag] ?? "").trim(),
-      status_name: String(parts[iStatus] ?? "").trim(),
-      log: String(parts[iLog] ?? "").trim(),
-      cnx_problems: String(parts[iCnx] ?? "").trim(),
-      details: String(parts[iDetails] ?? "").trim(),
-      process_status: "",
-      preview_short: ""
+      profile_Name: String(profileName||"").trim(),
+      tag: String(tag||"").trim(),
+      status_name: String(statusName||"").trim(),
+      log: String(log||"").trim(),
+      details: String(details||"").trim(),
+      process_status: "—"
     });
   }
-  return { rows, msg:"ok" };
+
+  return {headers: headerParts, rows};
 }
 
-let kcRows = [];
-let kcNotProcessed = [];
-
-function containsAny(hay, list){
-  for(const kw of list){
-    const k = normalizeText(kw);
-    if(!k) continue;
-    if(hay.includes(k)) return true;
-  }
-  return false;
+function normalizeForSearch(v){
+  if (v === null || v === undefined) return '';
+  let s = String(v);
+  if (s === '#ERROR!') return '';
+  // remove formula-like prefixes
+  s = s.replace(/^[=;]+>?/g, '');
+  return s.toLowerCase();
 }
 
-function kwCheck(){
+const state = {
+  keywords: loadKeywords(),
+  kwRows: [],
+  kwNotProcessedProfiles: []
+};
+
+function kwCompute(){
   const text = $("kwInput").value.trim();
   if(!text){ setKwStatus("Input empty", "bad"); return; }
 
-  const parsed = parseTabOrCSV(text);
-  if(parsed.msg !== "ok"){
+  const parsed = parseKeywordTable(text);
+  const rows = parsed.rows;
+  state.kwRows = rows;
+
+  if(!rows.length){
     $("kwTotal").textContent = "0";
     $("kwProcessed").textContent = "0";
     $("kwNotProcessed").textContent = "0";
-    $("kwBody").innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(parsed.msg)}</td></tr>`;
-    setKwStatus(parsed.msg, "bad");
+    renderKwTable([]);
+    state.kwNotProcessedProfiles = [];
+    $("kwBox").textContent = "No rows detected. Make sure first line contains headers (profile_Name, log, details...).";
+    setKwStatus("No rows parsed", "bad");
     return;
   }
 
-  kcRows = parsed.rows;
-  const okList = kcLists.success.map(x=>normalizeText(x));
-  const badList = kcLists.fail.map(x=>normalizeText(x));
+  const kws = state.keywords.map(normKW).filter(Boolean);
+  let processedN = 0;
+  const notProfiles = new Set();
 
-  let processed = 0;
-  kcNotProcessed = [];
+  for(const r of rows){
+    const logText = normalizeForSearch(r.log);
+    const detailsText = normalizeForSearch(r.details);
+    let processed = false;
 
-  for(const r of kcRows){
-    const hay = normalizeText(r.log + " " + r.details);
+    if(logText || detailsText){
+      for(const kw of kws){
+        if(!kw) continue;
+        if(logText.includes(kw) || detailsText.includes(kw)){
+          processed = true;
+          break;
+        }
+      }
+    }
 
-    const isFail = containsAny(hay, badList);
-    const isSuccess = !isFail && containsAny(hay, okList);
-
-    r.process_status = isSuccess ? "PROCESSED" : "NOT PROCESSED";
-
-    const full = `${r.profile_name} ${r.tag} ${r.status_name} ${r.log} ${r.details}`.trim();
-    r.preview_short = full.length > 140 ? (full.slice(0,140) + "...") : full;
-
-    if(isSuccess) processed++;
-    else kcNotProcessed.push(r.profile_name);
+    r.process_status = processed ? "PROCESSED" : "NOT PROCESSED";
+    if(processed) processedN++;
+    else{
+      // ✅ copy/export profile_Name (not tag)
+      const key = (r.profile_Name || "").trim();
+      if(key) notProfiles.add(key);
+    }
   }
 
-  $("kwTotal").textContent = String(kcRows.length);
-  $("kwProcessed").textContent = String(processed);
-  $("kwNotProcessed").textContent = String(kcNotProcessed.length);
+  state.kwNotProcessedProfiles = [...notProfiles];
+
+  $("kwTotal").textContent = String(rows.length);
+  $("kwProcessed").textContent = String(processedN);
+  $("kwNotProcessed").textContent = String(rows.length - processedN);
 
   // render table
-  const body = $("kwBody");
-  body.innerHTML = "";
-  if(!kcRows.length){
-    body.innerHTML = `<tr><td colspan="6" class="empty">No rows</td></tr>`;
-  } else {
-    kcRows.forEach((r,i)=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i+1}</td>
-        <td>${escapeHtml(r.profile_name)}</td>
-        <td>${escapeHtml(r.tag)}</td>
-        <td>${escapeHtml(r.status_name)}</td>
-        <td>${escapeHtml(r.process_status)}</td>
-        <td>${escapeHtml(r.preview_short)}</td>
-      `;
-      body.appendChild(tr);
-    });
-  }
+  renderKwTable(rows);
+
+  $("kwBox").textContent =
+`Parsed rows: ${rows.length}
+Keywords used (${kws.length}):
+${kws.join(", ")}
+
+NOT PROCESSED unique profile_Name (${state.kwNotProcessedProfiles.length}):
+${state.kwNotProcessedProfiles.slice(0, 200).join("\n") || "—"}
+
+(Preview first 200)`;
 
   setKwStatus("Keyword check done ✅", "ok");
 }
 
-function kwCopyNot(){
-  if(!kcNotProcessed.length){ setKwStatus("No NOT PROCESSED", "warn"); return; }
-  navigator.clipboard.writeText(kcNotProcessed.join("\n"))
-    .then(()=>setKwStatus(`Copied ${kcNotProcessed.length} profile_Name`, "ok"))
-    .catch(()=>setKwStatus("Clipboard blocked by browser", "bad"));
-}
-function kwExportNot(){
-  if(!kcNotProcessed.length){ setKwStatus("No NOT PROCESSED", "warn"); return; }
-  const csv = "profile_Name\n" + kcNotProcessed.join("\n");
-  downloadBlob(csv, "not_processed_profile_name.csv", "text/csv;charset=utf-8;");
-  setKwStatus("Exported not_processed_profile_name.csv ✅", "ok");
+function renderKwTable(rows){
+  const body = $("kwBody");
+  body.innerHTML = "";
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty">No rows</td></tr>`;
+    return;
+  }
+  rows.forEach((r, idx)=>{
+    const tr = document.createElement("tr");
+    const preview = (r.log + (r.details ? " | " + r.details : "")).slice(0, 140);
+    tr.innerHTML = `
+      <td>${idx+1}</td>
+      <td>${escapeHtml(r.profile_Name)}</td>
+      <td>${escapeHtml(r.tag)}</td>
+      <td>${escapeHtml(r.status_name)}</td>
+      <td>${escapeHtml(r.process_status)}</td>
+      <td>${escapeHtml(preview)}</td>
+    `;
+    body.appendChild(tr);
+  });
 }
 
-function addSuccess(){
-  const v = $("kwAddSuccess").value.trim();
-  if(!v) return;
-  if(!kcLists.success.some(x=>normalizeText(x)===normalizeText(v))){
-    kcLists.success.push(v);
-    kcSaveLists(kcLists);
-    renderChips();
-  }
-  $("kwAddSuccess").value = "";
-  setKwStatus("Added success keyword ✅", "ok");
+function kwAdd(){
+  const v = $("kwNew").value.trim();
+  if(!v){ setKwStatus("Keyword empty", "warn"); return; }
+  const n = normKW(v);
+  if(state.keywords.map(normKW).includes(n)){ setKwStatus("Keyword already exists", "warn"); return; }
+  state.keywords.push(v);
+  saveKeywords(state.keywords);
+  $("kwNew").value = "";
+  buildKwChips();
+  setKwStatus("Keyword added ✅", "ok");
 }
-function addFail(){
-  const v = $("kwAddFail").value.trim();
-  if(!v) return;
-  if(!kcLists.fail.some(x=>normalizeText(x)===normalizeText(v))){
-    kcLists.fail.push(v);
-    kcSaveLists(kcLists);
-    renderChips();
-  }
-  $("kwAddFail").value = "";
-  setKwStatus("Added fail keyword ✅", "ok");
+
+function kwSetDefault(){
+  state.keywords = [...DEFAULT_KEYWORDS];
+  saveKeywords(state.keywords);
+  buildKwChips();
+  setKwStatus("Default keywords loaded ✅", "ok");
 }
-function setDefaultsSuccess(){
-  kcLists.success = [...KC_SUCCESS_DEFAULT];
-  kcSaveLists(kcLists); renderChips();
-  setKwStatus("Success keywords reset to default ✅", "ok");
+function kwClear(){
+  state.keywords = [];
+  saveKeywords(state.keywords);
+  buildKwChips();
+  setKwStatus("Keywords cleared", "ok");
 }
-function setDefaultsFail(){
-  kcLists.fail = [...KC_FAIL_DEFAULT];
-  kcSaveLists(kcLists); renderChips();
-  setKwStatus("Fail keywords reset to default ✅", "ok");
+
+function kwCopyNot(){
+  const list = state.kwNotProcessedProfiles || [];
+  if(!list.length){ setKwStatus("No NOT PROCESSED profiles", "warn"); return; }
+  navigator.clipboard.writeText(list.join("\n"))
+    .then(()=>setKwStatus(`Copied ${list.length} profile_Name`, "ok"))
+    .catch(()=>setKwStatus("Clipboard blocked by browser", "bad"));
 }
-function clearSuccess(){
-  kcLists.success = [];
-  kcSaveLists(kcLists); renderChips();
-  setKwStatus("Success keywords cleared ✅", "ok");
-}
-function clearFail(){
-  kcLists.fail = [];
-  kcSaveLists(kcLists); renderChips();
-  setKwStatus("Fail keywords cleared ✅", "ok");
+
+function kwExportNot(){
+  const list = state.kwNotProcessedProfiles || [];
+  if(!list.length){ setKwStatus("No NOT PROCESSED profiles", "warn"); return; }
+  const csv = "profile_Name\n" + list.map(x=>safeCsv(x)).join("\n") + "\n";
+  downloadBlob(csv, "not_processed_profiles.csv", "text/csv;charset=utf-8;");
+  setKwStatus("Exported not_processed_profiles.csv ✅", "ok");
 }
 
 /* =========================
    Tabs
 ========================= */
-function showTab(which){
-  const a = $("pageAnalyzer");
-  const k = $("pageKeyword");
+function showTab(name){
+  const a = $("viewAnalyzer");
+  const k = $("viewKeyword");
   const ta = $("tabAnalyzer");
   const tk = $("tabKeyword");
 
-  if(which === "analyzer"){
-    a.classList.remove("hidden");
-    k.classList.add("hidden");
+  if(name === "analyzer"){
+    a.style.display = "block";
+    k.style.display = "none";
     ta.classList.add("active");
     tk.classList.remove("active");
-    setPill("", "Ready");
+    setPill("", "Analyzer ready");
   } else {
-    k.classList.remove("hidden");
-    a.classList.add("hidden");
-    tk.classList.add("active");
+    a.style.display = "none";
+    k.style.display = "block";
     ta.classList.remove("active");
-    setPill("", "Keyword mode");
+    tk.classList.add("active");
+    setPill("", "Keyword Checker ready");
   }
 }
 
 /* =========================
-   Wire Analyzer
+   Wire: Analyzer
 ========================= */
 $("btnProcess").addEventListener("click", processCSV);
 $("btnCopy").addEventListener("click", copyIDs);
@@ -1163,33 +1450,28 @@ document.querySelectorAll('input[name="dateMode"]').forEach(r=>{
   r.addEventListener("change", refreshModeUI);
 });
 
-/* Wire Keyword */
-$("btnKwCheck").addEventListener("click", kwCheck);
-$("btnKwCopy").addEventListener("click", kwCopyNot);
-$("btnKwExport").addEventListener("click", kwExportNot);
+/* =========================
+   Wire: Keyword Checker
+========================= */
+$("btnKwCheck").addEventListener("click", kwCompute);
+$("btnKwAdd").addEventListener("click", kwAdd);
+$("kwNew").addEventListener("keydown", (e)=>{ if(e.key === "Enter") kwAdd(); });
+$("btnKwDefault").addEventListener("click", kwSetDefault);
+$("btnKwClear").addEventListener("click", kwClear);
+$("btnKwCopyNot").addEventListener("click", kwCopyNot);
+$("btnKwExportNot").addEventListener("click", kwExportNot);
 
-$("btnAddSuccess").addEventListener("click", addSuccess);
-$("btnAddFail").addEventListener("click", addFail);
-
-$("btnSuccessDefault").addEventListener("click", setDefaultsSuccess);
-$("btnFailDefault").addEventListener("click", setDefaultsFail);
-
-$("btnSuccessClear").addEventListener("click", clearSuccess);
-$("btnFailClear").addEventListener("click", clearFail);
-
-$("kwAddSuccess").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); addSuccess(); } });
-$("kwAddFail").addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); addFail(); } });
-
-/* Wire Tabs */
+/* =========================
+   Wire: Tabs
+========================= */
 $("tabAnalyzer").addEventListener("click", ()=>showTab("analyzer"));
 $("tabKeyword").addEventListener("click", ()=>showTab("keyword"));
 
-/* Init */
+/* init */
 setPill("", "Ready");
 refreshModeUI();
-renderChips();
+buildKwChips();
 showTab("analyzer");
-setKwStatus("Waiting…", "muted");
 </script>
 </body>
 </html>
