@@ -1,897 +1,1177 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Quality Analyzer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quality Analyzer</title>
 
-<style>
-:root{
-  --bg0:#070b14;
-  --bg1:#0b1220;
-  --card:#0f1a2e;
-  --line:rgba(148,163,184,.18);
+  <!-- html2canvas for Maintenance screenshot -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  --text:#e5e7eb;
-  --muted:#94a3b8;
+  <style>
+    :root{
+      --bg0:#070a14;
+      --bg1:#0a1022;
+      --panel: rgba(255,255,255,0.04);
+      --panel2: rgba(255,255,255,0.06);
+      --stroke: rgba(255,255,255,0.08);
+      --text:#e9ecff;
+      --muted:#aeb6da;
+      --brand1:#6d6bff;
+      --brand2:#14d9ff;
+      --good:#2ee59d;
+      --bad:#ff4d6d;
+      --warn:#ffb020;
+      --chip:#0f1833;
+      --chipStroke: rgba(255,255,255,0.10);
+      --shadow: 0 16px 50px rgba(0,0,0,0.55);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(109,107,255,0.35), transparent 55%),
+        radial-gradient(1000px 700px at 90% 15%, rgba(20,217,255,0.22), transparent 50%),
+        radial-gradient(900px 650px at 50% 95%, rgba(255,77,109,0.12), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
 
-  --shadow: 0 18px 60px rgba(0,0,0,.45);
-  --shadow2: 0 10px 30px rgba(0,0,0,.35);
+    .wrap{
+      max-width: 1320px;
+      margin: 28px auto;
+      padding: 0 18px 32px;
+    }
 
-  --focus: rgba(99,102,241,.22);
+    .topbar{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 320px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(109,107,255,0.95), rgba(20,217,255,0.9));
+      box-shadow: 0 10px 30px rgba(109,107,255,0.25);
+    }
+    .brand h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+      font-weight: 800;
+    }
+    .brand .sub{
+      margin-top:2px;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
 
-  --c1:#6366f1;
-  --c2:#22d3ee;
+    .top-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
 
-  --ok:#22c55e;
-  --bad:#ef4444;
-  --warn:#f59e0b;
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 520px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dot{
+      width:9px;height:9px;border-radius:999px;background: var(--warn);
+      box-shadow: 0 0 0 3px rgba(255,176,32,0.18);
+      flex:0 0 auto;
+    }
+    .dot.good{ background: var(--good); box-shadow: 0 0 0 3px rgba(46,229,157,0.16); }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(255,77,109,0.14); }
 
-  --r:18px;
-  --r2:14px;
+    .btn{
+      border:0;
+      cursor:pointer;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.075); border-color: rgba(255,255,255,0.13); }
+    .btn:active{ transform: translateY(0px) scale(0.99); }
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(109,107,255,0.95), rgba(20,217,255,0.75));
+      border-color: rgba(255,255,255,0.10);
+      box-shadow: 0 12px 40px rgba(109,107,255,0.18);
+    }
+    .btn.danger{
+      background: linear-gradient(90deg, rgba(255,77,109,0.95), rgba(255,176,32,0.55));
+      border-color: rgba(255,255,255,0.10);
+    }
+    .btn.good{
+      background: linear-gradient(90deg, rgba(46,229,157,0.95), rgba(20,217,255,0.55));
+      border-color: rgba(255,255,255,0.10);
+    }
+    .btn.small{ padding:8px 12px; border-radius: 12px; font-size: 12.5px; }
+    .btn.ghost{
+      background: rgba(255,255,255,0.03);
+    }
+
+    .card{
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      padding: 14px 14px 0;
+    }
+    .tab{
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-weight: 800;
+      cursor:pointer;
+      user-select:none;
+      transition: .12s ease;
+    }
+    .tab.active{
+      color: var(--text);
+      background: rgba(109,107,255,0.12);
+      border-color: rgba(109,107,255,0.28);
+      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.08);
+    }
+
+    .page{
+      padding: 14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+      align-items:start;
+    }
+
+    @media(max-width: 1050px){
+      .grid{ grid-template-columns: 1fr; }
+      .brand{ min-width:unset; }
+    }
+
+    .panel{
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow:hidden;
+    }
+    .panel .head{
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .panel .head h2{
+      margin:0;
+      font-size: 13.5px;
+      letter-spacing: 0.2px;
+    }
+    .panel .head .hint{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    textarea{
+      width:100%;
+      min-height: 330px;
+      resize: vertical;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(109,107,255,0.20);
+      outline:none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12.6px;
+      line-height: 1.45;
+      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.04);
+    }
+    textarea:focus{
+      border-color: rgba(20,217,255,0.35);
+      box-shadow: 0 0 0 3px rgba(20,217,255,0.12);
+    }
+
+    .controls{
+      padding: 12px 14px 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+
+    .kpi-row{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media(max-width: 560px){
+      .kpi-row{ grid-template-columns: 1fr; }
+    }
+    .kpi{
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+    .kpi .label{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .kpi .value{
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+    .kpi .sub{
+      margin-top: 6px;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .btn-row{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media(max-width: 560px){
+      .btn-row{ grid-template-columns: 1fr; }
+    }
+
+    .section{
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+    }
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .section-title .t{
+      font-weight: 900;
+      font-size: 12.5px;
+      letter-spacing: 0.3px;
+    }
+    .section-title .r{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .toggle-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .toggle{
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      font-weight: 900;
+    }
+    .toggle .radio{
+      width: 12px;height:12px;border-radius:999px;
+      border:2px solid rgba(255,255,255,0.35);
+      display:inline-block;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.35);
+    }
+    .toggle.active{
+      border-color: rgba(109,107,255,0.30);
+      background: rgba(109,107,255,0.08);
+    }
+    .toggle.active .radio{
+      border-color: rgba(20,217,255,0.9);
+      box-shadow: 0 0 0 4px rgba(20,217,255,0.12);
+      background: rgba(20,217,255,0.8);
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .field label{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .field input, .field select{
+      width:100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.14);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: var(--text);
+      outline:none;
+      font-family: var(--sans);
+      font-weight: 700;
+    }
+    .field input:focus, .field select:focus{
+      border-color: rgba(20,217,255,0.30);
+      box-shadow: 0 0 0 3px rgba(20,217,255,0.10);
+    }
+    .hint2{
+      color: var(--muted);
+      font-size: 11.5px;
+      font-family: var(--mono);
+    }
+
+    .status-box{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .status-pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      max-height: 150px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .sp{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+      cursor:pointer;
+      user-select:none;
+    }
+    .sp small{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .sp.active{
+      border-color: rgba(109,107,255,0.35);
+      background: rgba(109,107,255,0.12);
+      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.06);
+    }
+
+    .msg{
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.12);
+      color: var(--muted);
+      font-size: 12.5px;
+      font-family: var(--mono);
+      min-height: 40px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .msg .dot{ flex:0 0 auto; }
+
+    /* table */
+    .table-wrap{
+      margin-top: 14px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.10);
+      overflow:hidden;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12.8px;
+    }
+    thead th{
+      text-align:left;
+      padding: 12px 12px;
+      color: var(--muted);
+      font-weight: 900;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.02);
+      user-select:none;
+      position:relative;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    thead th .sort{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .chev{
+      width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
+      border-top:6px solid rgba(255,255,255,0.35);
+      transform: translateY(2px);
+      opacity:0.8;
+    }
+    .chev.up{ border-top:0; border-bottom:6px solid rgba(255,255,255,0.35); transform: translateY(-1px); }
+    tbody td{
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text);
+      vertical-align: top;
+    }
+    tbody tr:hover td{ background: rgba(255,255,255,0.02); }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.16);
+      white-space:nowrap;
+    }
+    .badge.good{ border-color: rgba(46,229,157,0.22); background: rgba(46,229,157,0.10); color: #bfffe7; }
+    .badge.bad{ border-color: rgba(255,77,109,0.22); background: rgba(255,77,109,0.10); color: #ffd0da; }
+    .badge.warn{ border-color: rgba(255,176,32,0.22); background: rgba(255,176,32,0.10); color: #ffe4b8; }
+    .mono{ font-family: var(--mono); }
+    .muted{ color: var(--muted); }
+
+    /* Keyword chips */
+    .kw-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .kw-input{
+      flex:1 1 260px;
+      min-width: 220px;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 12.3px;
+    }
+    .chip .x{
+      width: 18px; height: 18px;
+      border-radius: 999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,77,109,0.16);
+      border: 1px solid rgba(255,77,109,0.20);
+      color: #ffd0da;
+      cursor:pointer;
+      user-select:none;
+      font-weight: 900;
+      line-height:1;
+      transform: translateY(-0.5px);
+    }
+    .chip .x:hover{ background: rgba(255,77,109,0.22); }
+
+    /* Modal */
+    .modal-back{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .modal{
+      width: min(640px, 100%);
+      border-radius: 18px;
+      background: rgba(10,16,34,0.95);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 30px 90px rgba(0,0,0,0.70);
+      overflow:hidden;
+    }
+    .modal .mhead{
+      padding: 14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .modal .mhead .title{
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+    .modal .mbody{
+      padding: 14px 16px 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .modal .mfoot{
+      padding: 12px 16px 16px;
+      display:flex;
+      gap: 10px;
+      justify-content:flex-end;
+    }
+    .closeX{
+      cursor:pointer;
+      border-radius: 12px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.20);
+      color: var(--text);
+      font-weight: 900;
+    }
+    .closeX:hover{ background: rgba(0,0,0,0.30); }
+    .mini{
+      font-size: 12px;
+      color: var(--muted);
+      line-height:1.5;
+    }
+
+    .sessionBox{
+      margin-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.10);
+      padding-top: 10px;
+    }
+    details{
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      background: rgba(0,0,0,0.16);
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    details summary{
+      cursor:pointer;
+      font-weight: 900;
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .counts{
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+	/* Make select dropdown options readable (Windows/Chrome) */
+#kwFilter {
+  color: #e9ecff !important;
+  background: rgba(0,0,0,0.18) !important;
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  color:var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  background:
-    radial-gradient(900px 520px at 10% 0%, rgba(99,102,241,.35), transparent 60%),
-    radial-gradient(650px 420px at 92% 8%, rgba(34,211,238,.22), transparent 60%),
-    radial-gradient(800px 520px at 45% 100%, rgba(34,197,94,.10), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
+#kwFilter option {
+  background: #0a1022 !important;
+  color: #e9ecff !important;
 }
 
-/* Layout */
-.container{max-width: 1480px; margin: 26px auto; padding: 0 18px 34px;}
-.shell{
-  border:1px solid var(--line);
-  border-radius: var(--r);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  box-shadow: var(--shadow);
-  padding: 16px;
+/* Hover/selected feel (not all browsers support) */
+#kwFilter option:checked {
+  background: #1a2a55 !important;
+  color: #e9ecff !important;
 }
 
-.topbar{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  margin-bottom:14px;
-}
-.brand{display:flex; align-items:center; gap:12px;}
-.logo{
-  width:36px; height:36px; border-radius:12px;
-  background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));
-  box-shadow: 0 10px 22px rgba(0,0,0,.25);
-}
-.brand h1{margin:0; font-size:20px; letter-spacing:.2px}
-.brand p{margin:3px 0 0; color:var(--muted); font-weight:800; font-size:12px}
 
-.pills{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
-.pill{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:10px 12px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  box-shadow: var(--shadow2);
-  color: var(--muted);
-  font-weight: 900;
-  font-size: 12px;
-}
-.dot{width:8px; height:8px; border-radius:99px; background:rgba(148,163,184,.55); box-shadow:0 0 0 3px rgba(148,163,184,.12)}
-.dot.ok{background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14)}
-.dot.bad{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14)}
-.dot.warn{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14)}
-
-.tabs{
-  display:flex; gap:10px; flex-wrap:wrap;
-  margin-bottom:14px;
-}
-.tab{
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  color: var(--text);
-  padding: 10px 14px;
-  border-radius: 14px;
-  cursor:pointer;
-  font-weight: 900;
-  transition: all .12s ease;
-}
-.tab.active{
-  border-color: rgba(99,102,241,.65);
-  box-shadow: 0 0 0 4px rgba(99,102,241,.14);
-  background: rgba(99,102,241,.10);
-}
-
-.section{display:none}
-.section.active{display:block}
-
-.grid{
-  display:grid;
-  grid-template-columns: 1.25fr .75fr;
-  gap: 16px;
-}
-@media (max-width: 1100px){
-  .grid{grid-template-columns:1fr}
-}
-
-.panel{
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.82);
-  border-radius: var(--r);
-  padding: 14px;
-}
-.panelTitle{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:10px;
-  margin-bottom: 10px;
-}
-.panelTitle b{font-size: 13px}
-.panelTitle span{color:var(--muted);font-weight:900;font-size:12px}
-
-textarea{
-  width:100%;
-  min-height: 310px;
-  border-radius: var(--r);
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  color: var(--text);
-  padding: 14px 14px;
-  outline:none;
-  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12.7px;
-  line-height: 1.42;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
-}
-textarea:focus{border-color: rgba(99,102,241,.85); box-shadow: 0 0 0 4px var(--focus);}
-
-input, select{
-  width:100%;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  color:var(--text);
-  padding: 11px 12px;
-  outline:none;
-  font-weight: 900;
-}
-input:focus,select:focus{border-color: rgba(99,102,241,.85); box-shadow: 0 0 0 4px var(--focus);}
-
-.kpis{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;}
-@media (max-width:600px){.kpis{grid-template-columns:1fr}}
-
-.kpi{
-  padding: 12px 12px;
-  border-radius: var(--r2);
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-.kpi span{color:var(--muted); font-size: 12px; font-weight: 900;}
-.kpi b{font-size: 18px; letter-spacing: .2px;}
-
-hr.sep{border:none;height:1px;background:var(--line); margin: 12px 0;}
-
-.controls{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width:1000px){.controls{grid-template-columns:1fr}}
-
-.btn{
-  width:100%;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,.10);
-  padding: 11px 12px;
-  cursor:pointer;
-  color:white;
-  font-weight: 950;
-  letter-spacing:.2px;
-  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
-  background: linear-gradient(135deg, rgba(99,102,241,.85), rgba(34,211,238,.55));
-  box-shadow: 0 10px 22px rgba(0,0,0,.28);
-}
-.btn:hover{filter:brightness(1.05); box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);}
-.btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2); box-shadow:none;}
-
-.btn.primary{background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70)); border-color: rgba(99,102,241,.25);}
-.btn.copy{background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55)); border-color: rgba(34,211,238,.18);}
-.btn.export{background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70)); border-color: rgba(167,139,250,.22);}
-.btn.clear{background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55)); border-color: rgba(148,163,184,.18);}
-
-.sectionTitle{display:flex; justify-content:space-between; align-items:center; gap:10px; margin: 2px 0 8px;}
-.sectionTitle b{font-size:13px}
-.sectionTitle small{color:var(--muted); font-weight:900}
-
-.modeRow{display:flex; gap:10px; flex-wrap:wrap;}
-.mode{
-  flex:1;
-  min-width: 160px;
-  display:flex; align-items:center; justify-content:center;
-  gap:10px;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  padding: 10px 12px;
-  font-weight: 950;
-  cursor:pointer;
-}
-.mode input{accent-color: var(--c2)}
-.mode.active{
-  border-color: rgba(99,102,241,.7);
-  box-shadow: 0 0 0 4px rgba(99,102,241,.14);
-  background: rgba(99,102,241,.08);
-}
-
-.two{display:grid; grid-template-columns: 1fr 1fr; gap: 10px;}
-@media(max-width:500px){.two{grid-template-columns:1fr}}
-
-.hint{margin-top:6px; color: var(--muted); font-size: 12px; font-weight: 900;}
-
-.badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
-.badge{
-  padding: 7px 10px;
-  border-radius: 999px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  font-size: 12px;
-  font-weight: 950;
-}
-.badge b{color: var(--c2);}
-
-.box{
-  margin-top:10px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.88);
-  border-radius: 14px;
-  padding: 10px;
-  max-height: 220px;
-  overflow:auto;
-  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12px;
-  white-space: pre;
-}
-
-.status{
-  margin-top:10px;
-  border-radius: 14px;
-  border:1px dashed rgba(148,163,184,.25);
-  padding: 10px 12px;
-  font-weight: 900;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* Tables */
-.tableWrap{
-  margin-top:16px;
-  border:1px solid var(--line);
-  border-radius: var(--r);
-  overflow:auto;
-  background: rgba(2,6,23,.82);
-  max-height: 560px;
-}
-table{width:100%; border-collapse:collapse; font-size:13px;}
-thead{
-  position:sticky; top:0; z-index:2;
-  background: rgba(15,26,46,.95);
-  backdrop-filter: blur(8px);
-}
-th,td{
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(148,163,184,.14);
-  white-space:nowrap;
-}
-tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{ text-align:center; color:var(--muted); padding: 26px; font-weight: 950; }
-
-/* Keyword tags */
-.tagsWrap{
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  border-radius: 14px;
-  padding: 10px;
-  max-height: 160px;
-  overflow:auto;
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.tag{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border:1px solid rgba(148,163,184,.22);
-  background: rgba(2,6,23,.65);
-  font-weight: 950;
-  font-size: 12px;
-}
-.tag button{
-  border:none;
-  width:18px;height:18px;
-  border-radius: 999px;
-  cursor:pointer;
-  background: rgba(239,68,68,.18);
-  color: #fecaca;
-  font-weight: 950;
-}
-.tag button:hover{filter:brightness(1.1)}
-
-.smallRow{
-  display:grid;
-  grid-template-columns: 1.25fr .75fr;
-  gap: 10px;
-}
-@media (max-width:1000px){.smallRow{grid-template-columns:1fr}}
-
-.inlineNote{
-  color: var(--muted);
-  font-weight: 900;
-  font-size: 12px;
-}
-
-/* Maintenance modal */
-.modalBackdrop{
-  position:fixed; inset:0; z-index:9999;
-  background: rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding: 18px;
-}
-.modal{
-  width:min(980px, 100%);
-  border-radius: 18px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.96);
-  box-shadow: var(--shadow);
-  overflow:hidden;
-}
-.modalHeader{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(148,163,184,.14);
-  background: rgba(255,255,255,.03);
-}
-.modalHeader b{font-size:13px}
-.modalHeader button{
-  border:none;
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  border:1px solid var(--line);
-  border-radius: 12px;
-  padding: 8px 10px;
-  cursor:pointer;
-  font-weight: 950;
-}
-.modalBody{padding: 14px; display:grid; grid-template-columns: 1fr 1fr; gap: 14px;}
-@media(max-width:900px){.modalBody{grid-template-columns:1fr}}
-.previewBox{
-  border:1px solid var(--line);
-  border-radius: 14px;
-  overflow:hidden;
-  background: rgba(255,255,255,.02);
-  min-height: 240px;
-  display:flex; align-items:center; justify-content:center;
-  color: var(--muted);
-  font-weight: 950;
-}
-.previewBox img{max-width:100%; height:auto; display:block;}
-</style>
+  </style>
 </head>
 
 <body>
-<div class="container">
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo"></div>
-      <div>
-        <h1>CSV Analyzer</h1>
-        <p></p>
-      </div>
-    </div>
-
-    <div class="pills">
-      <div class="pill">
-        <span class="dot warn" id="pillDot"></span>
-        <span id="pillText">Ready</span>
-      </div>
-
-      <!-- Maintenance (kifma kant) -->
-      <div class="pill" style="cursor:pointer" id="btnMaintenanceTop" title="Maintenance report + screenshot">
-        🛠 <span id="maintLabel">Maintenance</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="shell">
-    <div class="tabs">
-      <button class="tab active" id="tabAnalyzer">Imacors</button>
-      <button class="tab" id="tabKeyword">Webautomate</button>
-    </div>
-
-    <!-- ===================== ANALYZER ===================== -->
-    <div class="section active" id="secAnalyzer">
-      <div class="grid">
-        <div class="panel">
-          <div class="panelTitle">
-            <b>Input</b>
-            <span>Paste CSV / logs here</span>
-          </div>
-          <textarea id="csvInput" placeholder='Examples:
-"1814, Error: Email/Subject/Message not written, 18-12-2024 9-39"
-"5731,script Add_language,failed to change language,27-01-2026 11-57"
-2504, search Nathan passed successfully,2026-01-16
-1961,input empty,21-12-2024_11-7
-'></textarea>
+  <div class="wrap" id="appRoot">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Analyzer Toolkit</h1>
+          <div class="sub">Analyzer (date + status + ID range) + Keyword Checker (Apps Script logic) + Maintenance Telegram screenshot</div>
         </div>
+      </div>
 
-        <div class="panel">
-          <div class="panelTitle">
-            <b>Controls</b>
-            <span>Classic output</span>
-          </div>
+      <div class="top-actions">
+        <div class="pill" id="globalPill">
+          <span class="dot bad" id="pillDot"></span>
+          <span id="pillText">No valid rows parsed (check format)</span>
+        </div>
+        <button class="btn small ghost" id="btnMaint">🛠 Maintenance</button>
+        <button class="btn small ghost" id="btnMaintSettings"></button>
+      </div>
+    </div>
 
-          <div class="kpis">
-            <div class="kpi"><span>Total rows</span><b id="a_total">—</b></div>
-            <div class="kpi"><span>Visible rows</span><b id="a_count">—</b></div>
-            <div class="kpi"><span>Not processed</span><b id="a_missingCountTop">—</b></div>
-          </div>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" id="tabAnalyzer">Imacros</div>
+        <div class="tab" id="tabKeyword">Webautomate</div>
+      </div>
 
-          <hr class="sep">
-
-          <div class="controls">
-            <button class="btn primary" id="btnProcess">⚡ Process</button>
-            <button class="btn copy" id="btnCopy">📋 Copy IDs</button>
-            <button class="btn export" id="btnExport">⬇ Export CSV</button>
-          </div>
-
-          <hr class="sep">
-
-          <div class="sectionTitle">
-            <b>Date filter</b>
-            <small id="dateModeLabel">Single day</small>
-          </div>
-
-          <div class="modeRow">
-            <label class="mode active" id="modeSingle">
-              <input type="radio" name="dateMode" value="single" checked>
-              Single day
-            </label>
-            <label class="mode" id="modeRange">
-              <input type="radio" name="dateMode" value="range">
-              Date range
-            </label>
-          </div>
-
-          <div id="singleWrap" style="margin-top:10px">
-            <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
-            <div class="hint">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026</div>
-          </div>
-
-          <div id="rangeWrap" style="margin-top:10px;display:none">
-            <div class="two">
-              <input id="dateFrom" placeholder="From day">
-              <input id="dateTo" placeholder="To day">
+      <div class="page" id="pageAnalyzer">
+        <div class="grid">
+          <div class="panel">
+            <div class="head">
+              <h2>Input</h2>
+              <div class="hint">Paste CSV / logs here</div>
             </div>
-            <div class="hint">Tip: if From &gt; To we auto-swap</div>
-          </div>
-
-          <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
-            <button class="btn primary" id="btnApplyDate">✅ Apply date</button>
-            <button class="btn clear" id="btnClearDate">↩ Clear</button>
-          </div>
-
-          <hr class="sep">
-
-          <div class="sectionTitle">
-            <b>ID range check</b>
-            <small class="inlineNote">Type: 3376 - 4375</small>
-          </div>
-
-          <input id="rangeInput" placeholder="1961 - 2240" value="1961 - 2240">
-
-          <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr">
-            <button class="btn primary" id="btnRange">🔎 Check</button>
-            <button class="btn copy" id="btnCopyMissing">📋 Copy NOT</button>
-            <button class="btn export" id="btnExportMissing">⬇ Export NOT</button>
-          </div>
-
-          <div class="badges">
-            <div class="badge">Processed unique: <b id="procInRange">0</b></div>
-            <div class="badge">Not processed: <b id="missingCount">0</b></div>
-            <div class="badge">Duplicates: <b id="dupCount">0</b></div>
-          </div>
-
-          <div class="box" id="missingBox">Run “Check”…</div>
-          <div class="status" id="status">Waiting…</div>
-        </div>
-      </div>
-
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>STATUS</th>
-              <th>DATETIME</th>
-              <th>DAY</th>
-            </tr>
-          </thead>
-          <tbody id="outputBody">
-            <tr><td colspan="4" class="empty">No data yet</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ===================== KEYWORD CHECKER ===================== -->
-    <div class="section" id="secKeyword">
-      <div class="grid">
-        <div class="panel">
-          <div class="panelTitle">
-            <b>Keyword Checker Input</b>
-            <span>Paste table (TAB/CSV/;) with headers</span>
-          </div>
-
-          <textarea id="k_input" placeholder='Required headers (case-insensitive):
-profile_Name (or profile_name) + log + details
-Optional: cnx_problems + tag + status_name + script_name + session_name
-
-Example (TAB):
-profile_Name	tag	status_name	log	cnx_problems	details	script_name	session_name
-1	[07AD...]	Completed	[ Status => connected Updated!]		...	MyScript	CMH1_IT_3(173.225.106.66)
-'></textarea>
-
-          <div class="hint">
-            Session name is auto-normalized: <b>CMH1_IT_3(173...)</b> → <b>CMH1_IT_3</b>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panelTitle">
-            <b>Keyword Checker Controls</b>
-            <span>Apps Script logic + Sessions + DISCONNECTED</span>
-          </div>
-
-          <div class="kpis">
-            <div class="kpi"><span>Total rows</span><b id="k_total">—</b></div>
-            <div class="kpi"><span>Processed</span><b id="k_processed">—</b></div>
-            <div class="kpi"><span>Not processed</span><b id="k_not">—</b></div>
-          </div>
-
-          <div class="kpis" style="margin-top:10px">
-            <div class="kpi"><span>Disconnected</span><b id="k_disc">—</b></div>
-            <div class="kpi"><span>Session</span><b id="k_sessCount">—</b></div>
-            <div class="kpi"><span>Delim</span><b id="k_delim">—</b></div>
-          </div>
-
-          <hr class="sep">
-
-          <div class="controls">
-            <button class="btn primary" id="k_btnProcess">⚡ Process</button>
-            <button class="btn copy" id="k_btnCopyNot">📋 Copy NOT (profile_Name)</button>
-            <button class="btn export" id="k_btnExportNot">⬇ Export NOT</button>
-          </div>
-
-          <div class="controls" style="margin-top:10px">
-            <button class="btn copy" id="k_btnCopyDisc">📋 Copy DISCONNECTED</button>
-            <button class="btn export" id="k_btnExportDisc">⬇ Export DISCONNECTED</button>
-            <button class="btn clear" id="k_btnClearView">↩ Clear view</button>
-          </div>
-
-          <hr class="sep">
-
-          <div class="smallRow">
-            <div>
-              <div class="sectionTitle" style="margin-bottom:8px">
-                <b>Session filter</b>
-                <small class="inlineNote">based on session_name</small>
+            <div style="padding:12px;">
+              <textarea id="anInput" placeholder='"2720,birthday already exist,29-01-2026 13-13"
+5731,script Add_language,failed to change language,27-01-2026 11-57
+...'></textarea>
+              <div class="hint2" style="margin-top:8px;">
+                Supported dates: YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY, M/D/YYYY — time: HH:MM or HH-MM.
+                Lines wrapped in quotes like <span class="mono">"2720,...,29-01-2026 13-13"</span> are supported.
               </div>
-              <select id="k_sessionSelect">
-                <option value="ALL">ALL sessions</option>
-              </select>
-              <div class="hint">Counts & output follow selected session.</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="head">
+              <h2>Controls</h2>
+              <div class="hint">Classic output</div>
             </div>
 
-            <div>
-              <div class="sectionTitle" style="margin-bottom:8px">
-                <b>process_status filter</b>
-                <small class="inlineNote">table + output</small>
+            <div class="controls">
+              <div class="kpi-row">
+                <div class="kpi">
+                  <div class="label">Total rows</div>
+                  <div class="value" id="anTotal">0</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Visible rows</div>
+                  <div class="value" id="anVisible">0</div>
+                </div>
+                <div class="kpi">
+                  <div class="label">Not processed</div>
+                  <div class="value" id="anMissingCount">0</div>
+                  <div class="sub">after Check</div>
+                </div>
               </div>
-              <select id="k_statusSelect">
-                <option value="ALL">ALL</option>
-                <option value="PROCESSED">PROCESSED</option>
-                <option value="NOT PROCESSED">NOT PROCESSED</option>
-                <option value="DISCONNECTED">DISCONNECTED</option>
-              </select>
-              <div class="hint">Copy/Export always uses <b>profile_Name</b>.</div>
+
+              <div class="btn-row">
+                <button class="btn primary" id="anProcess">⚡ Process</button>
+                <button class="btn" id="anCopyIds">📋 Copy IDs</button>
+                <button class="btn" id="anExportCsv">⬇ Export CSV</button>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <div class="t">Date filter</div>
+                  <div class="r" id="anDateModeLabel">Single day</div>
+                </div>
+
+                <div class="toggle-row">
+                  <div class="toggle active" id="anModeSingle">
+                    <span class="radio"></span>
+                    <span>Single day</span>
+                  </div>
+                  <div class="toggle" id="anModeRange">
+                    <span class="radio"></span>
+                    <span>Date range</span>
+                  </div>
+                </div>
+
+                <div class="field" id="anSingleField">
+                  <label>Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)</label>
+                  <input id="anDaySingle" placeholder="2026-01-20 or 20-01-2026 or 1/20/2026" />
+                </div>
+
+                <div class="field" id="anRangeFields" style="display:none;">
+                  <label>From (day)</label>
+                  <input id="anDayFrom" placeholder="24-01-2026" />
+                  <label style="margin-top:10px;">To (day)</label>
+                  <input id="anDayTo" placeholder="26-01-2026" />
+                  <div class="hint2">Tip: if From > To we auto-swap</div>
+                </div>
+
+                <div class="btn-row" style="grid-template-columns: 1fr 1fr;">
+                  <button class="btn primary" id="anApplyDate">✅ Apply date</button>
+                  <button class="btn" id="anClearDate">↩ Clear</button>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <div class="t">Status filter</div>
+                  <div class="r">Multi-select</div>
+                </div>
+
+                <div class="field">
+                  <label>Search status</label>
+                  <input id="anStatusSearch" placeholder="type to search..." />
+                </div>
+
+                <div class="status-box">
+                  <div class="hint2">If none selected → all statuses</div>
+                  <div class="status-pills" id="anStatusPills"></div>
+                  <button class="btn small ghost" id="anClearStatus">Clear status</button>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <div class="t">ID range check</div>
+                  <div class="r">Type: <span class="mono">3376 - 4375</span></div>
+                </div>
+                <div class="field">
+                  <label>Range</label>
+                  <input id="anRange" placeholder="1961 - 2240" value="1961 - 2240" />
+                  <div class="hint2">You can type: <span class="mono">1961-2240</span> | <span class="mono">1961 - 2240</span></div>
+                </div>
+
+                <div class="btn-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                  <button class="btn good" id="anCheck">🔎 Check</button>
+                  <button class="btn" id="anCopyNot">📋 Copy NOT</button>
+                  <button class="btn" id="anExportNot">⬇ Export NOT</button>
+                </div>
+
+                <div class="kpi-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                  <div class="kpi"><div class="label">Processed unique</div><div class="value" id="anUnique">0</div></div>
+                  <div class="kpi"><div class="label">Not processed</div><div class="value" id="anNot">0</div></div>
+                  <div class="kpi"><div class="label">Duplicates</div><div class="value" id="anDup">0</div></div>
+                </div>
+
+                <div class="msg" id="anMsg"><span class="dot bad"></span><span class="mono">No valid rows parsed (check format)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-k="id"><span class="sort">ID <span class="chev" id="anSortId"></span></span></th>
+                <th data-k="status"><span class="sort">STATUS <span class="chev" id="anSortStatus"></span></span></th>
+                <th data-k="datetime"><span class="sort">DATETIME <span class="chev" id="anSortDatetime"></span></span></th>
+                <th data-k="day"><span class="sort">DAY <span class="chev" id="anSortDay"></span></span></th>
+              </tr>
+            </thead>
+            <tbody id="anTableBody">
+              <tr><td colspan="4" class="muted">No rows</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="page" id="pageKeyword" style="display:none;">
+        <div class="grid">
+          <div class="panel">
+            <div class="head">
+              <h2>Keyword Checker Input</h2>
+              <div class="hint">Paste your table (TAB/CSV/; ) with headers</div>
+            </div>
+            <div style="padding:12px;">
+              <textarea id="kwInput" placeholder="profile_Name	tag	status_name	log	cnx_problems	details	script_name	session_name
+1	[07AD...]	Completed	[ Status => connected Updated!]			...	CMH1_IT_3(173.225.106.66)
+..."></textarea>
+              <div class="hint2" style="margin-top:8px;">
+                Required headers (case-insensitive): <span class="mono">profile_Name</span> + <span class="mono">log</span> + <span class="mono">details</span>
+                (optional: <span class="mono">cnx_problems</span>, <span class="mono">session_name</span>, <span class="mono">script_name</span>, <span class="mono">tag</span>, <span class="mono">status_name</span>)
+              </div>
             </div>
           </div>
 
-          <hr class="sep">
+          <div class="panel">
+            <div class="head">
+              <h2>Keyword Checker Controls</h2>
+              <div class="hint">Same logic as Apps Script</div>
+            </div>
+            <div class="controls">
+              <div class="kpi-row" style="grid-template-columns: 1fr 1fr;">
+                <div class="kpi">
+                  <div class="label">Total rows</div>
+                  <div class="value" id="kwTotal">0</div>
+                </div>
+                <div class="kpi">
+                  <div class="label" id="kwFilterLabel">NOT PROCESSED</div>
+                  <div class="value" id="kwCountFiltered">0</div>
+                </div>
+              </div>
 
-          <div class="sectionTitle">
-            <b>Keywords</b>
-            <small class="inlineNote">saved in browser (localStorage)</small>
-          </div>
+              <div class="btn-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                <button class="btn primary" id="kwProcess">⚡ Process</button>
+                <button class="btn" id="kwCopy">📋 Copy</button>
+                <button class="btn" id="kwExport">⬇ Export</button>
+              </div>
 
-          <div class="controls" style="grid-template-columns: 1.4fr .6fr 1fr; align-items:center">
-            <input id="k_kwInput" placeholder="Add keyword (ex: done, already, success...)">
-            <button class="btn primary" id="k_btnAdd">+ Add</button>
-            <button class="btn clear" id="k_btnDefault">⟲ Default list</button>
-          </div>
+              <div class="section">
+                <div class="section-title">
+                  <div class="t">Keywords</div>
+                  <div class="r">saved in browser (localStorage)</div>
+                </div>
 
-          <div class="controls" style="margin-top:10px; grid-template-columns: 1fr 1fr 1fr">
-            <button class="btn clear" id="k_btnNormalize">✨ Normalize</button>
-            <button class="btn clear" id="k_btnClearKws">🧹 Clear all</button>
-            <div class="pill" style="justify-content:center">
-              <span class="dot ok" style="opacity:.9"></span>
-              <span>Match = keyword in log/details/cnx_problems</span>
+                <div class="kw-row">
+                  <div class="field kw-input" style="margin:0;">
+                    <label>Add keyword (ex: done, already, success...)</label>
+                    <input id="kwAddInput" placeholder="type keyword then click Add" />
+                  </div>
+                  <button class="btn primary" id="kwAddBtn">+ Add</button>
+                </div>
+
+                <div class="btn-row" style="grid-template-columns: 1fr 1fr;">
+                  <button class="btn" id="kwDefault">↺ Default list</button>
+                  <button class="btn danger" id="kwClearAll">🧽 Clear all</button>
+                </div>
+
+                <div class="chips" id="kwChips"></div>
+              </div>
+
+              <div class="section">
+                <div class="section-title">
+                  <div class="t">Filter</div>
+                  <div class="r">by result type</div>
+                </div>
+
+                <div class="field" style="margin-bottom:0;">
+                  <label>Show</label>
+                  <select id="kwFilter">
+                    <option value="NOT_PROCESSED">NOT PROCESSED</option>
+                    <option value="DISCONNECTED">DISCONNECTED</option>
+                    <option value="PROCESSED">PROCESSED</option>
+                    <option value="ALL">ALL</option>
+                  </select>
+                </div>
+
+                <div class="hint2" style="margin-top:10px;">
+                  Copy/Export uses <span class="mono">profile_Name</span> (unique). DISCONNECTED is detected from cnx_problems/log/details/status_name.
+                </div>
+              </div>
+
+              <div class="msg" id="kwMsg"><span class="dot bad"></span><span class="mono">Paste table then click Process</span></div>
+
+              <div class="sessionBox" id="kwSessionsBox" style="display:none;"></div>
             </div>
           </div>
-
-          <div class="tagsWrap" id="k_tags" style="margin-top:10px"></div>
-
-          <!-- IMPORTANT: NO "Keywords used" line -->
-          <div class="box" id="k_outputBox" style="margin-top:12px">Paste input then click “Process”…</div>
-          <div class="status" id="k_status">Waiting…</div>
-        </div>
-      </div>
-
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>profile_Name</th>
-              <th>tag</th>
-              <th>status_name</th>
-              <th>process_status <span style="opacity:.7; font-weight:900; margin-left:6px">▼</span></th>
-              <th>session</th>
-              <th>log/details (preview)</th>
-            </tr>
-          </thead>
-          <tbody id="k_tableBody">
-            <tr><td colspan="7" class="empty">No data yet</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ===================== MAINTENANCE MODAL (KIFMA KANT + screenshot) ===================== -->
-<div class="modalBackdrop" id="m_backdrop">
-  <div class="modal">
-    <div class="modalHeader">
-      <b>🛠 Maintenance report</b>
-      <button id="m_close">✕ Close</button>
-    </div>
-    <div class="modalBody">
-      <div>
-        <div class="panelTitle" style="margin:0 0 10px 0">
-          <b>Report</b>
-          <span>same format</span>
         </div>
 
-        <div class="box" id="m_reportBox">—</div>
-
-        <div class="hint" style="margin-top:10px">
-          Screenshot: browser كيطّلب permission (Share screen).  
-          Telegram send مباشرة من HTML local غالباً كيسقط (CORS)، لذلك استعمل webhook.
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-k="profile_Name"><span class="sort">profile_Name <span class="chev" id="kwSortProfile"></span></span></th>
+                <th data-k="tag"><span class="sort">tag <span class="chev" id="kwSortTag"></span></span></th>
+                <th data-k="status_name"><span class="sort">status_name <span class="chev" id="kwSortStatusName"></span></span></th>
+                <th data-k="process_status"><span class="sort">process_status <span class="chev" id="kwSortProc"></span></span></th>
+                <th data-k="session_short"><span class="sort">session <span class="chev" id="kwSortSess"></span></span></th>
+                <th data-k="preview"><span class="sort">log/details (preview) <span class="chev" id="kwSortPrev"></span></span></th>
+              </tr>
+            </thead>
+            <tbody id="kwTableBody">
+              <tr><td colspan="6" class="muted">No rows</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <hr class="sep">
-
-        <div class="sectionTitle">
-          <b>Webhook (to Telegram)</b>
-          <small>recommended</small>
-        </div>
-        <input id="m_webhook" placeholder="Put your webhook URL هنا (n8n / backend)">
-
-        <div class="controls" style="margin-top:10px; grid-template-columns: 1fr 1fr 1fr">
-          <button class="btn primary" id="m_captureSend">Send (report + screenshot)</button>
-          <button class="btn copy" id="m_copyReport">Copy report</button>
-          <button class="btn export" id="m_downloadShot">Download screenshot</button>
-        </div>
-
-        <div class="status" id="m_status">Waiting…</div>
-      </div>
-
-      <div>
-        <div class="panelTitle" style="margin:0 0 10px 0">
-          <b>Screenshot preview</b>
-          <span>latest capture</span>
-        </div>
-        <div class="previewBox" id="m_previewBox">
-          No screenshot yet
-        </div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Telegram Settings Modal -->
+  <div class="modal-back" id="tgModalBack">
+    <div class="modal">
+      <div class="mhead">
+        <div class="title">Telegram settings</div>
+        <div class="closeX" id="tgClose">✕</div>
+      </div>
+      <div class="mbody">
+        <div class="mini">
+          Used only for <b>Maintenance screenshot</b>. Stored locally in your browser (localStorage).
+        </div>
+        <div class="field">
+          <label>Bot token</label>
+          <input id="tgToken" placeholder="123456:AA...." />
+        </div>
+        <div class="field">
+          <label>Chat ID</label>
+          <input id="tgChat" placeholder="8469427662" />
+        </div>
+        <div class="mini">
+          If screenshot fails: we still send the report message + error details.
+        </div>
+      </div>
+      <div class="mfoot">
+        <button class="btn" id="tgCancel">Cancel</button>
+        <button class="btn primary" id="tgSave">Save</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-/* =========================================================
-   Shared Helpers
-========================================================= */
+/** =========================
+ *  Helpers (shared)
+ *  ========================= */
 const $ = (id)=>document.getElementById(id);
 
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function safeCsv(s){
-  s = String(s ?? "");
-  if(/[;\n\r"]/.test(s)) return '"' + s.replaceAll('"','""') + '"';
-  return s;
-}
-function downloadBlob(content, filename, mime){
-  const blob = new Blob([content], {type:mime});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-function setTopPill(type, text){
+function setPill(type, text){
   const dot = $("pillDot");
-  const pillText = $("pillText");
-  dot.className = "dot " + (type || "warn");
-  pillText.textContent = text || "Ready";
-}
-function setStatus(msg, type="muted"){
-  const el = $("status");
-  el.textContent = msg;
-  el.style.color =
-    type === "ok" ? "var(--ok)" :
-    type === "bad" ? "var(--bad)" :
-    type === "warn" ? "var(--warn)" : "var(--muted)";
-  setTopPill(type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "warn", msg);
-}
-function setKStatus(msg, type="muted"){
-  const el = $("k_status");
-  el.textContent = msg;
-  el.style.color =
-    type === "ok" ? "var(--ok)" :
-    type === "bad" ? "var(--bad)" :
-    type === "warn" ? "var(--warn)" : "var(--muted)";
-  setTopPill(type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "warn", msg);
-}
-function setMStatus(msg, type="muted"){
-  const el = $("m_status");
-  el.textContent = msg;
-  el.style.color =
-    type === "ok" ? "var(--ok)" :
-    type === "bad" ? "var(--bad)" :
-    type === "warn" ? "var(--warn)" : "var(--muted)";
-  setTopPill(type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "warn", msg);
+  const msg = $("pillText");
+  dot.classList.remove("good","bad");
+  if(type==="good") dot.classList.add("good");
+  else if(type==="bad") dot.classList.add("bad");
+  msg.textContent = text;
 }
 
-/* =========================================================
-   Tabs
-========================================================= */
-function activateTab(name){
-  const isA = name==="Analyzer";
-  $("tabAnalyzer").classList.toggle("active", isA);
-  $("tabKeyword").classList.toggle("active", !isA);
-  $("secAnalyzer").classList.toggle("active", isA);
-  $("secKeyword").classList.toggle("active", !isA);
-  setTopPill("warn", name + " ready");
-}
-$("tabAnalyzer").addEventListener("click", ()=>activateTab("Analyzer"));
-$("tabKeyword").addEventListener("click", ()=>activateTab("Keyword Checker"));
-
-/* =========================================================
-   ANALYZER (old logic)
-========================================================= */
 function cleanField(v){
-  return String(v ?? "")
-    .trim()
-    .replace(/^"+|"+$/g,"")
-    .replace(/^'+|'+$/g,"")
-    .trim();
-}
-function isTimeField(v){
-  v = String(v||"").trim();
-  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v);
-}
-function parseDateOnlyFlexible(v){
-  v = String(v||"").trim();
-  if(!v) return null;
-
-  if(v.includes("_")) v = v.split("_")[0].trim();
-  if(/\s/.test(v)) v = v.split(/\s+/)[0].trim();
-
-  v = v.replace(/,/g,"").trim();
-  const s = v.replace(/\./g,"/").replace(/-/g,"/");
-
-  const m = s.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,4})$/);
-  if(!m) return null;
-
-  let a = Number(m[1]), b = Number(m[2]), c = Number(m[3]);
-  if([a,b,c].some(n=>Number.isNaN(n))) return null;
-
-  let yyyy, mm, dd;
-
-  if(m[1].length === 4){
-    yyyy = a; mm = b; dd = c;          // YYYY/MM/DD
-  } else if(m[3].length === 4){
-    yyyy = c;
-    if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
-    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
-    else { mm = a; dd = b; }           // default MM/DD/YYYY
-  } else return null;
-
-  if(yyyy < 1900 || yyyy > 2100) return null;
-  if(mm < 1 || mm > 12) return null;
-  if(dd < 1 || dd > 31) return null;
-
-  return {yyyy, mm, dd};
-}
-function dayKeyFrom(yyyy,mm,dd){
-  const pad = n => String(n).padStart(2,"0");
-  return `${yyyy}-${pad(mm)}-${pad(dd)}`;
-}
-function toUTCDate(dayKey){
-  const [y,m,d] = dayKey.split("-").map(Number);
-  return new Date(Date.UTC(y, m-1, d));
-}
-function detectDelimiter(lines){
-  let semi=0, comma=0;
-  for(const ln of lines.slice(0,30)){
-    semi += (ln.match(/;/g)||[]).length;
-    comma += (ln.match(/,/g)||[]).length;
+  if(v===null || v===undefined) return "";
+  let s = String(v).trim();
+  // strip excel formula-like prefix to avoid broken copy
+  s = s.replace(/^[=;]+>?/g, "");
+  // unwrap outer quotes if field is quoted
+  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
+    s = s.slice(1,-1);
   }
-  return comma >= semi ? "," : ";";
+  return s.trim();
 }
+
+function normalizeForSearch(v){
+  if(v===null || v===undefined) return "";
+  let s = String(v);
+  if(s==="#ERROR!") return "";
+  s = s.replace(/^[=;]+>?/g, "");
+  return s.toLowerCase();
+}
+
+function detectDelimiter(lines){
+  // prefer TAB if any tab exists in header or lines
+  const sample = lines.slice(0, 6).join("\n");
+  if(sample.includes("\t")) return "\t";
+  // else pick between comma/semicolon by frequency
+  const commas = (sample.match(/,/g)||[]).length;
+  const semis  = (sample.match(/;/g)||[]).length;
+  return semis > commas ? ";" : ",";
+}
+
+// CSV splitter that respects quotes
 function splitCSVLine(line, delim){
   const out = [];
   let cur = "";
-  let inQuotes = false;
+  let inQ = false;
   for(let i=0;i<line.length;i++){
     const ch = line[i];
     if(ch === '"'){
-      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; continue; }
-      inQuotes = !inQuotes;
+      // toggle quotes
+      inQ = !inQ;
+      cur += ch;
       continue;
     }
-    if(!inQuotes && ch === delim){
-      out.push(cur); cur=""; continue;
+    if(!inQ && ch === delim){
+      out.push(cur);
+      cur = "";
+      continue;
     }
     cur += ch;
   }
   out.push(cur);
   return out;
 }
-function parseText(text){
+
+// Parse date only in flexible formats
+function parseDateOnlyFlexible(s){
+  if(!s) return null;
+  const t = String(s).trim();
+  // YYYY-MM-DD
+  let m = t.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
+  if(m){
+    const yyyy = +m[1], mm=+m[2], dd=+m[3];
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
+  }
+  // DD-MM-YYYY
+  m = t.match(/\b(\d{1,2})-(\d{1,2})-(\d{4})\b/);
+  if(m){
+    const dd=+m[1], mm=+m[2], yyyy=+m[3];
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
+  }
+  // DD/MM/YYYY or M/D/YYYY
+  m = t.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+  if(m){
+    const a=+m[1], b=+m[2], yyyy=+m[3];
+    // ambiguous: assume first is month if <=12 and second <=31? we accept as-is but common is M/D
+    // We'll treat as M/D when a<=12 and b<=31; else D/M
+    let mm, dd;
+    if(a<=12 && b<=31){ mm=a; dd=b; }
+    else { dd=a; mm=b; }
+    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
+  }
+  return null;
+}
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+function dayKeyFrom(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+
+function isTimeField(s){
+  if(!s) return false;
+  const t = String(s).trim();
+  return /^\d{1,2}[:\-]\d{2}([:\-]\d{2})?$/.test(t);
+}
+
+function normalizeTime(t){
+  if(!t) return "";
+  const x = String(t).trim().replace(/-/g,":");
+  // if HH:MM:SS ok
+  return x;
+}
+
+function parseRangeInput(s){
+  if(!s) return null;
+  const t = String(s).trim();
+  // allow "a - b" or "a-b" or "a — b"
+  const m = t.match(/^\s*(\d+)\s*[-–—]\s*(\d+)\s*$/);
+  if(!m) return null;
+  let a = parseInt(m[1],10), b = parseInt(m[2],10);
+  if(!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  if(a>b){ const tmp=a; a=b; b=tmp; }
+  return {from:a,to:b};
+}
+
+function downloadText(filename, text){
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadCSV(filename, rows, headers){
+  const esc = (v)=>{
+    const s = String(v ?? "");
+    if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+    return s;
+  };
+  const csv = [
+    headers.map(esc).join(","),
+    ...rows.map(r => headers.map(h => esc(r[h])).join(","))
+  ].join("\n");
+  downloadText(filename, csv);
+}
+
+function copyToClipboard(text){
+  return navigator.clipboard.writeText(text);
+}
+
+function safePreview(s, max=120){
+  const t = String(s ?? "");
+  if(t.length<=max) return t;
+  return t.slice(0,max-1)+"…";
+}
+
+/** =========================
+ *  Tabs
+ *  ========================= */
+$("tabAnalyzer").onclick = ()=>{
+  $("tabAnalyzer").classList.add("active");
+  $("tabKeyword").classList.remove("active");
+  $("pageAnalyzer").style.display = "";
+  $("pageKeyword").style.display = "none";
+};
+$("tabKeyword").onclick = ()=>{
+  $("tabKeyword").classList.add("active");
+  $("tabAnalyzer").classList.remove("active");
+  $("pageKeyword").style.display = "";
+  $("pageAnalyzer").style.display = "none";
+};
+
+/** =========================
+ *  Analyzer
+ *  ========================= */
+let anAllRows = [];
+let anFilteredRows = [];
+let anMissing = [];
+let anSelectedStatuses = new Set();
+let anStatusCounts = new Map();
+let anDateMode = "single"; // single|range
+let anActiveDateFilter = null; // {type, day} or {type, fromDay, toDay}
+let anSort = { key:"id", dir:"asc" };
+
+function analyzerParseText(text){
   const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
   if(!lines.length) return [];
 
   const delim = detectDelimiter(lines);
   const rows = [];
 
-  for(const line0 of lines){
+  for(let line0 of lines){
+    // ✅ FIX: if whole line wrapped in quotes and contains delimiter, unwrap outer quotes
+    const t = String(line0).trim();
+    const wrappedDouble = t.startsWith('"') && t.endsWith('"');
+    const wrappedSingle = t.startsWith("'") && t.endsWith("'");
+    if((wrappedDouble || wrappedSingle) && t.includes(delim)){
+      line0 = t.slice(1, -1);
+    }
+
     const parts = splitCSVLine(line0, delim).map(cleanField).filter(x => x !== "");
     if(parts.length < 2) continue;
 
     const id = parseInt(parts[0],10);
     if(!Number.isFinite(id)) continue;
 
+    // Find date field anywhere after id
     let dateIdx = -1, d = null;
     for(let i=1;i<parts.length;i++){
       const maybe = parseDateOnlyFlexible(parts[i]);
@@ -900,814 +1180,906 @@ function parseText(text){
     if(dateIdx === -1) continue;
 
     let timeStr = "";
-    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) timeStr = parts[dateIdx + 1];
+    // time might be next field OR embedded at end of same field
+    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) {
+      timeStr = normalizeTime(parts[dateIdx + 1]);
+    } else {
+      // try to find a time inside current field (like "29-01-2026 13-13")
+      const joined = parts[dateIdx];
+      const tm = String(joined).match(/(\d{1,2}[:\-]\d{2}(?:[:\-]\d{2})?)/);
+      if(tm) timeStr = normalizeTime(tm[1]);
+    }
 
     const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-    const dt = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
+    const dt = (d.raw + (timeStr ? " " + timeStr : "")).trim();
+
+    // status = everything between id and date field (excluding time field)
     const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
 
-    rows.push({ id, idText:String(id), status, datetime: dt, day });
+    rows.push({ id, status, datetime: dt, day });
   }
-
   return rows;
 }
 
-/* Analyzer state */
-let allRows = [];
-let visibleRows = [];
-let missingIDs = [];
+function analyzerBuildStatusCounts(rows){
+  const map = new Map();
+  for(const r of rows){
+    const k = r.status || "(no status)";
+    map.set(k, (map.get(k)||0)+1);
+  }
+  anStatusCounts = map;
+}
 
-function renderTable(){
-  const body = $("outputBody");
-  body.innerHTML = "";
+function analyzerRenderStatusPills(){
+  const box = $("anStatusPills");
+  box.innerHTML = "";
+  const search = $("anStatusSearch").value.trim().toLowerCase();
 
-  if(!visibleRows.length){
-    body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
-    $("a_count").textContent = "0";
+  // sort statuses by count desc
+  const arr = [...anStatusCounts.entries()]
+    .sort((a,b)=> b[1]-a[1])
+    .filter(([st])=> !search || st.toLowerCase().includes(search));
+
+  if(!arr.length){
+    box.innerHTML = `<div class="muted">No statuses found</div>`;
     return;
   }
 
-  for(const r of visibleRows){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(r.idText)}</td>
-      <td>${escapeHtml(r.status)}</td>
-      <td>${escapeHtml(r.datetime)}</td>
-      <td>${escapeHtml(r.day)}</td>
-    `;
-    body.appendChild(tr);
-  }
-  $("a_count").textContent = String(visibleRows.length);
-}
-
-function resetRangeBox(){
-  $("procInRange").textContent = "0";
-  $("missingCount").textContent = "0";
-  $("dupCount").textContent = "0";
-  $("a_missingCountTop").textContent = "—";
-  $("missingBox").textContent = 'Run “Check”…';
-  missingIDs = [];
-}
-
-function dateMode(){
-  const r = document.querySelector('input[name="dateMode"]:checked');
-  return r ? r.value : "single";
-}
-function normalizeDateInput(v){
-  const d = parseDateOnlyFlexible(v);
-  if(!d) return null;
-  return dayKeyFrom(d.yyyy, d.mm, d.dd);
-}
-function applyDateFilter(){
-  if(!allRows.length){ setStatus("Process first", "bad"); return; }
-
-  const mode = dateMode();
-  if(mode === "single"){
-    const day = normalizeDateInput($("singleDate").value);
-    if(!day){ setStatus("Invalid day", "bad"); return; }
-    visibleRows = allRows.filter(r => r.day === day);
-    renderTable(); resetRangeBox();
-    setStatus(`Filtered by day: ${day}`, "ok");
-  } else {
-    const from = normalizeDateInput($("dateFrom").value);
-    const to = normalizeDateInput($("dateTo").value);
-    if(!from || !to){ setStatus("Invalid date range", "bad"); return; }
-    const a = toUTCDate(from).getTime();
-    const b = toUTCDate(to).getTime();
-    const lo = Math.min(a,b), hi = Math.max(a,b);
-
-    visibleRows = allRows.filter(r=>{
-      const t = toUTCDate(r.day).getTime();
-      return t >= lo && t <= hi;
-    });
-    renderTable(); resetRangeBox();
-    setStatus(`Filtered range: ${from} → ${to}`, "ok");
+  for(const [st,count] of arr){
+    const pill = document.createElement("div");
+    pill.className = "sp" + (anSelectedStatuses.has(st) ? " active":"");
+    pill.innerHTML = `<span>${st}</span><small>(${count})</small>`;
+    pill.onclick = ()=>{
+      if(anSelectedStatuses.has(st)) anSelectedStatuses.delete(st);
+      else anSelectedStatuses.add(st);
+      analyzerApplyFiltersAndRender();
+      analyzerRenderStatusPills();
+    };
+    box.appendChild(pill);
   }
 }
-function clearDateFilter(){
-  visibleRows = [...allRows];
-  $("singleDate").value = "";
-  $("dateFrom").value = "";
-  $("dateTo").value = "";
-  renderTable(); resetRangeBox();
-  setStatus("Date filter cleared (showing all rows)", "ok");
-}
 
-function parseRangeInput(s){
-  s = String(s||"").trim();
-  if(!s) return null;
-  const m = s.match(/^\s*(\d+)\s*[-–—]\s*(\d+)\s*$/) || s.match(/^\s*(\d+)\s+(\d+)\s*$/);
-  if(!m) return null;
-  let from = Number(m[1]), to = Number(m[2]);
-  if(Number.isNaN(from) || Number.isNaN(to)) return null;
-  if(from > to){ const t=from; from=to; to=t; }
-  return {from,to};
-}
-
-function checkRange(){
-  if(!visibleRows.length){ setStatus("No visible rows (apply date first)", "bad"); return; }
-  const rr = parseRangeInput($("rangeInput").value);
-  if(!rr){ setStatus("Invalid ID range (use: 3376 - 4375)", "bad"); return; }
-  const {from,to} = rr;
-
-  const counts = new Map();
-  for(const r of visibleRows) counts.set(r.id, (counts.get(r.id)||0)+1);
-
-  let dupN = 0;
-  for(const [,c] of counts) if(c>1) dupN++;
-  $("dupCount").textContent = String(dupN);
-
-  let processedUniqueInRange = 0;
-  for(const [id] of counts) if(id>=from && id<=to) processedUniqueInRange++;
-  $("procInRange").textContent = String(processedUniqueInRange);
-
-  missingIDs = [];
-  for(let i=from;i<=to;i++) if(!counts.has(i)) missingIDs.push(i);
-  $("missingCount").textContent = String(missingIDs.length);
-  $("a_missingCountTop").textContent = String(missingIDs.length);
-
-  $("missingBox").textContent =
-`Scope = visible rows (your date filter)
-ID Range: ${from} → ${to}
-
-NOT processed (${missingIDs.length}):
-${missingIDs.slice(0, 400).join("\n") || "—"}
-
-(Preview first 400)`;
-
-  setStatus("Range computed ✅", "ok");
-}
-
-function copyIDs(){
-  if(!visibleRows.length){ setStatus("No visible rows to copy", "warn"); return; }
-  navigator.clipboard.writeText(visibleRows.map(r=>r.idText).join("\n"))
-    .then(()=>setStatus(`Copied ${visibleRows.length} IDs`, "ok"))
-    .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
-}
-function exportVisibleCSV(){
-  if(!visibleRows.length){ setStatus("No visible rows to export", "warn"); return; }
-  let csv = "ID;STATUS;DATETIME;DAY\n";
-  for(const r of visibleRows){
-    csv += `${safeCsv(r.idText)};${safeCsv(r.status)};${safeCsv(r.datetime)};${safeCsv(r.day)}\n`;
+function analyzerDateFilterMatch(row){
+  if(!anActiveDateFilter) return true;
+  if(anActiveDateFilter.type==="single"){
+    return row.day === anActiveDateFilter.day;
   }
-  downloadBlob(csv, "visible.csv", "text/csv;charset=utf-8;");
-  setStatus(`Exported visible.csv (${visibleRows.length})`, "ok");
-}
-function copyMissing(){
-  if(!missingIDs.length){ setStatus("No NOT processed IDs", "warn"); return; }
-  navigator.clipboard.writeText(missingIDs.join("\n"))
-    .then(()=>setStatus(`Copied NOT processed (${missingIDs.length})`, "ok"))
-    .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
-}
-function exportMissing(){
-  if(!missingIDs.length){ setStatus("No NOT processed IDs", "warn"); return; }
-  const rr = parseRangeInput($("rangeInput").value);
-  const name = rr ? `not_processed_${rr.from}-${rr.to}.csv` : "not_processed.csv";
-  downloadBlob("ID\n" + missingIDs.join("\n"), name, "text/csv;charset=utf-8;");
-  setStatus(`Exported ${name}`, "ok");
-}
-
-function processCSV(){
-  const text = $("csvInput").value.trim();
-  if(!text){ setStatus("Input empty", "bad"); return; }
-
-  allRows = parseText(text);
-  $("a_total").textContent = String(allRows.length);
-
-  visibleRows = [...allRows];
-  renderTable();
-  resetRangeBox();
-
-  if(!allRows.length){
-    setStatus("No valid rows parsed (check format)", "bad");
-    return;
+  if(anActiveDateFilter.type==="range"){
+    return row.day >= anActiveDateFilter.fromDay && row.day <= anActiveDateFilter.toDay;
   }
-
-  const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
-  $("singleDate").value = days[0] || "";
-  setStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
+  return true;
 }
 
-/* Analyzer Mode toggle visuals */
-function refreshModeUI(){
-  const m = dateMode();
-  $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
-  $("singleWrap").style.display = m === "single" ? "block" : "none";
-  $("rangeWrap").style.display = m === "range" ? "block" : "none";
-  $("modeSingle").classList.toggle("active", m === "single");
-  $("modeRange").classList.toggle("active", m === "range");
-  resetRangeBox();
-  setStatus(`Date mode: ${m}`, "ok");
+function analyzerStatusFilterMatch(row){
+  if(!anSelectedStatuses.size) return true;
+  return anSelectedStatuses.has(row.status);
 }
 
-/* Wire Analyzer */
-$("btnProcess").addEventListener("click", processCSV);
-$("btnCopy").addEventListener("click", copyIDs);
-$("btnExport").addEventListener("click", exportVisibleCSV);
-$("btnApplyDate").addEventListener("click", applyDateFilter);
-$("btnClearDate").addEventListener("click", clearDateFilter);
-$("btnRange").addEventListener("click", checkRange);
-$("btnCopyMissing").addEventListener("click", copyMissing);
-$("btnExportMissing").addEventListener("click", exportMissing);
-document.querySelectorAll('input[name="dateMode"]').forEach(r=> r.addEventListener("change", refreshModeUI));
+function analyzerApplyFiltersAndRender(){
+  anFilteredRows = anAllRows.filter(r => analyzerDateFilterMatch(r) && analyzerStatusFilterMatch(r));
 
-/* =========================================================
-   KEYWORD CHECKER (Apps Script logic + sessions + DISCONNECTED)
-========================================================= */
-const K_STORAGE_KEY = "kw_checker_keywords_v3";
-
-const K_DEFAULT = [
-  "done","already","reply","forward","search completed for","markunread",
-  "sendmessage","successfully","birthdaychanged","click","gender updated",
-  "theme already changed","gmail template updated","languagevalue updated",
-  "english has been added"
-];
-
-function k_norm(s){
-  if(s === null || s === undefined) return "";
-  let t = String(s);
-  if(t === "#ERROR!") return "";
-  t = t.replace(/^[=;]+>?/g, "");
-  return t.toLowerCase();
-}
-function k_fixFormulaText(v){
-  if (v === null || v === undefined) return v;
-  let s = String(v);
-  if (s.startsWith('=') || s.startsWith(';')) {
-    return "'" + s.replace(/^[=;]+>?/g, '');
-  }
-  return s;
-}
-function k_loadKeywords(){
-  try{
-    const raw = localStorage.getItem(K_STORAGE_KEY);
-    if(!raw) return [...K_DEFAULT];
-    const arr = JSON.parse(raw);
-    if(!Array.isArray(arr)) return [...K_DEFAULT];
-    return arr.map(x=>String(x)).filter(Boolean);
-  }catch(e){
-    return [...K_DEFAULT];
-  }
-}
-function k_saveKeywords(list){
-  localStorage.setItem(K_STORAGE_KEY, JSON.stringify(list));
-}
-let k_keywords = k_loadKeywords();
-
-function k_renderTags(){
-  const wrap = $("k_tags");
-  wrap.innerHTML = "";
-  if(!k_keywords.length){
-    wrap.innerHTML = `<span class="inlineNote">No keywords. Click “Default list”.</span>`;
-    return;
-  }
-  k_keywords.forEach((kw, idx)=>{
-    const el = document.createElement("span");
-    el.className = "tag";
-    el.innerHTML = `${escapeHtml(kw)} <button title="remove">×</button>`;
-    el.querySelector("button").addEventListener("click", ()=>{
-      k_keywords.splice(idx,1);
-      k_saveKeywords(k_keywords);
-      k_renderTags();
-      setKStatus("Keyword removed", "ok");
-    });
-    wrap.appendChild(el);
-  });
-}
-
-function k_addKeyword(){
-  const v = $("k_kwInput").value.trim();
-  if(!v){ setKStatus("Keyword empty", "warn"); return; }
-  k_keywords.push(v);
-  k_saveKeywords(k_keywords);
-  $("k_kwInput").value = "";
-  k_renderTags();
-  setKStatus("Keyword added ✅", "ok");
-}
-function k_setDefault(){
-  k_keywords = [...K_DEFAULT];
-  k_saveKeywords(k_keywords);
-  k_renderTags();
-  setKStatus("Default list loaded ✅", "ok");
-}
-function k_clearAllKeywords(){
-  k_keywords = [];
-  k_saveKeywords(k_keywords);
-  k_renderTags();
-  setKStatus("All keywords cleared", "ok");
-}
-function k_normalizeKeywords(){
-  const set = new Set();
-  const out = [];
-  for(const kw of k_keywords){
-    const t = String(kw).trim().toLowerCase();
-    if(!t) continue;
-    if(set.has(t)) continue;
-    set.add(t);
-    out.push(t);
-  }
-  k_keywords = out;
-  k_saveKeywords(k_keywords);
-  k_renderTags();
-  setKStatus("Keywords normalized ✅", "ok");
-}
-
-function k_detectDelim(lines){
-  for(const ln of lines.slice(0,10)){
-    if(ln.includes("\t")) return "TAB";
-  }
-  let semi=0, comma=0;
-  for(const ln of lines.slice(0,30)){
-    semi += (ln.match(/;/g)||[]).length;
-    comma += (ln.match(/,/g)||[]).length;
-  }
-  return comma >= semi ? "," : ";";
-}
-function k_splitLine(line, delim){
-  if(delim === "TAB") return line.split("\t");
-  const out = [];
-  let cur="", inQuotes=false;
-  for(let i=0;i<line.length;i++){
-    const ch = line[i];
-    if(ch === '"'){
-      if(inQuotes && line[i+1] === '"'){ cur+='"'; i++; continue; }
-      inQuotes = !inQuotes;
-      continue;
-    }
-    if(!inQuotes && ch === delim){
-      out.push(cur); cur=""; continue;
-    }
-    cur += ch;
-  }
-  out.push(cur);
-  return out;
-}
-function k_clean(v){
-  return String(v ?? "")
-    .trim()
-    .replace(/^"+|"+$/g,"")
-    .replace(/^'+|'+$/g,"")
-    .trim();
-}
-function k_findIdx(headerParts, wanted){
-  // wanted list already normalized (no spaces)
-  for(let i=0;i<headerParts.length;i++){
-    const h = headerParts[i].toLowerCase().replace(/\s+/g,"").replace(/_/g,"");
-    if(wanted.includes(h)) return i;
-  }
-  return -1;
-}
-function k_normSessionName(s){
-  s = String(s ?? "").trim();
-  if(!s) return "";
-  // keep only before first "("
-  const i = s.indexOf("(");
-  if(i !== -1) s = s.slice(0,i).trim();
-  return s;
-}
-
-/* State */
-let k_allRows = [];
-let k_visibleRows = [];
-let k_notUniqueProfiles = [];
-let k_discUniqueProfiles = [];
-
-function k_buildSessionOptions(){
-  const sel = $("k_sessionSelect");
-  const prev = sel.value || "ALL";
-  const set = new Set();
-  for(const r of k_allRows){
-    if(r.session) set.add(r.session);
-  }
-  const sessions = [...set].sort((a,b)=>a.localeCompare(b));
-  sel.innerHTML = `<option value="ALL">ALL sessions</option>` + sessions.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
-  sel.value = sessions.includes(prev) ? prev : "ALL";
-}
-
-function k_buildNotAndDiscLists(){
-  const notSet = new Set();
-  const discSet = new Set();
-
-  for(const r of k_visibleRows){
-    if(r.process_status === "NOT PROCESSED" && r.profile_Name) notSet.add(r.profile_Name);
-    if(r.process_status === "DISCONNECTED" && r.profile_Name) discSet.add(r.profile_Name);
-  }
-
-  const sortProfiles = (arr)=>arr.sort((a,b)=>{
-    const na = Number(a), nb = Number(b);
-    if(Number.isFinite(na) && Number.isFinite(nb)) return na-nb;
-    return String(a).localeCompare(String(b));
+  // sort
+  const dir = anSort.dir === "asc" ? 1 : -1;
+  anFilteredRows.sort((a,b)=>{
+    let va=a[anSort.key], vb=b[anSort.key];
+    if(typeof va === "string") va = va.toLowerCase();
+    if(typeof vb === "string") vb = vb.toLowerCase();
+    if(va<vb) return -1*dir;
+    if(va>vb) return 1*dir;
+    return 0;
   });
 
-  k_notUniqueProfiles = sortProfiles([...notSet]);
-  k_discUniqueProfiles = sortProfiles([...discSet]);
+  $("anTotal").textContent = anAllRows.length;
+  $("anVisible").textContent = anFilteredRows.length;
+
+  analyzerRenderTable();
+  analyzerUpdateSortIcons();
 }
 
-function k_renderOutputBox(){
-  const sess = $("k_sessionSelect").value || "ALL";
-  const ps = $("k_statusSelect").value || "ALL";
-
-  let list = [];
-  if(ps === "NOT PROCESSED") list = k_notUniqueProfiles;
-  else if(ps === "DISCONNECTED") list = k_discUniqueProfiles;
-  else if(ps === "PROCESSED"){
-    const set = new Set();
-    for(const r of k_visibleRows) if(r.process_status === "PROCESSED" && r.profile_Name) set.add(r.profile_Name);
-    list = [...set].sort((a,b)=>{
-      const na = Number(a), nb = Number(b);
-      if(Number.isFinite(na) && Number.isFinite(nb)) return na-nb;
-      return String(a).localeCompare(String(b));
-    });
-  } else {
-    const set = new Set([...k_notUniqueProfiles, ...k_discUniqueProfiles]);
-    list = [...set].sort((a,b)=>{
-      const na = Number(a), nb = Number(b);
-      if(Number.isFinite(na) && Number.isFinite(nb)) return na-nb;
-      return String(a).localeCompare(String(b));
-    });
-  }
-
-  const head = `Session: ${sess}\nFilter: ${ps}\nCount: ${list.length}\n\n`;
-  $("k_outputBox").textContent = head + (list.join("\n") || "—");
-}
-
-function k_renderTable(){
-  const body = $("k_tableBody");
-  body.innerHTML = "";
-
-  if(!k_visibleRows.length){
-    body.innerHTML = `<tr><td colspan="7" class="empty">No rows</td></tr>`;
+function analyzerRenderTable(){
+  const body = $("anTableBody");
+  if(!anFilteredRows.length){
+    body.innerHTML = `<tr><td colspan="4" class="muted">No rows</td></tr>`;
     return;
   }
-
-  const max = Math.min(k_visibleRows.length, 2000);
-  for(let i=0;i<max;i++){
-    const r = k_visibleRows[i];
-    const tr = document.createElement("tr");
-
-    const ps = r.process_status;
-    const psColor =
-      ps === "PROCESSED" ? "var(--ok)" :
-      ps === "DISCONNECTED" ? "var(--warn)" :
-      "var(--bad)";
-
-    tr.innerHTML = `
-      <td>${i+1}</td>
-      <td>${escapeHtml(r.profile_Name)}</td>
-      <td>${escapeHtml(r.tag || "")}</td>
-      <td>${escapeHtml(r.status_name || "")}</td>
-      <td style="font-weight:950; color:${psColor}">${escapeHtml(ps)}</td>
-      <td>${escapeHtml(r.session || "")}</td>
-      <td>${escapeHtml(r.preview)}</td>
-    `;
-    body.appendChild(tr);
-  }
+  body.innerHTML = anFilteredRows.slice(0, 2000).map(r=>{
+    return `<tr>
+      <td class="mono">${r.id}</td>
+      <td>${r.status}</td>
+      <td class="mono">${r.datetime}</td>
+      <td class="mono">${r.day}</td>
+    </tr>`;
+  }).join("");
 }
 
-function k_applyViewFilters(){
-  const sess = $("k_sessionSelect").value || "ALL";
-  const ps = $("k_statusSelect").value || "ALL";
-
-  let rows = [...k_allRows];
-  if(sess !== "ALL") rows = rows.filter(r => r.session === sess);
-  if(ps !== "ALL") rows = rows.filter(r => r.process_status === ps);
-
-  k_visibleRows = rows;
-  k_renderTable();
-  k_buildNotAndDiscLists();
-  k_renderOutputBox();
+function analyzerUpdateSortIcons(){
+  const ids = ["id","status","datetime","day"];
+  const map = {
+    id:$("anSortId"),
+    status:$("anSortStatus"),
+    datetime:$("anSortDatetime"),
+    day:$("anSortDay")
+  };
+  for(const k of ids){
+    map[k].className = "chev";
+  }
+  const el = map[anSort.key];
+  if(!el) return;
+  el.className = "chev" + (anSort.dir==="asc" ? " up":"");
 }
 
-function k_process(){
-  const text = $("k_input").value.trim();
-  if(!text){ setKStatus("Input empty", "bad"); return; }
-
-  const lines = text.replace(/\r/g,"").split("\n").filter(Boolean);
-  if(lines.length < 2){ setKStatus("Need header + rows", "bad"); return; }
-
-  const delim = k_detectDelim(lines);
-  $("k_delim").textContent = delim;
-
-  const headerParts = k_splitLine(lines[0], delim).map(k_clean);
-  const profileIdx = k_findIdx(headerParts, ["profilename"]);
-  const logIdx = k_findIdx(headerParts, ["log"]);
-  const detailsIdx = k_findIdx(headerParts, ["details"]);
-
-  if(profileIdx === -1 || logIdx === -1 || detailsIdx === -1){
-    setKStatus("Missing required headers: profile_Name + log + details", "bad");
-    return;
-  }
-
-  const tagIdx = k_findIdx(headerParts, ["tag"]);
-  const statusNameIdx = k_findIdx(headerParts, ["statusname"]);
-  const cnxIdx = k_findIdx(headerParts, ["cnxproblems"]);
-  const scriptIdx = k_findIdx(headerParts, ["scriptname"]);
-  const sessionIdx = k_findIdx(headerParts, ["sessionname"]);
-
-  const kws = k_keywords.map(x=>String(x).trim().toLowerCase()).filter(Boolean);
-
-  const rows = [];
-  for(let li=1; li<lines.length; li++){
-    const parts = k_splitLine(lines[li], delim).map(k_clean);
-    if(parts.every(x=>!x)) continue;
-
-    const profile = (parts[profileIdx] ?? "").trim();
-    if(!profile) continue;
-
-    const rawLog = (parts[logIdx] ?? "");
-    const rawDetails = (parts[detailsIdx] ?? "");
-    const rawCnx = (cnxIdx !== -1 ? (parts[cnxIdx] ?? "") : "");
-
-    const logText = k_norm(rawLog);
-    const detailsText = k_norm(rawDetails);
-    const cnxText = k_norm(rawCnx);
-
-    const isDisconnected =
-      logText.includes("disconnected") ||
-      detailsText.includes("disconnected") ||
-      cnxText.includes("disconnected");
-
-    let processed = false;
-    if(!isDisconnected){
-      if(logText || detailsText || cnxText){
-        for(const kw of kws){
-          if(logText.includes(kw) || detailsText.includes(kw) || cnxText.includes(kw)){
-            processed = true;
-            break;
-          }
-        }
-      }
+document.querySelectorAll("#pageAnalyzer thead th").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.getAttribute("data-k");
+    if(!k) return;
+    if(anSort.key === k){
+      anSort.dir = anSort.dir==="asc" ? "desc" : "asc";
+    }else{
+      anSort.key = k;
+      anSort.dir = "asc";
     }
-
-    const process_status = isDisconnected ? "DISCONNECTED" : (processed ? "PROCESSED" : "NOT PROCESSED");
-
-    const tag = (tagIdx !== -1 ? parts[tagIdx] : "").trim();
-    const status_name = (statusNameIdx !== -1 ? parts[statusNameIdx] : "").trim();
-    const script_name = (scriptIdx !== -1 ? parts[scriptIdx] : "").trim();
-    const session_raw = (sessionIdx !== -1 ? parts[sessionIdx] : "").trim();
-    const session = k_normSessionName(session_raw);
-
-    const preview = k_fixFormulaText(
-      (rawLog ? rawLog : "") +
-      (rawDetails ? (" | " + rawDetails) : "") +
-      (rawCnx ? (" | " + rawCnx) : "")
-    ).slice(0, 220);
-
-    rows.push({
-      profile_Name: profile,
-      tag,
-      status_name,
-      script_name,
-      session,
-      process_status,
-      preview
-    });
-  }
-
-  k_allRows = rows;
-
-  if(!k_allRows.length){
-    setKStatus("No valid rows parsed (check header + delimiter)", "bad");
-    $("k_total").textContent = "0";
-    $("k_processed").textContent = "0";
-    $("k_not").textContent = "0";
-    $("k_disc").textContent = "0";
-    $("k_sessCount").textContent = "0";
-    k_visibleRows = [];
-    k_renderTable();
-    $("k_outputBox").textContent = "—";
-    return;
-  }
-
-  const cProcessed = k_allRows.filter(r=>r.process_status==="PROCESSED").length;
-  const cNot = k_allRows.filter(r=>r.process_status==="NOT PROCESSED").length;
-  const cDisc = k_allRows.filter(r=>r.process_status==="DISCONNECTED").length;
-  const sessSet = new Set(k_allRows.map(r=>r.session).filter(Boolean));
-
-  $("k_total").textContent = String(k_allRows.length);
-  $("k_processed").textContent = String(cProcessed);
-  $("k_not").textContent = String(cNot);
-  $("k_disc").textContent = String(cDisc);
-  $("k_sessCount").textContent = String(sessSet.size);
-
-  k_buildSessionOptions();
-  k_visibleRows = [...k_allRows];
-  k_applyViewFilters();
-
-  setKStatus("Keyword check done ✅", "ok");
-}
-
-function k_copyList(list, label){
-  if(!list.length){ setKStatus(`No ${label} profiles in current view`, "warn"); return; }
-  navigator.clipboard.writeText(list.join("\n"))
-    .then(()=>setKStatus(`Copied ${label} (${list.length})`, "ok"))
-    .catch(()=>setKStatus("Clipboard blocked by browser", "bad"));
-}
-function k_exportList(list, filename, label){
-  if(!list.length){ setKStatus(`No ${label} profiles in current view`, "warn"); return; }
-  downloadBlob("profile_Name\n" + list.join("\n"), filename, "text/csv;charset=utf-8;");
-  setKStatus(`Exported ${filename}`, "ok");
-}
-
-function k_copyNot(){ k_copyList(k_notUniqueProfiles, "NOT PROCESSED"); }
-function k_exportNot(){
-  const sess = $("k_sessionSelect").value || "ALL";
-  const name = `not_processed_${sess}.csv`.replace(/[^\w\-.]+/g,"_");
-  k_exportList(k_notUniqueProfiles, name, "NOT PROCESSED");
-}
-function k_copyDisc(){ k_copyList(k_discUniqueProfiles, "DISCONNECTED"); }
-function k_exportDisc(){
-  const sess = $("k_sessionSelect").value || "ALL";
-  const name = `disconnected_${sess}.csv`.replace(/[^\w\-.]+/g,"_");
-  k_exportList(k_discUniqueProfiles, name, "DISCONNECTED");
-}
-
-function k_clearView(){
-  $("k_input").value = "";
-  k_allRows = [];
-  k_visibleRows = [];
-  k_notUniqueProfiles = [];
-  k_discUniqueProfiles = [];
-  $("k_total").textContent = "—";
-  $("k_processed").textContent = "—";
-  $("k_not").textContent = "—";
-  $("k_disc").textContent = "—";
-  $("k_sessCount").textContent = "—";
-  $("k_delim").textContent = "—";
-  $("k_outputBox").textContent = "Paste input then click “Process”…";
-  $("k_tableBody").innerHTML = `<tr><td colspan="7" class="empty">No data yet</td></tr>`;
-  $("k_sessionSelect").innerHTML = `<option value="ALL">ALL sessions</option>`;
-  $("k_statusSelect").value = "ALL";
-  setKStatus("Cleared ✅", "ok");
-}
-
-/* Wire Keyword Checker */
-$("k_btnProcess").addEventListener("click", k_process);
-$("k_btnAdd").addEventListener("click", k_addKeyword);
-$("k_kwInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") k_addKeyword(); });
-$("k_btnDefault").addEventListener("click", k_setDefault);
-$("k_btnClearKws").addEventListener("click", k_clearAllKeywords);
-$("k_btnNormalize").addEventListener("click", k_normalizeKeywords);
-
-$("k_sessionSelect").addEventListener("change", ()=>{ if(k_allRows.length) k_applyViewFilters(); });
-$("k_statusSelect").addEventListener("change", ()=>{ if(k_allRows.length) k_applyViewFilters(); });
-
-$("k_btnCopyNot").addEventListener("click", k_copyNot);
-$("k_btnExportNot").addEventListener("click", k_exportNot);
-$("k_btnCopyDisc").addEventListener("click", k_copyDisc);
-$("k_btnExportDisc").addEventListener("click", k_exportDisc);
-$("k_btnClearView").addEventListener("click", k_clearView);
-
-k_renderTags();
-
-/* =========================================================
-   Maintenance (KIFMA KANT) + screenshot via webhook
-========================================================= */
-function buildMaintenanceReport(){
-  const mode =
-    $("secAnalyzer").classList.contains("active") ? "Analyzer" : "Keyword Checker";
-
-  const statusText =
-    $("secAnalyzer").classList.contains("active") ? $("status").textContent :
-    $("k_status").textContent;
-
-  // SAME FORMAT as user showed
-  return `🛠 Maintenance report
-Mode: ${mode}
-Time: ${new Date().toISOString()}
-URL: ${location.href}
-UA: ${navigator.userAgent}
-Status: ${statusText || "Waiting…"}`;
-}
-
-function openMaintenance(){
-  $("m_backdrop").style.display = "flex";
-  const report = buildMaintenanceReport();
-  $("m_reportBox").textContent = report;
-  setMStatus("Waiting…", "muted");
-}
-function closeMaintenance(){
-  $("m_backdrop").style.display = "none";
-}
-
-$("btnMaintenanceTop").addEventListener("click", openMaintenance);
-$("m_close").addEventListener("click", closeMaintenance);
-$("m_backdrop").addEventListener("click", (e)=>{
-  if(e.target === $("m_backdrop")) closeMaintenance();
-});
-
-async function captureScreenshotBlob(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-    throw new Error("getDisplayMedia not supported");
-  }
-
-  const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: true,
-    audio: false
+    analyzerApplyFiltersAndRender();
   });
-
-  try{
-    const track = stream.getVideoTracks()[0];
-    const video = document.createElement("video");
-    video.srcObject = stream;
-    video.muted = true;
-    await video.play();
-
-    await new Promise(res=>setTimeout(res, 250));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    track.stop();
-    stream.getTracks().forEach(t=>t.stop());
-
-    const blob = await new Promise((resolve)=>canvas.toBlob(resolve, "image/png", 0.92));
-    if(!blob) throw new Error("Failed to create screenshot");
-    return blob;
-  } finally {
-    stream.getTracks().forEach(t=>t.stop());
-  }
-}
-
-let lastShotBlob = null;
-
-function showPreview(blob){
-  lastShotBlob = blob;
-  const url = URL.createObjectURL(blob);
-  $("m_previewBox").innerHTML = `<img alt="screenshot" src="${url}">`;
-}
-
-$("m_copyReport").addEventListener("click", ()=>{
-  const report = buildMaintenanceReport();
-  $("m_reportBox").textContent = report;
-  navigator.clipboard.writeText(report)
-    .then(()=>setMStatus("Report copied ✅", "ok"))
-    .catch(()=>setMStatus("Clipboard blocked", "bad"));
 });
 
-$("m_downloadShot").addEventListener("click", async ()=>{
-  try{
-    setMStatus("Capturing screenshot…", "warn");
-    const blob = await captureScreenshotBlob();
-    showPreview(blob);
+$("anStatusSearch").addEventListener("input", analyzerRenderStatusPills);
+$("anClearStatus").onclick = ()=>{
+  anSelectedStatuses.clear();
+  analyzerApplyFiltersAndRender();
+  analyzerRenderStatusPills();
+};
 
-    const fileName = `maintenance_${Date.now()}.png`;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+$("anModeSingle").onclick = ()=>{
+  anDateMode="single";
+  $("anModeSingle").classList.add("active");
+  $("anModeRange").classList.remove("active");
+  $("anSingleField").style.display = "";
+  $("anRangeFields").style.display = "none";
+  $("anDateModeLabel").textContent = "Single day";
+};
+$("anModeRange").onclick = ()=>{
+  anDateMode="range";
+  $("anModeRange").classList.add("active");
+  $("anModeSingle").classList.remove("active");
+  $("anSingleField").style.display = "none";
+  $("anRangeFields").style.display = "";
+  $("anDateModeLabel").textContent = "Date range";
+};
 
-    setMStatus("Screenshot downloaded ✅", "ok");
-  }catch(e){
-    setMStatus("Screenshot failed: " + (e?.message || e), "bad");
-  }
-});
-
-$("m_captureSend").addEventListener("click", async ()=>{
-  const webhook = $("m_webhook").value.trim();
-  const report = buildMaintenanceReport();
-  $("m_reportBox").textContent = report;
-
-  try{
-    setMStatus("Capturing screenshot…", "warn");
-    const blob = await captureScreenshotBlob();
-    showPreview(blob);
-
-    if(!webhook){
-      setMStatus("Webhook empty. Screenshot captured فقط. (Download ممكن)", "warn");
+$("anApplyDate").onclick = ()=>{
+  if(anDateMode==="single"){
+    const d = parseDateOnlyFlexible($("anDaySingle").value);
+    if(!d){
+      analyzerSetMsg("bad", "Invalid day. Example: 2026-01-20 or 20-01-2026 or 1/20/2026");
       return;
     }
+    anActiveDateFilter = {type:"single", day: dayKeyFrom(d.yyyy,d.mm,d.dd)};
+  }else{
+    const d1 = parseDateOnlyFlexible($("anDayFrom").value);
+    const d2 = parseDateOnlyFlexible($("anDayTo").value);
+    if(!d1 || !d2){
+      analyzerSetMsg("bad", "Invalid range. Fill From and To (day).");
+      return;
+    }
+    let a = dayKeyFrom(d1.yyyy,d1.mm,d1.dd);
+    let b = dayKeyFrom(d2.yyyy,d2.mm,d2.dd);
+    if(a>b){ const tmp=a; a=b; b=tmp; }
+    anActiveDateFilter = {type:"range", fromDay:a, toDay:b};
+  }
+  analyzerApplyFiltersAndRender();
+  analyzerSetMsg("good", "Date filter applied.");
+};
 
-    setMStatus("Sending to webhook…", "warn");
-    const fd = new FormData();
-    fd.append("report", report);
-    fd.append("time", new Date().toISOString());
-    fd.append("url", location.href);
-    fd.append("ua", navigator.userAgent);
-    fd.append("screenshot", blob, "screenshot.png");
+$("anClearDate").onclick = ()=>{
+  anActiveDateFilter = null;
+  $("anDaySingle").value = "";
+  $("anDayFrom").value = "";
+  $("anDayTo").value = "";
+  analyzerApplyFiltersAndRender();
+  analyzerSetMsg("good", "Date filter cleared.");
+};
 
-    const res = await fetch(webhook, { method:"POST", body: fd });
-    if(!res.ok){
-      const txt = await res.text().catch(()=> "");
-      throw new Error("Webhook failed: " + res.status + " " + (txt || ""));
+function analyzerSetMsg(type, text){
+  const box = $("anMsg");
+  const dot = box.querySelector(".dot");
+  dot.classList.remove("good","bad");
+  dot.classList.add(type==="good" ? "good" : "bad");
+  box.querySelector("span.mono").textContent = text;
+  setPill(type, text);
+}
+
+$("anProcess").onclick = ()=>{
+  const txt = $("anInput").value || "";
+  const rows = analyzerParseText(txt);
+
+  anAllRows = rows;
+  anMissing = [];
+  $("anMissingCount").textContent = "0";
+  $("anUnique").textContent = "0";
+  $("anNot").textContent = "0";
+  $("anDup").textContent = "0";
+
+  if(!rows.length){
+    analyzerBuildStatusCounts([]);
+    analyzerRenderStatusPills();
+    analyzerApplyFiltersAndRender();
+    analyzerSetMsg("bad","No valid rows parsed (check format)");
+    return;
+  }
+
+  analyzerBuildStatusCounts(rows);
+  analyzerRenderStatusPills();
+  analyzerApplyFiltersAndRender();
+  analyzerSetMsg("good",`Parsed ${rows.length} rows ✅`);
+};
+
+$("anCopyIds").onclick = async ()=>{
+  if(!anFilteredRows.length){
+    analyzerSetMsg("bad","No visible rows to copy");
+    return;
+  }
+  const s = anFilteredRows.map(r=>r.id).join("\n");
+  try{
+    await copyToClipboard(s);
+    analyzerSetMsg("good",`Copied ${anFilteredRows.length} IDs`);
+  }catch(e){
+    analyzerSetMsg("bad","Copy failed (browser blocked clipboard)");
+  }
+};
+
+$("anExportCsv").onclick = ()=>{
+  if(!anFilteredRows.length){
+    analyzerSetMsg("bad","No visible rows to export");
+    return;
+  }
+  downloadCSV("analyzer_visible.csv", anFilteredRows, ["id","status","datetime","day"]);
+  analyzerSetMsg("good",`Exported ${anFilteredRows.length} rows (CSV)`);
+};
+
+$("anCheck").onclick = ()=>{
+  if(!anFilteredRows.length){
+    analyzerSetMsg("bad","No visible rows. Click Process first.");
+    return;
+  }
+  const range = parseRangeInput($("anRange").value);
+  if(!range){
+    analyzerSetMsg("bad","Invalid range. Example: 1961 - 2240");
+    return;
+  }
+
+  // Determine missing ids in range based on visible rows
+  const ids = anFilteredRows.map(r=>r.id);
+  const freq = new Map();
+  for(const id of ids) freq.set(id, (freq.get(id)||0)+1);
+
+  let dup = 0;
+  for(const [id,c] of freq.entries()) if(c>1) dup += (c-1);
+
+  const uniqueSet = new Set(ids);
+  const missing = [];
+  for(let x=range.from; x<=range.to; x++){
+    if(!uniqueSet.has(x)) missing.push(x);
+  }
+
+  anMissing = missing;
+  $("anMissingCount").textContent = missing.length;
+  $("anUnique").textContent = uniqueSet.size;
+  $("anNot").textContent = missing.length;
+  $("anDup").textContent = dup;
+
+  analyzerSetMsg("good", `Check done. Missing: ${missing.length}`);
+};
+
+$("anCopyNot").onclick = async ()=>{
+  if(!anMissing.length){
+    analyzerSetMsg("bad","No missing IDs. Click Check first.");
+    return;
+  }
+  try{
+    await copyToClipboard(anMissing.join("\n"));
+    analyzerSetMsg("good",`Copied NOT PROCESSED (${anMissing.length})`);
+  }catch(e){
+    analyzerSetMsg("bad","Copy failed (browser blocked clipboard)");
+  }
+};
+
+$("anExportNot").onclick = ()=>{
+  if(!anMissing.length){
+    analyzerSetMsg("bad","No missing IDs. Click Check first.");
+    return;
+  }
+  downloadText("not_processed_ids.txt", anMissing.join("\n"));
+  analyzerSetMsg("good",`Exported NOT PROCESSED (${anMissing.length})`);
+};
+
+/** =========================
+ *  Keyword Checker (Apps Script logic)
+ *  ========================= */
+const KW_STORAGE_KEY = "analyzer_kw_list_v3";
+const TG_TOKEN_KEY = "analyzer_tg_token_v1";
+const TG_CHAT_KEY = "analyzer_tg_chat_v1";
+
+const DEFAULT_KEYWORDS = [
+  "done","already","reply","forward","search completed for","markUnread","sendMessage",
+  "successfully","BirthdayChanged","click","Gender Updated","Theme already changed",
+  "Gmail Template updated","LanguageValue Updated","English has been added"
+].map(x=>x.trim()).filter(Boolean);
+
+let kwKeywords = loadKeywords();
+let kwAllRows = [];
+let kwVisibleRows = [];
+let kwSort = { key:"profile_Name", dir:"asc" };
+
+function loadKeywords(){
+  try{
+    const raw = localStorage.getItem(KW_STORAGE_KEY);
+    if(!raw) return [...DEFAULT_KEYWORDS];
+    const arr = JSON.parse(raw);
+    if(!Array.isArray(arr)) return [...DEFAULT_KEYWORDS];
+    return arr.map(x=>String(x).trim()).filter(Boolean);
+  }catch(e){
+    return [...DEFAULT_KEYWORDS];
+  }
+}
+function saveKeywords(){
+  localStorage.setItem(KW_STORAGE_KEY, JSON.stringify(kwKeywords));
+}
+
+function renderKeywordChips(){
+  const box = $("kwChips");
+  box.innerHTML = "";
+  if(!kwKeywords.length){
+    box.innerHTML = `<div class="muted">No keywords</div>`;
+    return;
+  }
+  for(const kw of kwKeywords){
+    const c = document.createElement("div");
+    c.className = "chip";
+    c.innerHTML = `<span>${kw}</span><span class="x" title="remove">×</span>`;
+    c.querySelector(".x").onclick = ()=>{
+      kwKeywords = kwKeywords.filter(k => k !== kw);
+      saveKeywords();
+      renderKeywordChips();
+    };
+    box.appendChild(c);
+  }
+}
+
+function kwDetectDelimiter(lines){
+  return detectDelimiter(lines);
+}
+
+function kwParseTable(text){
+  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trimEnd()).filter(x=>x.trim()!=="");
+  if(lines.length < 2) return { rows:[], delim:null, err:"Need header + data rows" };
+
+  const delim = kwDetectDelimiter(lines);
+  const headParts = (delim === "\t" ? lines[0].split("\t") : splitCSVLine(lines[0], delim)).map(cleanField);
+  const headers = headParts.map(h => h.toLowerCase().trim());
+
+  const idx = (name)=> headers.indexOf(name.toLowerCase());
+  const iProfile = idx("profile_name") !== -1 ? idx("profile_name") : idx("profile_name".replace("_","")); // keep
+  // handle profile_Name
+  const iProfile2 = idx("profile_name") !== -1 ? idx("profile_name") : headers.indexOf("profile_name");
+  const iProfile3 = headers.indexOf("profile_name");
+  const iProfileName = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
+  // More robust: accept profile_Name or profile_name
+  const profileIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
+  // The above doesn't help; do direct alternatives:
+  const pIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+               headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+               headers.indexOf("profile_name") ;
+  // Let's just search alternatives:
+  const profileAlt = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+                     headers.indexOf("profile_name".toLowerCase()) ;
+  // We'll do a clean fallback:
+  const profileNameIdx =
+    headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+    headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+    headers.indexOf("profile_name") ; // placeholder
+
+  // Real: support both "profile_name" and "profile_Name"
+  const profileIdx2 = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
+  // This is messy; we do:
+  const getIdxAny = (names)=>{
+    for(const n of names){
+      const j = headers.indexOf(n.toLowerCase());
+      if(j!==-1) return j;
+    }
+    return -1;
+  };
+
+  const idxProfile = getIdxAny(["profile_name","profile_Name","profile"]);
+  const idxTag = getIdxAny(["tag"]);
+  const idxStatusName = getIdxAny(["status_name","status"]);
+  const idxLog = getIdxAny(["log"]);
+  const idxCnx = getIdxAny(["cnx_problems","cnx_problem","cnx"]);
+  const idxDetails = getIdxAny(["details","detail"]);
+  const idxScript = getIdxAny(["script_name","script"]);
+  const idxSession = getIdxAny(["session_name","session"]);
+
+  if(idxProfile === -1 || idxLog === -1 || idxDetails === -1){
+    return { rows:[], delim, err:"Missing required headers: profile_Name + log + details" };
+  }
+
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    let line = lines[i];
+
+    // If whole line wrapped in quotes, unwrap (helps CSV paste)
+    const t = String(line).trim();
+    if((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))){
+      // only unwrap if it likely contains delimiter inside
+      if(t.includes(delim)) line = t.slice(1,-1);
     }
 
-    setMStatus("Sent ✅ (webhook)", "ok");
+    const parts = (delim === "\t") ? line.split("\t") : splitCSVLine(line, delim);
+    const vals = parts.map(cleanField);
+
+    const profile_Name = vals[idxProfile] ?? "";
+    if(profile_Name === "") continue;
+
+    const tag = idxTag !== -1 ? (vals[idxTag] ?? "") : "";
+    const status_name = idxStatusName !== -1 ? (vals[idxStatusName] ?? "") : "";
+    const log = vals[idxLog] ?? "";
+    const cnx_problems = idxCnx !== -1 ? (vals[idxCnx] ?? "") : "";
+    const details = vals[idxDetails] ?? "";
+    const script_name = idxScript !== -1 ? (vals[idxScript] ?? "") : "";
+    const session_name = idxSession !== -1 ? (vals[idxSession] ?? "") : "";
+
+    const session_short = extractSessionShort(session_name);
+    rows.push({
+      profile_Name,
+      tag,
+      status_name,
+      log,
+      cnx_problems,
+      details,
+      script_name,
+      session_name,
+      session_short
+    });
+  }
+
+  return { rows, delim, err:null };
+}
+
+function extractSessionShort(s){
+  if(!s) return "";
+  const t = String(s).trim();
+  const i = t.indexOf("(");
+  if(i !== -1) return t.slice(0,i).trim();
+  // also remove trailing ip-like patterns if separated by space
+  return t.trim();
+}
+
+function isDisconnectedRow(r){
+  const a = normalizeForSearch(r.cnx_problems);
+  const b = normalizeForSearch(r.log);
+  const c = normalizeForSearch(r.details);
+  const d = normalizeForSearch(r.status_name);
+  return /disconnected/.test(a) || /disconnected/.test(b) || /disconnected/.test(c) || /disconnected/.test(d);
+}
+
+function computeProcessStatus(row){
+  // EXACT Apps Script logic: keyword in log OR details (and we also include cnx_problems) => PROCESSED
+  const logText = normalizeForSearch(row.log);
+  const detailsText = normalizeForSearch(row.details);
+  const cnxText = normalizeForSearch(row.cnx_problems);
+
+  let processed = false;
+  if(logText || detailsText || cnxText){
+    for(const kw of kwKeywords){
+      const k = String(kw).trim().toLowerCase();
+      if(!k) continue;
+      if(logText.includes(k) || detailsText.includes(k) || cnxText.includes(k)){
+        processed = true;
+        break;
+      }
+    }
+  }
+  return processed ? "PROCESSED" : "NOT PROCESSED";
+}
+
+function kwRebuild(){
+  const txt = $("kwInput").value || "";
+  const parsed = kwParseTable(txt);
+
+  kwAllRows = [];
+  if(parsed.err){
+    kwSetMsg("bad", parsed.err);
+    $("kwTotal").textContent = "0";
+    $("kwCountFiltered").textContent = "0";
+    $("kwSessionsBox").style.display = "none";
+    renderKeywordTable([]);
+    setPill("bad", "Keyword Checker: " + parsed.err);
+    return;
+  }
+
+  const out = parsed.rows.map(r=>{
+    const proc = computeProcessStatus(r);
+    const disc = isDisconnectedRow(r);
+    const preview = `${r.log} ${r.details} ${r.cnx_problems}`.trim();
+    return {
+      ...r,
+      process_status: proc,
+      disconnected: disc,
+      preview
+    };
+  });
+
+  kwAllRows = out;
+  kwApplyFilterRender();
+  kwSetMsg("good", `Processed ${kwAllRows.length} rows ✅ (delim: ${parsed.delim === "\t" ? "TAB" : parsed.delim})`);
+  setPill("good", "Keyword check done ✅");
+}
+
+function kwApplyFilterRender(){
+  const filter = $("kwFilter").value;
+
+  let visible = kwAllRows;
+  if(filter === "PROCESSED"){
+    visible = kwAllRows.filter(r => r.process_status === "PROCESSED" && !r.disconnected);
+  }else if(filter === "NOT_PROCESSED"){
+    visible = kwAllRows.filter(r => r.process_status === "NOT PROCESSED" && !r.disconnected);
+  }else if(filter === "DISCONNECTED"){
+    visible = kwAllRows.filter(r => r.disconnected);
+  }else{
+    visible = kwAllRows;
+  }
+
+  // sort
+  const dir = kwSort.dir === "asc" ? 1 : -1;
+  visible.sort((a,b)=>{
+    let va=a[kwSort.key], vb=b[kwSort.key];
+    if(typeof va === "string") va = va.toLowerCase();
+    if(typeof vb === "string") vb = vb.toLowerCase();
+    if(va<vb) return -1*dir;
+    if(va>vb) return 1*dir;
+    return 0;
+  });
+
+  kwVisibleRows = visible;
+
+  $("kwTotal").textContent = kwAllRows.length;
+
+  // update right KPI label & count
+  const label = filter;
+  $("kwFilterLabel").textContent = label.replace("_"," ");
+  $("kwCountFiltered").textContent = uniqueProfiles(kwVisibleRows).length;
+
+  // sessions breakdown
+  renderSessionBreakdown(filter);
+
+  // table
+  renderKeywordTable(kwVisibleRows);
+  kwUpdateSortIcons();
+}
+
+function uniqueProfiles(rows){
+  const set = new Set();
+  for(const r of rows) set.add(String(r.profile_Name));
+  return [...set];
+}
+
+function renderSessionBreakdown(filter){
+  const box = $("kwSessionsBox");
+  if(!kwAllRows.length){
+    box.style.display = "none";
+    return;
+  }
+
+  // group by session_short (fallback "—")
+  const groups = new Map();
+  for(const r of kwAllRows){
+    const s = r.session_short || "—";
+    if(!groups.has(s)) groups.set(s, []);
+    groups.get(s).push(r);
+  }
+
+  // build HTML
+  const blocks = [];
+  const order = [...groups.keys()].sort((a,b)=>a.localeCompare(b));
+  for(const sess of order){
+    const arr = groups.get(sess);
+
+    const proc = arr.filter(x => x.process_status === "PROCESSED" && !x.disconnected).length;
+    const notp = arr.filter(x => x.process_status === "NOT PROCESSED" && !x.disconnected).length;
+    const disc = arr.filter(x => x.disconnected).length;
+
+    // list profiles for current filter
+    let listRows = arr;
+    if(filter === "PROCESSED") listRows = arr.filter(x => x.process_status==="PROCESSED" && !x.disconnected);
+    else if(filter === "NOT_PROCESSED") listRows = arr.filter(x => x.process_status==="NOT PROCESSED" && !x.disconnected);
+    else if(filter === "DISCONNECTED") listRows = arr.filter(x => x.disconnected);
+    else listRows = arr;
+
+    const unique = uniqueProfiles(listRows);
+
+    blocks.push(`
+      <details>
+        <summary>
+          <span class="mono">${escapeHtml(sess)}</span>
+          <span class="counts">P:${proc} | N:${notp} | D:${disc} | show:${unique.length}</span>
+        </summary>
+        <div class="hint2" style="margin-top:10px;">Unique profile_Name (first 300):</div>
+        <div class="mono" style="margin-top:8px; white-space:pre-wrap; font-size:12px; color: var(--text);">${escapeHtml(unique.slice(0,300).join("\n"))}</div>
+      </details>
+    `);
+  }
+
+  box.innerHTML = blocks.join("");
+  box.style.display = "";
+}
+
+function escapeHtml(s){
+  return String(s??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+function renderKeywordTable(rows){
+  const body = $("kwTableBody");
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="6" class="muted">No rows</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.slice(0,2000).map((r, idx)=>{
+    const proc = r.disconnected ? "DISCONNECTED" : r.process_status;
+    const badgeClass = r.disconnected ? "warn" : (r.process_status==="PROCESSED" ? "good":"bad");
+    const preview = safePreview(r.preview, 150);
+
+    return `<tr>
+      <td class="mono">${escapeHtml(r.profile_Name)}</td>
+      <td class="mono">${escapeHtml(r.tag || "")}</td>
+      <td>${escapeHtml(r.status_name || "")}</td>
+      <td><span class="badge ${badgeClass}">${escapeHtml(proc)}</span></td>
+      <td class="mono">${escapeHtml(r.session_short || "")}</td>
+      <td class="mono">${escapeHtml(preview)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function kwSetMsg(type, text){
+  const box = $("kwMsg");
+  const dot = box.querySelector(".dot");
+  dot.classList.remove("good","bad");
+  dot.classList.add(type==="good" ? "good" : "bad");
+  box.querySelector("span.mono").textContent = text;
+}
+
+function kwUpdateSortIcons(){
+  const map = {
+    profile_Name:$("kwSortProfile"),
+    tag:$("kwSortTag"),
+    status_name:$("kwSortStatusName"),
+    process_status:$("kwSortProc"),
+    session_short:$("kwSortSess"),
+    preview:$("kwSortPrev")
+  };
+  for(const k in map){
+    map[k].className = "chev";
+  }
+  const el = map[kwSort.key];
+  if(!el) return;
+  el.className = "chev" + (kwSort.dir==="asc" ? " up":"");
+}
+
+document.querySelectorAll("#pageKeyword thead th").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.getAttribute("data-k");
+    if(!k) return;
+    if(kwSort.key === k){
+      kwSort.dir = kwSort.dir==="asc" ? "desc" : "asc";
+    }else{
+      kwSort.key = k;
+      kwSort.dir = "asc";
+    }
+    kwApplyFilterRender();
+  });
+});
+
+$("kwProcess").onclick = kwRebuild;
+
+$("kwFilter").onchange = ()=>{
+  kwApplyFilterRender();
+};
+
+$("kwCopy").onclick = async ()=>{
+  if(!kwVisibleRows.length){
+    kwSetMsg("bad","No rows to copy. Click Process first.");
+    return;
+  }
+  // copy unique profile_Name
+  const uniq = uniqueProfiles(kwVisibleRows);
+  try{
+    await copyToClipboard(uniq.join("\n"));
+    kwSetMsg("good",`Copied ${uniq.length} profile_Name ✅`);
+    setPill("good", `Copied ${uniq.length}`);
   }catch(e){
-    setMStatus("Send failed: " + (e?.message || e), "bad");
+    kwSetMsg("bad","Copy failed (browser blocked clipboard)");
+  }
+};
+
+$("kwExport").onclick = ()=>{
+  if(!kwVisibleRows.length){
+    kwSetMsg("bad","No rows to export. Click Process first.");
+    return;
+  }
+  const filter = $("kwFilter").value;
+  const uniq = uniqueProfiles(kwVisibleRows);
+  downloadText(`${filter.toLowerCase()}_profiles.txt`, uniq.join("\n"));
+  kwSetMsg("good",`Exported ${uniq.length} profile_Name ✅`);
+};
+
+$("kwAddBtn").onclick = ()=>{
+  const v = $("kwAddInput").value.trim();
+  if(!v) return;
+  const low = v.toLowerCase();
+  if(!kwKeywords.map(x=>x.toLowerCase()).includes(low)){
+    kwKeywords.push(v);
+    kwKeywords = kwKeywords.map(x=>String(x).trim()).filter(Boolean);
+    saveKeywords();
+    renderKeywordChips();
+    $("kwAddInput").value = "";
+    kwSetMsg("good","Keyword added ✅");
+  }else{
+    kwSetMsg("bad","Keyword already exists");
+  }
+};
+
+$("kwAddInput").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    $("kwAddBtn").click();
   }
 });
 
-/* =========================================================
-   Init
-========================================================= */
-setTopPill("warn","Ready");
-refreshModeUI();
+$("kwDefault").onclick = ()=>{
+  kwKeywords = [...DEFAULT_KEYWORDS];
+  saveKeywords();
+  renderKeywordChips();
+  kwSetMsg("good","Default list loaded ✅");
+};
+
+$("kwClearAll").onclick = ()=>{
+  kwKeywords = [];
+  saveKeywords();
+  renderKeywordChips();
+  kwSetMsg("good","Keywords cleared ✅");
+};
+
+/** =========================
+ *  Maintenance (Telegram screenshot)
+ *  ========================= */
+function getTgCreds(){
+  const token = localStorage.getItem(TG_TOKEN_KEY) || "";
+  const chat = localStorage.getItem(TG_CHAT_KEY) || "";
+  return {token, chat};
+}
+function setTgCreds(token, chat){
+  localStorage.setItem(TG_TOKEN_KEY, token || "");
+  localStorage.setItem(TG_CHAT_KEY, chat || "");
+}
+
+function openTgModal(){
+  const {token, chat} = getTgCreds();
+  $("tgToken").value = token;
+  $("tgChat").value = chat;
+  $("tgModalBack").style.display = "flex";
+}
+function closeTgModal(){
+  $("tgModalBack").style.display = "none";
+}
+
+$("btnMaintSettings").onclick = openTgModal;
+$("tgClose").onclick = closeTgModal;
+$("tgCancel").onclick = closeTgModal;
+$("tgModalBack").addEventListener("click",(e)=>{
+  if(e.target === $("tgModalBack")) closeTgModal();
+});
+$("tgSave").onclick = ()=>{
+  const token = $("tgToken").value.trim();
+  const chat = $("tgChat").value.trim();
+  setTgCreds(token, chat);
+  closeTgModal();
+  setPill("good","Telegram settings saved ✅");
+};
+
+async function sendTelegramPhoto(token, chatId, caption, blob){
+  const url = `https://api.telegram.org/bot${token}/sendPhoto`;
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("caption", caption);
+  form.append("photo", blob, "screenshot.png");
+  const res = await fetch(url, { method:"POST", body: form });
+  const data = await res.json().catch(()=>({ok:false, description:"Invalid JSON"}));
+  if(!data.ok) throw new Error(data.description || "Telegram sendPhoto failed");
+  return data;
+}
+
+async function sendTelegramMessage(token, chatId, text){
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("text", text);
+  const res = await fetch(url, { method:"POST", body: form });
+  const data = await res.json().catch(()=>({ok:false, description:"Invalid JSON"}));
+  if(!data.ok) throw new Error(data.description || "Telegram sendMessage failed");
+  return data;
+}
+
+function buildMaintenanceReport(mode){
+  const now = new Date().toISOString();
+  const ua = navigator.userAgent;
+  const url = location.href;
+  const pill = $("pillText").textContent;
+
+  return [
+    "🛠 Maintenance report",
+    `Mode: ${mode}`,
+    `Time: ${now}`,
+    `URL: ${url}`,
+    `UA: ${ua}`,
+    `Status: ${pill}`
+  ].join("\n");
+}
+
+async function captureScreenshotBlob(){
+  // small delay to allow UI to settle
+  await new Promise(r=>setTimeout(r, 120));
+  const canvas = await html2canvas(document.body, {
+    backgroundColor: null,
+    scale: 1.5,
+    useCORS: true
+  });
+  return await new Promise((resolve, reject)=>{
+    canvas.toBlob((blob)=>{
+      if(!blob) return reject(new Error("Failed to create screenshot blob"));
+      resolve(blob);
+    }, "image/png", 0.95);
+  });
+}
+
+$("btnMaint").onclick = async ()=>{
+  const {token, chat} = getTgCreds();
+  if(!token || !chat){
+    setPill("bad","Set Telegram token/chat first (⚙ Telegram)");
+    openTgModal();
+    return;
+  }
+
+  const mode = $("pageKeyword").style.display === "none" ? "Analyzer" : "Keyword Checker";
+  const report = buildMaintenanceReport(mode);
+
+  setPill("good","Maintenance: capturing screenshot…");
+
+  try{
+    const blob = await captureScreenshotBlob();
+    await sendTelegramPhoto(token, chat, report, blob);
+    setPill("good","Maintenance sent ✅ (screenshot + report)");
+  }catch(err){
+    // fallback: send message only
+    try{
+      await sendTelegramMessage(token, chat, report + "\n\n⚠ Screenshot failed: " + String(err.message || err));
+      setPill("bad","Screenshot failed, but report sent ✅");
+    }catch(e2){
+      setPill("bad","Maintenance failed: " + String(e2.message || e2));
+    }
+  }
+};
+
+/** =========================
+ *  Init
+ *  ========================= */
+renderKeywordChips();
+setPill("bad","No valid rows parsed (check format)");
+
+// make analyzer show correct sort icon at start
+analyzerUpdateSortIcons();
+kwUpdateSortIcons();
 </script>
 </body>
 </html>
