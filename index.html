@@ -3,29 +3,27 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CSV Analyzer — Analyzer + Keyword Checker</title>
+<title>Analyzer Toolkit — CSV Analyzer + Keyword Checker</title>
 
 <style>
 :root{
   --bg0:#070b14;
   --bg1:#0b1220;
-  --card:#0f1a2e;
-  --line:rgba(148,163,184,.18);
-
+  --line:rgba(148,163,184,.16);
   --text:#e5e7eb;
   --muted:#94a3b8;
 
-  --shadow: 0 18px 60px rgba(0,0,0,.45);
-  --shadow2: 0 10px 30px rgba(0,0,0,.35);
-
-  --focus: rgba(99,102,241,.22);
-
-  --c1:#6366f1;
-  --c2:#22d3ee;
+  --c1:#6366f1;   /* indigo */
+  --c2:#22d3ee;   /* cyan */
+  --c3:#a78bfa;   /* violet */
 
   --ok:#22c55e;
   --bad:#ef4444;
   --warn:#f59e0b;
+
+  --shadow: 0 18px 60px rgba(0,0,0,.45);
+  --shadow2: 0 10px 30px rgba(0,0,0,.35);
+  --focus: rgba(99,102,241,.22);
 
   --r:18px;
   --r2:14px;
@@ -38,68 +36,37 @@ body{
   color:var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   background:
-    radial-gradient(900px 520px at 10% 0%, rgba(99,102,241,.35), transparent 60%),
-    radial-gradient(650px 420px at 92% 8%, rgba(34,211,238,.22), transparent 60%),
-    radial-gradient(800px 520px at 45% 100%, rgba(34,197,94,.10), transparent 55%),
+    radial-gradient(900px 520px at 10% 0%, rgba(99,102,241,.33), transparent 60%),
+    radial-gradient(650px 420px at 92% 8%, rgba(34,211,238,.20), transparent 60%),
+    radial-gradient(800px 520px at 45% 100%, rgba(167,139,250,.12), transparent 55%),
     linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
-.container{
-  max-width: 1480px;
-  margin: 26px auto;
-  padding: 0 18px 34px;
-}
-
-.header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom: 14px;
-}
-.brand{
-  display:flex;align-items:center;gap:12px;
-}
+/* Layout */
+.container{max-width: 1480px;margin: 26px auto;padding: 0 18px 34px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px;}
+.brand{display:flex;align-items:center;gap:12px}
 .logo{
-  width:38px;height:38px;border-radius:14px;
-  background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.65));
-  box-shadow: 0 18px 44px rgba(0,0,0,.42);
+  width:44px;height:44px;border-radius:14px;
+  background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.10);
 }
-.brandText{
-  display:flex;flex-direction:column;gap:4px;
-}
-.brandText h1{
-  margin:0;
-  font-size: 20px;
-  letter-spacing: .2px;
-}
-.brandText p{
-  margin:0;
-  color: var(--muted);
-  font-size: 12.5px;
-  line-height:1.35;
-}
+.brandTxt{display:flex;flex-direction:column;gap:3px}
+.brandTxt h1{margin:0;font-size:22px;letter-spacing:.2px}
+.brandTxt p{margin:0;color:var(--muted);font-size:12px;font-weight:800}
 
-.pills{
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
+.pills{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  border-radius: 999px;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:999px;
   border:1px solid var(--line);
   background: rgba(255,255,255,.03);
   box-shadow: var(--shadow2);
   color: var(--muted);
-  font-weight: 900;
-  font-size: 12px;
+  font-weight: 900;font-size: 12px;
 }
-.dot{
-  width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);
-  box-shadow:0 0 0 3px rgba(148,163,184,.12);
-}
+.dot{width:8px;height:8px;border-radius:99px;background:rgba(148,163,184,.55);box-shadow:0 0 0 3px rgba(148,163,184,.12);}
 .dot.ok{background: var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.14);}
 .dot.bad{background: var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.14);}
 .dot.warn{background: var(--warn); box-shadow:0 0 0 3px rgba(245,158,11,.14);}
@@ -112,50 +79,39 @@ body{
   padding: 14px;
 }
 
-.tabs{
-  display:flex;gap:10px;align-items:center;
-  margin-bottom: 12px;
-}
-.tab{
+/* Tabs */
+.tabsRow{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.tabBtn{
   border:1px solid var(--line);
-  background: rgba(2,6,23,.72);
-  color: var(--text);
+  background: rgba(255,255,255,.03);
+  color: rgba(234,240,255,.95);
+  font-weight: 950;
   border-radius: 14px;
-  padding: 10px 14px;
-  font-weight: 900;
+  padding:10px 14px;
   cursor:pointer;
-  transition: .12s ease;
+  transition: filter .12s ease, transform .08s ease, box-shadow .12s ease, border-color .12s ease;
 }
-.tab:hover{filter:brightness(1.04)}
-.tab.active{
-  border-color: rgba(99,102,241,.75);
+.tabBtn:hover{filter:brightness(1.05);box-shadow: 0 0 0 3px rgba(99,102,241,.12);}
+.tabBtn.active{
+  background: linear-gradient(135deg, rgba(99,102,241,.18), rgba(34,211,238,.10));
+  border-color: rgba(99,102,241,.55);
   box-shadow: 0 0 0 4px rgba(99,102,241,.14);
-  background: rgba(99,102,241,.10);
 }
 
+/* Panels / grid */
+.grid{display:grid;grid-template-columns: 1.25fr .75fr;gap: 14px;}
+@media (max-width: 1000px){.grid{grid-template-columns:1fr}}
 .panel{
   border:1px solid var(--line);
   background: rgba(2,6,23,.82);
   border-radius: var(--r);
   padding: 14px;
 }
-.panelTitle{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;
-  margin-bottom: 10px;
-}
+.panelTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom: 10px;}
 .panelTitle b{font-size: 13px}
 .panelTitle span{color:var(--muted);font-weight:900;font-size:12px}
 
-.grid{
-  display:grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap: 14px;
-}
-@media (max-width: 1050px){
-  .grid{grid-template-columns:1fr}
-}
-
+/* Inputs */
 textarea{
   width:100%;
   min-height: 320px;
@@ -163,114 +119,14 @@ textarea{
   border:1px solid var(--line);
   background: rgba(2,6,23,.88);
   color: var(--text);
-  padding: 14px 14px;
+  padding: 14px;
   outline:none;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  font-size: 12.7px;
+  font-size: 12.6px;
   line-height: 1.42;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
-textarea:focus{
-  border-color: rgba(99,102,241,.85);
-  box-shadow: 0 0 0 4px var(--focus);
-}
-
-.kpis{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 560px){
-  .kpis{grid-template-columns:1fr}
-}
-.kpi{
-  padding: 12px 12px;
-  border-radius: var(--r2);
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.03);
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-.kpi span{
-  color:var(--muted);
-  font-size: 12px;
-  font-weight: 900;
-}
-.kpi b{
-  font-size: 18px;
-  letter-spacing: .2px;
-}
-
-hr.sep{
-  border:none;height:1px;background:var(--line);
-  margin: 12px 0;
-}
-
-.controls{
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width:1000px){
-  .controls{grid-template-columns:1fr}
-}
-
-/* Buttons */
-.btn{
-  width:100%;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,.10);
-  padding: 11px 12px;
-  cursor:pointer;
-  color:white;
-  font-weight: 900;
-  letter-spacing:.2px;
-  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
-  background: linear-gradient(135deg, rgba(99,102,241,.85), rgba(34,211,238,.55));
-  box-shadow: 0 10px 22px rgba(0,0,0,.28);
-  user-select:none;
-}
-.btn:hover{
-  filter:brightness(1.05);
-  box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);
-}
-.btn:active{transform:scale(.985)}
-.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2); box-shadow:none;}
-
-.btn.primary{background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70)); border-color: rgba(99,102,241,.25);}
-.btn.copy{background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55)); border-color: rgba(34,211,238,.18);}
-.btn.export{background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70)); border-color: rgba(167,139,250,.22);}
-.btn.clear{background: linear-gradient(135deg, rgba(148,163,184,.35), rgba(51,65,85,.55)); border-color: rgba(148,163,184,.18);}
-
-.sectionTitle{
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-  margin: 2px 0 8px;
-}
-.sectionTitle b{font-size:13px}
-.sectionTitle small{color:var(--muted);font-weight:900}
-
-.modeRow{
-  display:flex; gap:10px; flex-wrap:wrap;
-}
-.mode{
-  flex:1;
-  min-width: 160px;
-  display:flex; align-items:center; justify-content:center;
-  gap:10px;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.02);
-  padding: 10px 12px;
-  font-weight: 900;
-  cursor:pointer;
-}
-.mode input{accent-color: var(--c2)}
-.mode.active{
-  border-color: rgba(99,102,241,.7);
-  box-shadow: 0 0 0 4px rgba(99,102,241,.14);
-  background: rgba(99,102,241,.08);
-}
+textarea:focus{border-color: rgba(99,102,241,.85);box-shadow: 0 0 0 4px var(--focus);}
 
 input, select{
   width:100%;
@@ -280,54 +136,94 @@ input, select{
   color:var(--text);
   padding: 11px 12px;
   outline:none;
-  font-weight: 900;
+  font-weight: 950;
 }
 input:focus, select:focus{
   border-color: rgba(99,102,241,.85);
   box-shadow: 0 0 0 4px var(--focus);
 }
+.hint{margin-top:6px;color: var(--muted);font-size: 12px;font-weight: 900;}
 
-.hint{
-  margin-top:6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.two{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-@media(max-width:520px){.two{grid-template-columns:1fr}}
-
-.badges{
-  display:flex; flex-wrap:wrap; gap:8px;
-  margin-top:10px;
-}
-.badge{
-  padding: 7px 10px;
-  border-radius: 999px;
+/* KPIs */
+.kpis{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;}
+.kpi{
+  padding: 12px 12px;
+  border-radius: var(--r2);
   border:1px solid var(--line);
   background: rgba(255,255,255,.03);
-  font-size: 12px;
-  font-weight: 900;
+  display:flex;flex-direction:column;gap:4px;
+}
+.kpi span{color:var(--muted);font-size: 12px;font-weight: 900;}
+.kpi b{font-size: 18px;letter-spacing: .2px;}
+
+hr.sep{border:none;height:1px;background:var(--line);margin: 12px 0;}
+
+/* Buttons */
+.controls{display:grid;grid-template-columns: 1fr 1fr 1fr;gap: 10px;}
+@media (max-width:1000px){.controls{grid-template-columns:1fr}}
+.btn{
+  width:100%;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.10);
+  padding: 11px 12px;
+  cursor:pointer;
+  color:white;
+  font-weight: 950;
+  letter-spacing:.2px;
+  transition: transform .08s ease, filter .12s ease, box-shadow .12s ease, border-color .12s ease;
+  background: linear-gradient(135deg, rgba(99,102,241,.85), rgba(34,211,238,.55));
+  box-shadow: 0 10px 22px rgba(0,0,0,.28);
+}
+.btn:hover{filter:brightness(1.05);box-shadow: 0 0 0 3px rgba(99,102,241,.16), 0 14px 28px rgba(0,0,0,.38);}
+.btn:active{transform:scale(.985)}
+.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2); box-shadow:none;}
+
+.btn.primary{background: linear-gradient(135deg, rgba(99,102,241,.95), rgba(34,211,238,.70));border-color: rgba(99,102,241,.25);}
+.btn.copy{background: linear-gradient(135deg, rgba(34,211,238,.55), rgba(99,102,241,.55));border-color: rgba(34,211,238,.18);}
+.btn.export{background: linear-gradient(135deg, rgba(99,102,241,.70), rgba(167,139,250,.70));border-color: rgba(167,139,250,.22);}
+.btn.clear{background: linear-gradient(135deg, rgba(148,163,184,.28), rgba(51,65,85,.55));border-color: rgba(148,163,184,.18);}
+.btn.maint{background: linear-gradient(135deg, rgba(245,158,11,.35), rgba(239,68,68,.25));border-color: rgba(245,158,11,.25);}
+
+.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin: 2px 0 8px;}
+.sectionTitle b{font-size:13px}
+.sectionTitle small{color:var(--muted);font-weight:900}
+
+.modeRow{display:flex; gap:10px; flex-wrap:wrap;}
+.mode{
+  flex:1;min-width: 160px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  border-radius: 14px; border:1px solid var(--line);
+  background: rgba(255,255,255,.02);
+  padding: 10px 12px;
+  font-weight: 950; cursor:pointer;
+}
+.mode input{accent-color: var(--c2)}
+.mode.active{border-color: rgba(99,102,241,.7);box-shadow: 0 0 0 4px rgba(99,102,241,.14);background: rgba(99,102,241,.08);}
+
+.two{display:grid;grid-template-columns: 1fr 1fr;gap: 10px;}
+@media(max-width:500px){.two{grid-template-columns:1fr}}
+
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.badge{
+  padding: 7px 10px;border-radius: 999px;border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  font-size: 12px;font-weight: 950;
 }
 .badge b{color: var(--c2);}
 
+/* Boxes */
 .box{
   margin-top:10px;
   border:1px solid var(--line);
   background: rgba(2,6,23,.88);
   border-radius: 14px;
   padding: 10px;
-  max-height: 210px;
+  max-height: 220px;
   overflow:auto;
   font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
   font-size: 12px;
   white-space: pre;
 }
-
 .status{
   margin-top:10px;
   border-radius: 14px;
@@ -338,13 +234,14 @@ input:focus, select:focus{
   color: var(--muted);
 }
 
+/* Tables */
 .tableWrap{
   margin-top:14px;
   border:1px solid var(--line);
   border-radius: var(--r);
   overflow:auto;
   background: rgba(2,6,23,.82);
-  max-height: 560px;
+  max-height: 520px;
 }
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead{
@@ -352,143 +249,101 @@ thead{
   background: rgba(15,26,46,.95);
   backdrop-filter: blur(8px);
 }
-th,td{
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(148,163,184,.14);
-  white-space:nowrap;
-}
+th,td{padding: 12px 12px;border-bottom: 1px solid rgba(148,163,184,.14);white-space:nowrap;}
 tbody tr:hover{background: rgba(99,102,241,.08)}
-.empty{
-  text-align:center;
-  color:var(--muted);
-  padding: 26px;
-  font-weight: 900;
+.empty{text-align:center;color:var(--muted);padding: 26px;font-weight: 900;}
+
+/* Header filter (arrow) */
+.thFlex{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.filterPill{
+  border:1px solid rgba(148,163,184,.18);
+  background: rgba(255,255,255,.03);
+  color: rgba(234,240,255,.92);
+  font-weight: 950;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
 }
 
-/* Small filter "flesh" */
-.thFlex{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
+/* Keyword chips (pro + consistent) */
+.kwWrap{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding: 10px;
+  border-radius: 14px;
+  border:1px solid rgba(148,163,184,.14);
+  background: rgba(2,6,23,.75);
 }
-.fleshBtn{
-  width:28px;height:28px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.04);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  transition:.12s ease;
-}
-.fleshBtn:hover{
-  background: rgba(99,102,241,.14);
-  border-color: rgba(99,102,241,.30);
-}
-.fleshBtn:active{transform:scale(.98)}
-.fleshIcon{
-  width:0;height:0;
-  border-left:6px solid transparent;
-  border-right:6px solid transparent;
-  border-top:8px solid rgba(229,231,235,.92);
-  opacity:.9;
-}
-
-/* Dropdown popover */
-.pop{
-  position:fixed;
-  z-index:50;
-  min-width: 200px;
-  padding:10px;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background: rgba(2,6,23,.95);
-  box-shadow: var(--shadow);
-  display:none;
-}
-.pop .popTitle{
-  font-weight:900;font-size:12px;color:var(--muted);
-  margin:2px 0 8px;
-}
-.pop .popRow{display:flex;flex-direction:column;gap:8px}
-.pop .popRow button{
-  width:100%;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.04);
-  color:var(--text);
-  padding:10px 10px;
-  font-weight:900;
-  cursor:pointer;
-}
-.pop .popRow button:hover{background: rgba(99,102,241,.12)}
-.pop .popRow button.active{border-color: rgba(34,211,238,.35); background: rgba(34,211,238,.10);}
-
-/* Keyword tags */
-.tags{
-  display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;
-}
-.tag{
-  display:inline-flex;align-items:center;gap:8px;
+.kwChip{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.04);
-  padding:8px 10px;
-  font-weight:900;
-  font-size:12px;
+  border:1px solid rgba(148,163,184,.18);
+  background: linear-gradient(135deg, rgba(99,102,241,.16), rgba(34,211,238,.08));
+  color: rgba(234,240,255,.95);
+  font-weight: 1000;
+  font-size: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  transition: transform .12s ease, filter .12s ease, border-color .12s ease;
 }
-.tag .x{
-  width:18px;height:18px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  background: rgba(239,68,68,.16);
-  border:1px solid rgba(239,68,68,.22);
-  cursor:pointer;
-  font-weight:900;
+.kwChip:hover{transform: translateY(-1px);filter: brightness(1.06);border-color: rgba(99,102,241,.45);}
+.kwText{max-width: 260px;overflow:hidden;text-overflow: ellipsis;white-space: nowrap;}
+.kwX{
+  width: 20px;height: 20px;border-radius: 999px;
+  border: 1px solid rgba(239,68,68,.35);
+  background: rgba(239,68,68,.12);
+  color: rgba(255,255,255,.92);
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-weight: 1000;line-height: 1;
+  transition: transform .12s ease, filter .12s ease, background .12s ease;
 }
-.tag .x:hover{filter:brightness(1.1)}
+.kwX:hover{transform: scale(1.06);filter: brightness(1.05);background: rgba(239,68,68,.18);}
 
-.smallNote{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:12px;
-  font-weight:900;
+/* Session summary cards */
+.sCards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:1200px){.sCards{grid-template-columns:1fr}}
+.sCard{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  border-radius: var(--r2);
+  padding: 12px;
 }
-
-/* Maintenance button */
-.btn.maint{
-  background: linear-gradient(135deg, rgba(245,158,11,.35), rgba(239,68,68,.35));
-  border-color: rgba(245,158,11,.22);
-}
+.sCard .row{display:flex;justify-content:space-between;gap:10px}
+.sCard .row b{font-size:12px}
+.sCard .row span{font-weight:950;color:var(--muted)}
+.sCard .nums{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.sCard .nums .badge b{color: var(--c2)}
+.smallNote{color:var(--muted);font-weight:900;font-size:12px}
+.hidden{display:none !important}
 </style>
 </head>
 
 <body>
 <div class="container">
-
-  <div class="header">
+  <div class="topbar">
     <div class="brand">
       <div class="logo"></div>
-      <div class="brandText">
-        <h1>CSV Analyzer</h1>
-        <p>Analyzer (old logic) + Keyword Checker (Apps Script logic) + Maintenance Telegram screenshot.</p>
+      <div class="brandTxt">
+        <h1>Analyzer Toolkit</h1>
+        <p>CSV Analyzer (old logic) + Keyword Checker (Apps Script logic) + Maintenance Telegram screenshot.</p>
       </div>
     </div>
-
     <div class="pills">
-      <div class="pill">
-        <span class="dot" id="pillDot"></span>
-        <span id="pillText">Ready</span>
-      </div>
-      <div class="pill" id="modePill">Mode: Analyzer</div>
-      <button class="pill" id="btnMaintenance" title="Send maintenance report to Telegram">🛠 Maintenance</button>
+      <div class="pill" id="pillMain"><span class="dot" id="pillDot"></span><span id="pillText">Ready</span></div>
+      <div class="pill"><span class="dot warn"></span><span>Tip: Process → Apply filter → Check</span></div>
     </div>
   </div>
 
   <div class="shell">
-    <div class="tabs">
-      <button class="tab active" id="tabAnalyzer">Imacros-filter</button>
-      <button class="tab" id="tabKeyword">webautomate-filter</button>
+    <div class="tabsRow">
+      <button class="tabBtn active" id="tabAnalyzer">Analyzer</button>
+      <button class="tabBtn" id="tabKeyword">Keyword Checker</button>
     </div>
 
-    <!-- =========================
-         ANALYZER VIEW
-    ========================== -->
+    <!-- ===================== Analyzer TAB ===================== -->
     <div id="viewAnalyzer">
       <div class="grid">
         <div class="panel">
@@ -497,76 +352,65 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
             <span>Paste CSV / logs here</span>
           </div>
           <textarea id="csvInput" placeholder='Examples:
-"5731,script Add_language ,failed to change language,27-01-2026 11-57"
-"1849, Error: Email/Subject/Message not written, 18-12-2024 9-47"
-1961;input empty;21-12-2024_11-7
+"4338,Translate success,1/20/2026, 12:51:15 AM,AI art,#EANF#,Romanian"
+5731,script Add_language, failed to change language,27-01-2026 11-57
+1845, Error: Email/Subject/Message not written,18-12-2024 9-47
 '></textarea>
         </div>
 
         <div class="panel">
           <div class="panelTitle">
             <b>Controls</b>
-            <span>Classic output</span>
+            <span>Classic output (table + box)</span>
           </div>
 
           <div class="kpis">
-            <div class="kpi">
-              <span>Total rows</span>
-              <b id="a_total">—</b>
-            </div>
-            <div class="kpi">
-              <span>Visible rows</span>
-              <b id="a_visible">—</b>
-            </div>
-            <div class="kpi">
-              <span>Not processed</span>
-              <b id="a_notProcessed">0</b>
-              <span style="font-size:11px">after Check</span>
-            </div>
+            <div class="kpi"><span>Total rows</span><b id="total">—</b></div>
+            <div class="kpi"><span>Visible rows</span><b id="count">—</b></div>
           </div>
 
           <hr class="sep">
 
           <div class="controls">
-            <button class="btn primary" id="a_btnProcess">⚡ Process</button>
-            <button class="btn copy" id="a_btnCopy">📋 Copy IDs</button>
-            <button class="btn export" id="a_btnExport">⬇ Export CSV</button>
+            <button class="btn primary" id="btnProcess">⚡ Process</button>
+            <button class="btn copy" id="btnCopy">📋 Copy IDs</button>
+            <button class="btn export" id="btnExport">⬇ Export CSV</button>
           </div>
 
           <hr class="sep">
 
           <div class="sectionTitle">
             <b>Date filter</b>
-            <small id="a_dateModeLabel">Single day</small>
+            <small id="dateModeLabel">Single day</small>
           </div>
 
           <div class="modeRow">
-            <label class="mode active" id="a_modeSingle">
-              <input type="radio" name="a_dateMode" value="single" checked>
+            <label class="mode active" id="modeSingle">
+              <input type="radio" name="dateMode" value="single" checked>
               Single day
             </label>
-            <label class="mode" id="a_modeRange">
-              <input type="radio" name="a_dateMode" value="range">
+            <label class="mode" id="modeRange">
+              <input type="radio" name="dateMode" value="range">
               Date range
             </label>
           </div>
 
-          <div id="a_singleWrap" style="margin-top:10px">
-            <input id="a_singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
+          <div id="singleWrap" style="margin-top:10px">
+            <input id="singleDate" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)">
             <div class="hint">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026</div>
           </div>
 
-          <div id="a_rangeWrap" style="margin-top:10px;display:none">
+          <div id="rangeWrap" style="margin-top:10px;display:none">
             <div class="two">
-              <input id="a_dateFrom" placeholder="From day">
-              <input id="a_dateTo" placeholder="To day">
+              <input id="dateFrom" placeholder="From day">
+              <input id="dateTo" placeholder="To day">
             </div>
-            <div class="hint">Tip: if From > To we auto-swap</div>
+            <div class="hint">Tip: if From &gt; To we auto-swap</div>
           </div>
 
           <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
-            <button class="btn primary" id="a_btnApplyDate">✅ Apply date</button>
-            <button class="btn clear" id="a_btnClearDate">↩ Clear</button>
+            <button class="btn primary" id="btnApplyDate">✅ Apply date</button>
+            <button class="btn clear" id="btnClearDate">↩ Clear</button>
           </div>
 
           <hr class="sep">
@@ -576,94 +420,81 @@ tbody tr:hover{background: rgba(99,102,241,.08)}
             <small>Type: 3376 - 4375</small>
           </div>
 
-          <!-- single input like "3376 - 4375" -->
-          <input id="a_rangeInput" value="1961 - 2240" placeholder="Example: 3376 - 4375">
-          <div class="hint">You can type: 3376-4375 | 3376 - 4375 | 3376 to 4375</div>
+          <!-- single input range -->
+          <input id="rangeInput" placeholder="Example: 3376 - 4375" value="1961 - 2240">
+
+          <div class="hint">You can type: 1961-2240 | 1961 - 2240 | 1961,2240</div>
 
           <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr">
-            <button class="btn primary" id="a_btnCheck">🔎 Check</button>
-            <button class="btn copy" id="a_btnCopyMissing">📋 Copy NOT</button>
-            <button class="btn export" id="a_btnExportMissing">⬇ Export NOT</button>
+            <button class="btn primary" id="btnRange">🔎 Check</button>
+            <button class="btn copy" id="btnCopyMissing">📋 Copy NOT</button>
+            <button class="btn export" id="btnExportMissing">⬇ Export NOT</button>
           </div>
 
           <div class="badges">
-            <div class="badge">Processed unique: <b id="a_procUnique">0</b></div>
-            <div class="badge">Not processed: <b id="a_missingCount">0</b></div>
-            <div class="badge">Duplicates: <b id="a_dupCount">0</b></div>
+            <div class="badge">Processed unique: <b id="procInRange">0</b></div>
+            <div class="badge">Not processed: <b id="missingCount">0</b></div>
+            <div class="badge">Duplicates: <b id="dupCount">0</b></div>
           </div>
 
-          <div class="box" id="a_missingBox">Run “Check”…</div>
-          <div class="status" id="a_status">Waiting…</div>
+          <div class="box" id="missingBox">Run “Check”…</div>
+          <div class="status" id="status">Waiting…</div>
+
+          <hr class="sep">
+
+          <div class="controls" style="grid-template-columns:1fr">
+            <button class="btn maint" id="btnMaintenance">🛠 Maintenance report (Telegram + Screenshot)</button>
+          </div>
+          <div class="hint">Screenshot requires HTTPS/localhost (file:// may block capture).</div>
         </div>
       </div>
 
       <div class="tableWrap">
         <table>
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>STATUS</th>
-              <th>DATETIME</th>
-              <th>DAY</th>
-            </tr>
+            <tr><th>ID</th><th>STATUS</th><th>DATETIME</th><th>DAY</th></tr>
           </thead>
-          <tbody id="a_outputBody">
+          <tbody id="outputBody">
             <tr><td colspan="4" class="empty">No data yet</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- =========================
-         KEYWORD CHECKER VIEW
-    ========================== -->
-    <div id="viewKeyword" style="display:none">
+    <!-- ===================== Keyword Checker TAB ===================== -->
+    <div id="viewKeyword" class="hidden">
       <div class="grid">
         <div class="panel">
           <div class="panelTitle">
             <b>Keyword Checker Input</b>
-            <span>Paste your table (TAB / CSV / semicolon) with headers</span>
+            <span>Paste table text (TAB / CSV / ; ) with headers</span>
           </div>
-          <textarea id="k_input" placeholder='Paste table text WITH headers, example:
+          <textarea id="k_input" placeholder='Required columns (case-insensitive):
+profile_Name | log | details | cnx_problems | session_name
+Optional: tag | status_name | script_name
 
-profile_Name	tag	status_name	log	cnx_problems	details
-1	[07AD...]	Completed	[ Status => connected Updated! ]			Birthday Already Exist
-
-Required headers (case-insensitive):
-profile_name (or profile_Name) + log + details
-Optional: cnx_problems, tag, status_name
+Example:
+profile_Name	tag	status_name	log	cnx_problems	details	script_name	session_name
+1	[07AD..]	Completed	[ Status => connected Updated!]			macro1	CMH1_IT_3(173.225.106.66)
 '></textarea>
-          <div class="smallNote">
-            Matching logic = same as your Google Apps Script:
-            if any keyword exists in (log OR details OR cnx_problems) ⇒ PROCESSED else NOT PROCESSED.
-          </div>
+          <div class="hint">Session name will be normalized: <b>CMH1_IT_3(173...)</b> → <b>CMH1_IT_3</b></div>
         </div>
 
         <div class="panel">
           <div class="panelTitle">
             <b>Keyword Checker Controls</b>
-            <span>Output uses <b>profile_Name</b> for Copy/Export NOT</span>
+            <span>Same logic as Apps Script</span>
           </div>
 
           <div class="kpis">
-            <div class="kpi">
-              <span>Total rows</span>
-              <b id="k_total">—</b>
-            </div>
-            <div class="kpi">
-              <span>Processed</span>
-              <b id="k_processed">—</b>
-            </div>
-            <div class="kpi">
-              <span>Not processed</span>
-              <b id="k_notProcessed">—</b>
-            </div>
+            <div class="kpi"><span>Total rows</span><b id="k_total">—</b></div>
+            <div class="kpi"><span>NOT PROCESSED</span><b id="k_not">—</b></div>
           </div>
 
           <hr class="sep">
 
           <div class="controls">
-            <button class="btn primary" id="k_btnRun">✅ Check keywords</button>
+            <button class="btn primary" id="k_btnProcess">⚡ Process</button>
             <button class="btn copy" id="k_btnCopyNot">📋 Copy NOT (profile_Name)</button>
             <button class="btn export" id="k_btnExportNot">⬇ Export NOT</button>
           </div>
@@ -676,32 +507,51 @@ Optional: cnx_problems, tag, status_name
           </div>
 
           <div class="two">
-            <input id="k_newKw" placeholder="Add keyword (ex: done, already, success...)">
+            <input id="k_newKeyword" placeholder="Add keyword (ex: done, already, success...)">
             <button class="btn primary" id="k_btnAdd">＋ Add</button>
           </div>
 
           <div class="controls" style="margin-top:10px;grid-template-columns:1fr 1fr">
             <button class="btn clear" id="k_btnDefault">↺ Default list</button>
-            <button class="btn clear" id="k_btnClearAll">🧽 Clear all</button>
+            <button class="btn clear" id="k_btnClearKeywords">🧹 Clear all</button>
           </div>
 
-          <div class="tags" id="k_tags"></div>
+          <div class="hint">Matching is case-insensitive. If keyword matches in (log / details / cnx_problems) → PROCESSED.</div>
+          <div class="hint">If disconnected detected → DISCONNECTED (priority).</div>
+
+          <div style="margin-top:10px">
+            <div class="kwWrap" id="k_chipWrap"></div>
+          </div>
 
           <hr class="sep">
 
           <div class="sectionTitle">
-            <b>Filter</b>
-            <small>table view</small>
+            <b>Filters</b>
+            <small>by session + status</small>
           </div>
 
-          <select id="k_filter">
-            <option value="ALL">ALL</option>
-            <option value="PROCESSED">PROCESSED</option>
-            <option value="NOT PROCESSED">NOT PROCESSED</option>
-          </select>
+          <div class="two">
+            <select id="k_sessionSelect"></select>
+            <select id="k_statusSelect">
+              <option value="ALL">All</option>
+              <option value="NOT PROCESSED">NOT PROCESSED</option>
+              <option value="PROCESSED">PROCESSED</option>
+              <option value="DISCONNECTED">DISCONNECTED</option>
+            </select>
+          </div>
+          <div class="hint">Copy/Export NOT uses <b>profile_Name</b> (unique).</div>
 
-          <div class="box" id="k_box" style="margin-top:10px">Waiting…</div>
+          <div class="sCards" id="k_sessionCards"></div>
+
+          <div class="box" id="k_box">Process to see results…</div>
           <div class="status" id="k_status">Waiting…</div>
+
+          <hr class="sep">
+
+          <div class="controls" style="grid-template-columns:1fr">
+            <button class="btn maint" id="k_btnMaintenance">🛠 Maintenance report (Telegram + Screenshot)</button>
+          </div>
+          <div class="hint">Screenshot requires HTTPS/localhost (file:// may block capture).</div>
         </div>
       </div>
 
@@ -713,55 +563,37 @@ Optional: cnx_problems, tag, status_name
               <th>profile_Name</th>
               <th>tag</th>
               <th>status_name</th>
-
               <th>
                 <div class="thFlex">
                   <span>process_status</span>
-                  <button class="fleshBtn" id="k_flesh" title="Filter process_status">
-                    <span class="fleshIcon"></span>
-                  </button>
+                  <span class="filterPill" id="k_thFilterPill">▼ Filter</span>
                 </div>
               </th>
-
+              <th>session</th>
               <th>log/details (preview)</th>
             </tr>
           </thead>
-          <tbody id="k_outputBody">
-            <tr><td colspan="6" class="empty">No data yet</td></tr>
+          <tbody id="k_tbody">
+            <tr><td colspan="7" class="empty">No data yet</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
-  </div>
-</div>
-
-<!-- popover for the "flesh" filter -->
-<div class="pop" id="k_pop">
-  <div class="popTitle">process_status filter</div>
-  <div class="popRow">
-    <button data-v="ALL" class="active">ALL</button>
-    <button data-v="PROCESSED">PROCESSED</button>
-    <button data-v="NOT PROCESSED">NOT PROCESSED</button>
   </div>
 </div>
 
 <script>
-/* =========================
-   CONFIG (Telegram)
-   Put your real token/chat_id here
-========================= */
-const TG = {
-  BOT_TOKEN: "8548469922:AAFRNc6mOUvvpH6Hs9tumIpaHy-VmVuSUmA",
-  CHAT_ID: "8469427662"
-};
+/* =========================================================
+   GLOBAL: Telegram Maintenance (same button in both tabs)
+   Fill these:
+========================================================= */
+const TELEGRAM_BOT_TOKEN = "8548469922:AAFRNc6mOUvvpH6Hs9tumIpaHy-VmVuSUmA";
+const TELEGRAM_CHAT_ID   = "8469427662"; // numeric chat id
 
-/* =========================
-   Helpers
-========================= */
+/* =========================================================
+   Helpers (shared)
+========================================================= */
 const $ = id => document.getElementById(id);
-
-let APP_MODE = "Analyzer"; // Analyzer | Keyword
 
 function setPill(type, text){
   const dot = $("pillDot");
@@ -770,29 +602,21 @@ function setPill(type, text){
   pillText.textContent = text || "Ready";
 }
 function setStatus(msg, type="muted"){
-  // global pill
-  const colorType = type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "";
-  setPill(colorType, msg);
-}
-
-function setAnalyzerStatus(msg, type="muted"){
-  const el = $("a_status");
+  const el = $("status");
   el.textContent = msg;
   el.style.color =
     type === "ok" ? "var(--ok)" :
     type === "bad" ? "var(--bad)" :
     type === "warn" ? "var(--warn)" : "var(--muted)";
-  setStatus(msg, type);
+  setPill(type === "ok" ? "ok" : type === "bad" ? "bad" : type === "warn" ? "warn" : "", msg);
 }
-
-function setKeywordStatus(msg, type="muted"){
+function setKStatus(msg, type="muted"){
   const el = $("k_status");
   el.textContent = msg;
   el.style.color =
     type === "ok" ? "var(--ok)" :
     type === "bad" ? "var(--bad)" :
     type === "warn" ? "var(--warn)" : "var(--muted)";
-  setStatus(msg, type);
 }
 
 function escapeHtml(s){
@@ -817,6 +641,19 @@ function downloadBlob(content, filename, mime){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+function normalizeQuotesLine(line){
+  // support smart quotes
+  let s = String(line||"");
+  s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  // if unmatched quotes break parsing -> remove all quotes
+  const qCount = (s.match(/"/g)||[]).length;
+  if(qCount % 2 === 1) s = s.replaceAll('"',"");
+  // also trim wrapping single quotes
+  s = s.trim();
+  if(s.startsWith('"') && s.endsWith('"')) s = s.slice(1,-1);
+  if(s.startsWith("'") && s.endsWith("'")) s = s.slice(1,-1);
+  return s.trim();
+}
 function cleanField(v){
   return String(v ?? "")
     .trim()
@@ -824,70 +661,28 @@ function cleanField(v){
     .replace(/^'+|'+$/g,"")
     .trim();
 }
-function normalizeForSearch(v){
-  if (v === null || v === undefined) return "";
-  let s = String(v);
-  if (s === "#ERROR!") return "";
-  s = s.replace(/^[=;]+>?/g, "");
-  return s.toLowerCase();
-}
 
-/* =========================
-   CSV Split + delimiter
-========================= */
-function splitCSVLine(line, delim){
-  const out = [];
-  let cur = "";
-  let inQuotes = false;
-
-  line = String(line||"").replace(/[“”]/g,'"'); // smart quotes -> normal
-
-  for(let i=0;i<line.length;i++){
-    const ch = line[i];
-    if(ch === '"'){
-      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; continue; }
-      inQuotes = !inQuotes;
-      continue;
-    }
-    if(!inQuotes && ch === delim){
-      out.push(cur); cur=""; continue;
-    }
-    cur += ch;
-  }
-  out.push(cur);
-  return out;
-}
-function detectDelimiter(lines){
-  let semi=0, comma=0, tab=0;
-  for(const ln of lines.slice(0,30)){
-    semi += (ln.match(/;/g)||[]).length;
-    comma += (ln.match(/,/g)||[]).length;
-    tab  += (ln.match(/\t/g)||[]).length;
-  }
-  if(tab >= comma && tab >= semi) return "\t";
-  return comma >= semi ? "," : ";";
-}
-
-/* =========================
-   Date parsing (flex)
-========================= */
+/* =========================================================
+   ANALYZER: Date parsing (old logic + more robust)
+========================================================= */
 function isTimeField(v){
   v = String(v||"").trim();
-  // accept 11:57 | 11-57 | 11:57:22 | 11-57-22 | with optional AM/PM
-  return /^(\d{1,2})[:\-](\d{2})(?:[:\-](\d{2}))?\s*(AM|PM)?$/i.test(v);
+  return /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.test(v) || /^(\d{1,2})-(\d{2})(?:-(\d{2}))?$/.test(v);
 }
-
 function parseDateOnlyFlexible(v){
   v = String(v||"").trim();
   if(!v) return null;
 
+  // take first token before "_" then before space
   if(v.includes("_")) v = v.split("_")[0].trim();
-  // if date+time in one field -> keep only date part for parsing
   if(/\s/.test(v)) v = v.split(/\s+/)[0].trim();
 
   v = v.replace(/,/g,"").trim();
+
+  // normalize separators
   const s = v.replace(/\./g,"/").replace(/-/g,"/");
 
+  // allow YYYY/MM/DD or DD/MM/YYYY or MM/DD/YYYY
   const m = s.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,4})$/);
   if(!m) return null;
 
@@ -901,7 +696,7 @@ function parseDateOnlyFlexible(v){
   } else if(m[3].length === 4){
     yyyy = c;
     if(a > 12){ dd = a; mm = b; }      // DD/MM/YYYY
-    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY (rare)
+    else if(b > 12){ mm = a; dd = b; } // MM/DD/YYYY
     else { mm = a; dd = b; }           // default MM/DD/YYYY
   } else return null;
 
@@ -920,90 +715,92 @@ function toUTCDate(dayKey){
   return new Date(Date.UTC(y, m-1, d));
 }
 
-/* =========================
-   ANALYZER parsing (fixed)
-   Works with:
-   "5731,script Add_language ,failed...,27-01-2026 11-57"
-   and also ; and TAB and older formats
-========================= */
-function parseAnalyzerLine(line, delimGuess){
-  let s = String(line||"").trim();
-  if(!s) return null;
-
-  s = s.replace(/[“”]/g,'"');
-
-  // Remove outer quotes only
-  if(s.startsWith('"') && s.endsWith('"')) s = s.slice(1,-1);
-
-  const delim = delimGuess || ",";
-  let parts = splitCSVLine(s, delim).map(cleanField).filter(x => x !== "");
-  if(parts.length < 2) return null;
-
-  const id = parseInt(parts[0], 10);
-  if(!Number.isFinite(id)) return null;
-
-  // Find date field from the END
-  let dateIdx = -1;
-  let d = null;
-  for(let i = parts.length - 1; i >= 1; i--){
-    const maybe = parseDateOnlyFlexible(parts[i]);
-    if(maybe){
-      dateIdx = i;
-      d = maybe;
-      break;
-    }
+/* =========================================================
+   ANALYZER: Parsing lines (old logic)
+========================================================= */
+function detectDelimiter(lines){
+  let semi=0, comma=0, tab=0;
+  for(const ln0 of lines.slice(0,30)){
+    const ln = normalizeQuotesLine(ln0);
+    semi += (ln.match(/;/g)||[]).length;
+    comma += (ln.match(/,/g)||[]).length;
+    tab += (ln.match(/\t/g)||[]).length;
   }
-  if(dateIdx === -1) return null;
-
-  const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-
-  // datetime: keep original token (can include time in same field)
-  let dt = parts[dateIdx];
-
-  // If date is alone and next field is time -> append
-  if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])){
-    dt = (dt + " " + parts[dateIdx + 1]).trim();
-  }
-
-  // status = between ID and dateIdx
-  const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
-
-  return { id, idText: String(id), status, datetime: dt, day };
+  if(tab >= comma && tab >= semi) return "\t";
+  return comma >= semi ? "," : ";";
 }
+function splitCSVLine(line, delim){
+  const out = [];
+  let cur = "";
+  let inQuotes = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; continue; }
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if(!inQuotes && ch === delim){
+      out.push(cur); cur=""; continue;
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+function parseText(text){
+  const rawLines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+  if(!rawLines.length) return [];
 
-function parseTextAnalyzer(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
-  if(!lines.length) return [];
+  const lines = rawLines.map(normalizeQuotesLine).filter(Boolean);
+  const delim = detectDelimiter(lines);
 
-  const delim = detectDelimiter(lines); // , ; or TAB
   const rows = [];
+  for(const line0 of lines){
+    const parts = splitCSVLine(line0, delim).map(cleanField).filter(x => x !== "");
+    if(parts.length < 2) continue;
 
-  for(const line of lines){
-    let r = parseAnalyzerLine(line, delim);
-    if(!r && delim !== ",") r = parseAnalyzerLine(line, ","); // fallback
-    if(r) rows.push(r);
+    const id = parseInt(parts[0],10);
+    if(!Number.isFinite(id)) continue;
+
+    // find first date token anywhere
+    let dateIdx = -1, d = null;
+    for(let i=1;i<parts.length;i++){
+      const maybe = parseDateOnlyFlexible(parts[i]);
+      if(maybe){ dateIdx = i; d = maybe; break; }
+    }
+    if(dateIdx === -1) continue;
+
+    let timeStr = "";
+    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) timeStr = parts[dateIdx + 1];
+
+    const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
+    const dt = (parts[dateIdx] + (timeStr ? " " + timeStr : "")).trim();
+    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
+
+    rows.push({ id, idText:String(id), status, datetime: dt, day });
   }
   return rows;
 }
 
-/* =========================
-   ANALYZER state + UI
-========================= */
-let a_allRows = [];
-let a_visibleRows = [];
-let a_missingIDs = [];
+/* =========================================================
+   ANALYZER: App state + UI
+========================================================= */
+let allRows = [];
+let visibleRows = [];
+let missingIDs = [];
 
-function a_renderTable(){
-  const body = $("a_outputBody");
+function renderAnalyzerTable(){
+  const body = $("outputBody");
   body.innerHTML = "";
 
-  if(!a_visibleRows.length){
+  if(!visibleRows.length){
     body.innerHTML = `<tr><td colspan="4" class="empty">No rows</td></tr>`;
-    $("a_visible").textContent = "0";
+    $("count").textContent = "0";
     return;
   }
 
-  for(const r of a_visibleRows){
+  for(const r of visibleRows){
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${escapeHtml(r.idText)}</td>
@@ -1013,859 +810,842 @@ function a_renderTable(){
     `;
     body.appendChild(tr);
   }
-  $("a_visible").textContent = String(a_visibleRows.length);
+  $("count").textContent = String(visibleRows.length);
 }
 
-function a_resetRangeBox(){
-  $("a_procUnique").textContent = "0";
-  $("a_missingCount").textContent = "0";
-  $("a_dupCount").textContent = "0";
-  $("a_missingBox").textContent = 'Run “Check”…';
-  $("a_notProcessed").textContent = "0";
-  a_missingIDs = [];
+function resetRangeBox(){
+  $("procInRange").textContent = "0";
+  $("missingCount").textContent = "0";
+  $("dupCount").textContent = "0";
+  $("missingBox").textContent = 'Run “Check”…';
+  missingIDs = [];
 }
 
-function a_dateMode(){
-  const r = document.querySelector('input[name="a_dateMode"]:checked');
+function dateMode(){
+  const r = document.querySelector('input[name="dateMode"]:checked');
   return r ? r.value : "single";
 }
-function a_normalizeDateInput(v){
+function normalizeDateInput(v){
   const d = parseDateOnlyFlexible(v);
   if(!d) return null;
   return dayKeyFrom(d.yyyy, d.mm, d.dd);
 }
-function a_applyDateFilter(){
-  if(!a_allRows.length){ setAnalyzerStatus("Process first", "bad"); return; }
+function applyDateFilter(){
+  if(!allRows.length){ setStatus("Process first", "bad"); return; }
 
-  const mode = a_dateMode();
+  const mode = dateMode();
   if(mode === "single"){
-    const day = a_normalizeDateInput($("a_singleDate").value);
-    if(!day){ setAnalyzerStatus("Invalid day", "bad"); return; }
-    a_visibleRows = a_allRows.filter(r => r.day === day);
-    a_renderTable(); a_resetRangeBox();
-    setAnalyzerStatus(`Filtered by day: ${day}`, "ok");
+    const day = normalizeDateInput($("singleDate").value);
+    if(!day){ setStatus("Invalid day", "bad"); return; }
+    visibleRows = allRows.filter(r => r.day === day);
+    renderAnalyzerTable(); resetRangeBox();
+    setStatus(`Filtered by day: ${day}`, "ok");
   } else {
-    const from = a_normalizeDateInput($("a_dateFrom").value);
-    const to = a_normalizeDateInput($("a_dateTo").value);
-    if(!from || !to){ setAnalyzerStatus("Invalid date range", "bad"); return; }
+    const from = normalizeDateInput($("dateFrom").value);
+    const to = normalizeDateInput($("dateTo").value);
+    if(!from || !to){ setStatus("Invalid date range", "bad"); return; }
     const a = toUTCDate(from).getTime();
     const b = toUTCDate(to).getTime();
     const lo = Math.min(a,b), hi = Math.max(a,b);
 
-    a_visibleRows = a_allRows.filter(r=>{
+    visibleRows = allRows.filter(r=>{
       const t = toUTCDate(r.day).getTime();
       return t >= lo && t <= hi;
     });
-    a_renderTable(); a_resetRangeBox();
-    setAnalyzerStatus(`Filtered range: ${from} → ${to}`, "ok");
+    renderAnalyzerTable(); resetRangeBox();
+    setStatus(`Filtered range: ${from} → ${to}`, "ok");
   }
 }
-function a_clearDateFilter(){
-  a_visibleRows = [...a_allRows];
-  $("a_singleDate").value = "";
-  $("a_dateFrom").value = "";
-  $("a_dateTo").value = "";
-  a_renderTable(); a_resetRangeBox();
-  setAnalyzerStatus("Date filter cleared (showing all rows)", "ok");
+function clearDateFilter(){
+  visibleRows = [...allRows];
+  $("singleDate").value = "";
+  $("dateFrom").value = "";
+  $("dateTo").value = "";
+  renderAnalyzerTable(); resetRangeBox();
+  setStatus("Date filter cleared (showing all rows)", "ok");
 }
 
-function a_parseRangeInput(s){
+/* Range input like: 3376 - 4375 */
+function parseRangeInput(s){
   s = String(s||"").trim();
   if(!s) return null;
-
-  // accept: 3376 - 4375 | 3376-4375 | 3376 to 4375 | 3376..4375
-  s = s.replace(/\.\./g, "-").replace(/to/ig, "-");
-  const m = s.match(/(-?\d+)\s*[-–—]\s*(-?\d+)/);
+  s = s.replace(/[–—]/g,"-"); // normalize dash
+  // allow "a - b" or "a,b"
+  let m = s.match(/^\s*(\d+)\s*[-,]\s*(\d+)\s*$/);
+  if(!m){
+    // allow "a b"
+    m = s.match(/^\s*(\d+)\s+(\d+)\s*$/);
+  }
   if(!m) return null;
-
   let from = Number(m[1]), to = Number(m[2]);
   if(Number.isNaN(from) || Number.isNaN(to)) return null;
   if(from > to){ const t=from; from=to; to=t; }
-  return {from, to};
+  return {from,to};
 }
 
-function a_checkRange(){
-  if(!a_visibleRows.length){ setAnalyzerStatus("No visible rows (apply date first)", "bad"); return; }
-  const rr = a_parseRangeInput($("a_rangeInput").value);
-  if(!rr){ setAnalyzerStatus("Invalid ID range (example: 3376 - 4375)", "bad"); return; }
+function checkRange(){
+  if(!visibleRows.length){ setStatus("No visible rows (apply date first)", "bad"); return; }
+
+  const rr = parseRangeInput($("rangeInput").value);
+  if(!rr){ setStatus("Invalid range (ex: 3376 - 4375)", "bad"); return; }
   const {from,to} = rr;
 
   const counts = new Map();
-  for(const r of a_visibleRows) counts.set(r.id, (counts.get(r.id)||0)+1);
+  for(const r of visibleRows) counts.set(r.id, (counts.get(r.id)||0)+1);
 
   let dupN = 0;
   for(const [,c] of counts) if(c>1) dupN++;
-  $("a_dupCount").textContent = String(dupN);
+  $("dupCount").textContent = String(dupN);
 
   let processedUniqueInRange = 0;
   for(const [id] of counts) if(id>=from && id<=to) processedUniqueInRange++;
-  $("a_procUnique").textContent = String(processedUniqueInRange);
+  $("procInRange").textContent = String(processedUniqueInRange);
 
-  a_missingIDs = [];
-  for(let i=from;i<=to;i++) if(!counts.has(i)) a_missingIDs.push(i);
-  $("a_missingCount").textContent = String(a_missingIDs.length);
-  $("a_notProcessed").textContent = String(a_missingIDs.length);
+  missingIDs = [];
+  for(let i=from;i<=to;i++) if(!counts.has(i)) missingIDs.push(i);
+  $("missingCount").textContent = String(missingIDs.length);
 
-  $("a_missingBox").textContent =
+  $("missingBox").textContent =
 `Scope = visible rows (your date filter)
 ID Range: ${from} → ${to}
 
-NOT processed (${a_missingIDs.length}):
-${a_missingIDs.slice(0, 400).join("\n") || "—"}
+NOT processed (${missingIDs.length}):
+${missingIDs.slice(0, 400).join("\n") || "—"}
 
 (Preview first 400)`;
 
-  setAnalyzerStatus("Range computed ✅", "ok");
+  setStatus("Range computed ✅", "ok");
 }
 
-function a_copyIDs(){
-  if(!a_visibleRows.length){ setAnalyzerStatus("No visible rows to copy", "warn"); return; }
-  navigator.clipboard.writeText(a_visibleRows.map(r=>r.idText).join("\n"))
-    .then(()=>setAnalyzerStatus(`Copied ${a_visibleRows.length} IDs`, "ok"))
-    .catch(()=>setAnalyzerStatus("Clipboard blocked by browser", "bad"));
+function copyIDs(){
+  if(!visibleRows.length){ setStatus("No visible rows to copy", "warn"); return; }
+  navigator.clipboard.writeText(visibleRows.map(r=>r.idText).join("\n"))
+    .then(()=>setStatus(`Copied ${visibleRows.length} IDs`, "ok"))
+    .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
 }
-function a_exportVisibleCSV(){
-  if(!a_visibleRows.length){ setAnalyzerStatus("No visible rows to export", "warn"); return; }
+function exportVisibleCSV(){
+  if(!visibleRows.length){ setStatus("No visible rows to export", "warn"); return; }
   let csv = "ID;STATUS;DATETIME;DAY\n";
-  for(const r of a_visibleRows){
+  for(const r of visibleRows){
     csv += `${safeCsv(r.idText)};${safeCsv(r.status)};${safeCsv(r.datetime)};${safeCsv(r.day)}\n`;
   }
   downloadBlob(csv, "visible.csv", "text/csv;charset=utf-8;");
-  setAnalyzerStatus(`Exported visible.csv (${a_visibleRows.length})`, "ok");
+  setStatus(`Exported visible.csv (${visibleRows.length})`, "ok");
 }
-function a_copyMissing(){
-  if(!a_missingIDs.length){ setAnalyzerStatus("No not-processed IDs", "warn"); return; }
-  navigator.clipboard.writeText(a_missingIDs.join("\n"))
-    .then(()=>setAnalyzerStatus(`Copied ${a_missingIDs.length} NOT processed IDs`, "ok"))
-    .catch(()=>setAnalyzerStatus("Clipboard blocked by browser", "bad"));
+function copyMissing(){
+  if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
+  navigator.clipboard.writeText(missingIDs.join("\n"))
+    .then(()=>setStatus(`Copied ${missingIDs.length} not processed IDs`, "ok"))
+    .catch(()=>setStatus("Clipboard blocked by browser", "bad"));
 }
-function a_exportMissing(){
-  if(!a_missingIDs.length){ setAnalyzerStatus("No not-processed IDs", "warn"); return; }
-  const rr = a_parseRangeInput($("a_rangeInput").value);
+function exportMissing(){
+  if(!missingIDs.length){ setStatus("No not-processed IDs", "warn"); return; }
+  const rr = parseRangeInput($("rangeInput").value);
   const name = rr ? `not_processed_${rr.from}-${rr.to}.csv` : "not_processed.csv";
-  downloadBlob("ID\n" + a_missingIDs.join("\n"), name, "text/csv;charset=utf-8;");
-  setAnalyzerStatus(`Exported ${name}`, "ok");
+  downloadBlob("ID\n" + missingIDs.join("\n"), name, "text/csv;charset=utf-8;");
+  setStatus(`Exported ${name}`, "ok");
 }
 
-function a_refreshModeUI(){
-  const m = a_dateMode();
-  $("a_dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
-  $("a_singleWrap").style.display = m === "single" ? "block" : "none";
-  $("a_rangeWrap").style.display = m === "range" ? "block" : "none";
-  $("a_modeSingle").classList.toggle("active", m === "single");
-  $("a_modeRange").classList.toggle("active", m === "range");
-  a_resetRangeBox();
-  setAnalyzerStatus(`Date mode: ${m}`, "ok");
-}
-
-function a_processCSV(){
+function processCSV(){
   const text = $("csvInput").value.trim();
-  if(!text){ setAnalyzerStatus("Input empty", "bad"); return; }
+  if(!text){ setStatus("Input empty", "bad"); return; }
 
-  a_allRows = parseTextAnalyzer(text);
-  $("a_total").textContent = String(a_allRows.length);
+  allRows = parseText(text);
+  $("total").textContent = String(allRows.length);
 
-  a_visibleRows = [...a_allRows];
-  a_renderTable();
-  a_resetRangeBox();
+  visibleRows = [...allRows];
+  renderAnalyzerTable();
+  resetRangeBox();
 
-  if(!a_allRows.length){
-    setAnalyzerStatus("No valid rows parsed (check format)", "bad");
+  if(!allRows.length){
+    setStatus("No valid rows parsed (check format)", "bad");
     return;
   }
 
   // auto-fill latest day into singleDate
-  const days = [...new Set(a_allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
-  $("a_singleDate").value = days[0] || "";
-  $("a_visible").textContent = String(a_visibleRows.length);
-  setAnalyzerStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
+  const days = [...new Set(allRows.map(r=>r.day))].sort((a,b)=>b.localeCompare(a));
+  $("singleDate").value = days[0] || "";
+  setStatus("Parsed ✅ Now choose date and Apply, then Check.", "ok");
 }
 
-/* =========================
-   KEYWORD CHECKER (Apps Script logic)
-========================= */
-const KW_STORAGE_KEY = "kw_checker_keywords_v1";
+/* UI Mode toggle visuals */
+function refreshModeUI(){
+  const m = dateMode();
+  $("dateModeLabel").textContent = m === "single" ? "Single day" : "Date range";
+  $("singleWrap").style.display = m === "single" ? "block" : "none";
+  $("rangeWrap").style.display = m === "range" ? "block" : "none";
+  $("modeSingle").classList.toggle("active", m === "single");
+  $("modeRange").classList.toggle("active", m === "range");
+  resetRangeBox();
+  setStatus(`Date mode: ${m}`, "ok");
+}
 
+/* =========================================================
+   KEYWORD CHECKER: Apps Script logic + sessions
+========================================================= */
 const DEFAULT_KEYWORDS = [
   "done","already","reply","forward","search completed for","markunread","sendmessage",
   "successfully","birthdaychanged","click","gender updated","theme already changed",
   "gmail template updated","languagevalue updated","english has been added"
 ];
 
-let k_keywords = [];
-let k_rows = [];            // parsed rows (all)
-let k_viewRows = [];        // filtered rows
-let k_notProcessedProfileNames = []; // unique profile_name list (NOT PROCESSED)
-
-function k_loadKeywords(){
+function loadKeywords(){
   try{
-    const raw = localStorage.getItem(KW_STORAGE_KEY);
-    if(raw){
-      const arr = JSON.parse(raw);
-      if(Array.isArray(arr)) k_keywords = arr.map(x=>String(x||"").trim()).filter(Boolean);
-    }
+    const raw = localStorage.getItem("kc_keywords");
+    if(!raw) return [...DEFAULT_KEYWORDS];
+    const arr = JSON.parse(raw);
+    if(Array.isArray(arr) && arr.length) return arr.map(x=>String(x).trim().toLowerCase()).filter(Boolean);
   }catch(e){}
-  if(!k_keywords.length) k_keywords = [...DEFAULT_KEYWORDS];
-  k_keywords = k_keywords.map(x=>x.toLowerCase());
-  k_saveKeywords();
-  k_renderKeywords();
+  return [...DEFAULT_KEYWORDS];
 }
-function k_saveKeywords(){
-  try{ localStorage.setItem(KW_STORAGE_KEY, JSON.stringify(k_keywords)); }catch(e){}
+function saveKeywords(arr){
+  localStorage.setItem("kc_keywords", JSON.stringify(arr));
 }
-function k_renderKeywords(){
-  const box = $("k_tags");
-  box.innerHTML = "";
+
+/* Same normalizeForSearch as GAS */
+function normalizeForSearch(v){
+  if (v === null || v === undefined) return '';
+  let s = String(v);
+  if (s === '#ERROR!') return '';
+  s = s.replace(/^[=;]+>?/g, '');
+  return s.toLowerCase();
+}
+
+/* Session normalize: "CMH1_IT_3(173...)" -> "CMH1_IT_3" */
+function normalizeSessionName(v){
+  v = String(v||"").trim();
+  if(!v) return "";
+  // remove quotes + smart quotes
+  v = v.replace(/[“”]/g,'"').replaceAll('"',"").trim();
+  const idx = v.indexOf("(");
+  if(idx !== -1) v = v.slice(0, idx).trim();
+  return v;
+}
+
+/* Detect disconnected */
+function isDisconnectedRow(row){
+  const cnx = normalizeForSearch(row.cnx_problems || "");
+  const log = normalizeForSearch(row.log || "");
+  const det = normalizeForSearch(row.details || "");
+  const st  = normalizeForSearch(row.status_name || "");
+  // patterns
+  if(cnx.includes("disconnected")) return true;
+  if(log.includes("disconnected")) return true;
+  if(det.includes("disconnected")) return true;
+  if(st.includes("disconnected")) return true;
+  if(log.includes("disconnected profile")) return true;
+  return false;
+}
+
+/* Parse table text (TAB/CSV/;) with header */
+function detectDelimForTable(lines){
+  let tab=0, comma=0, semi=0;
+  for(const ln0 of lines.slice(0,20)){
+    const ln = normalizeQuotesLine(ln0);
+    tab += (ln.match(/\t/g)||[]).length;
+    comma += (ln.match(/,/g)||[]).length;
+    semi += (ln.match(/;/g)||[]).length;
+  }
+  if(tab >= comma && tab >= semi) return "\t";
+  return comma >= semi ? "," : ";";
+}
+
+function parseTableWithHeader(text){
+  const rawLines = text.replace(/\r/g,"").split("\n").map(x=>x.trimEnd()).filter(x=>x.trim() !== "");
+  if(!rawLines.length) return {rows:[], headers:[], delim:""};
+
+  const lines = rawLines.map(l=>normalizeQuotesLine(l)).filter(Boolean);
+  const delim = detectDelimForTable(lines);
+
+  const headerParts = splitCSVLine(lines[0], delim).map(cleanField);
+  const headers = headerParts.map(h=>String(h||"").trim().toLowerCase());
+
+  const idx = (name)=> headers.indexOf(name.toLowerCase());
+
+  // required headers
+  const pIdx = idx("profile_name") !== -1 ? idx("profile_name") : idx("profile_name".replace("_",""));// noop
+  const pIdx2 = idx("profile_name");
+  const pIdx3 = idx("profile_name".toLowerCase());
+  let profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name".replace("_",""));
+  // also allow profile_Name
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name".replace("_",""));
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name".toLowerCase());
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name".toLowerCase());
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name".toLowerCase());
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+  if(profileIdx === -1) profileIdx = headers.indexOf("profile_name");
+
+  // Real: allow both "profile_name" and "profile_Name"
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name" || h === "profile_name".toLowerCase());
+  }
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name" || h === "profile_name");
+  }
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name");
+  }
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name");
+  }
+  if(profileIdx === -1){
+    // final: accept "profile_name" OR "profile_name" variants OR "profile_name" not found -> try "profile_name" or "profile_name"
+    profileIdx = headers.findIndex(h=>h.replace(/\s+/g,"") === "profile_name" || h.replace(/\s+/g,"") === "profile_name");
+  }
+  // allow "profile_name" OR "profile_name" OR "profile_name" OR "profile_name"
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h.replace(/\s+/g,"") === "profile_name" || h.replace(/\s+/g,"") === "profile_name");
+  }
+  // allow "profile_name" OR "profile_name" OR "profile_name" OR "profile_name"
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h.replace(/\s+/g,"") === "profile_name" || h.replace(/\s+/g,"") === "profile_name");
+  }
+  // Actually accept "profile_name" OR "profile_name" OR "profile_name" OR "profile_name"
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h.replace(/\s+/g,"") === "profile_name" || h.replace(/\s+/g,"") === "profile_name");
+  }
+
+  // simpler: also accept "profile_name" and "profile_name" and "profile_name" but user uses profile_Name exactly
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name" || h === "profile_name");
+  }
+  if(profileIdx === -1){
+    profileIdx = headers.findIndex(h=>h === "profile_name" || h === "profile_name" || h === "profile_name");
+  }
+  if(profileIdx === -1){
+    // accept profile_name or profile_name or profile_name
+    profileIdx = headers.findIndex(h=>h.replaceAll("_","") === "profilename");
+  }
+
+  const logIdx = headers.findIndex(h=>h.replaceAll("_","") === "log");
+  const detailsIdx = headers.findIndex(h=>h.replaceAll("_","") === "details");
+  const cnxIdx = headers.findIndex(h=>h.replaceAll("_","") === "cnxproblems" || h === "cnx_problems");
+  const tagIdx = headers.findIndex(h=>h === "tag");
+  const statusIdx = headers.findIndex(h=>h === "status_name");
+  const scriptIdx = headers.findIndex(h=>h === "script_name");
+  const sessionIdx = headers.findIndex(h=>h === "session_name");
+
+  // required: profile + (log or details or cnx) + session
+  if(profileIdx === -1 || sessionIdx === -1){
+    return {rows:[], headers, delim, error:"Missing required headers: profile_Name + session_name"};
+  }
+
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const parts = splitCSVLine(lines[i], delim).map(cleanField);
+
+    const profile_Name = parts[profileIdx] ?? "";
+    const session_name = parts[sessionIdx] ?? "";
+
+    if(String(profile_Name).trim() === "" && String(session_name).trim() === "") continue;
+
+    rows.push({
+      profile_Name: String(profile_Name).trim(),
+      tag: tagIdx !== -1 ? String(parts[tagIdx] ?? "").trim() : "",
+      status_name: statusIdx !== -1 ? String(parts[statusIdx] ?? "").trim() : "",
+      log: logIdx !== -1 ? String(parts[logIdx] ?? "").trim() : "",
+      cnx_problems: cnxIdx !== -1 ? String(parts[cnxIdx] ?? "").trim() : "",
+      details: detailsIdx !== -1 ? String(parts[detailsIdx] ?? "").trim() : "",
+      script_name: scriptIdx !== -1 ? String(parts[scriptIdx] ?? "").trim() : "",
+      session_name: String(session_name).trim()
+    });
+  }
+
+  return {rows, headers, delim, error:""};
+}
+
+/* Keyword checker state */
+let k_keywords = loadKeywords();
+let k_allRows = [];
+let k_visibleRows = [];
+let k_notUniqueProfiles = []; // for Copy/Export NOT
+let k_sessionStats = new Map(); // session -> stats
+
+function k_renderChips(){
+  const wrap = $("k_chipWrap");
+  wrap.innerHTML = "";
   if(!k_keywords.length){
-    box.innerHTML = `<div class="smallNote">No keywords</div>`;
+    wrap.innerHTML = `<div class="smallNote">No keywords</div>`;
     return;
   }
   for(const kw of k_keywords){
-    const el = document.createElement("div");
-    el.className = "tag";
-    el.innerHTML = `<span>${escapeHtml(kw)}</span><span class="x" title="Remove">×</span>`;
-    el.querySelector(".x").addEventListener("click", ()=>{
-      k_keywords = k_keywords.filter(x=>x !== kw);
-      k_saveKeywords();
-      k_renderKeywords();
-      setKeywordStatus("Keyword removed", "ok");
-    });
-    box.appendChild(el);
+    const chip = document.createElement("div");
+    chip.className = "kwChip";
+    chip.title = kw;
+
+    const t = document.createElement("span");
+    t.className = "kwText";
+    t.textContent = kw;
+
+    const x = document.createElement("span");
+    x.className = "kwX";
+    x.textContent = "×";
+    x.onclick = () => {
+      k_keywords = k_keywords.filter(k => k !== kw);
+      saveKeywords(k_keywords);
+      k_renderChips();
+      setKStatus("Keyword removed ✅", "ok");
+    };
+
+    chip.appendChild(t);
+    chip.appendChild(x);
+    wrap.appendChild(chip);
   }
 }
 
-function k_setKpis(){
-  $("k_total").textContent = k_rows.length ? String(k_rows.length) : "—";
-  const processed = k_rows.filter(r=>r.process_status === "PROCESSED").length;
-  const notp = k_rows.filter(r=>r.process_status === "NOT PROCESSED").length;
-  $("k_processed").textContent = k_rows.length ? String(processed) : "—";
-  $("k_notProcessed").textContent = k_rows.length ? String(notp) : "—";
+function k_fillSessionSelect(){
+  const sel = $("k_sessionSelect");
+  sel.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "ALL";
+  optAll.textContent = "All sessions";
+  sel.appendChild(optAll);
+
+  const sessions = [...k_sessionStats.keys()].sort((a,b)=>a.localeCompare(b));
+  for(const s of sessions){
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    sel.appendChild(opt);
+  }
 }
 
-function k_findHeaderRow(lines){
-  // Try first 12 lines to find a header row that contains profile + log + details
-  for(let i=0;i<Math.min(12, lines.length); i++){
-    const ln = lines[i];
-    const delim = detectDelimiter([ln]);
-    const cols = splitCSVLine(ln, delim).map(cleanField).map(x=>x.toLowerCase());
-    const hasProfile = cols.includes("profile_name") || cols.includes("profile_name ") || cols.includes("profile_name\t") || cols.includes("profile_name\r")
-      || cols.includes("profile_name\n") || cols.includes("profile_name".trim())
-      || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") // redundant safe
-      || cols.includes("profile_name".replace("_","_"))
-      || cols.includes("profile_name".replace("_","_"))
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name");
+function k_renderSessionCards(){
+  const wrap = $("k_sessionCards");
+  wrap.innerHTML = "";
 
-    const profileOk = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name")
-      || cols.includes("profile_name") || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name");
+  const selected = $("k_sessionSelect").value || "ALL";
+  const statusFilter = $("k_statusSelect").value || "ALL";
 
-    const profileOk2 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name".replace("profile_name","profile_name")) ||
-      cols.includes("profile_name".replace("profile_name","profile_name")) ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name");
-
-    // real checks (simple)
-    const hasProfile2 = cols.includes("profile_name") || cols.includes("profile_name".replace("profile_name","profile_name")) ||
-      cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase());
-
-    const hasProfileName = cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase());
-
-    const hasProfileName2 = cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase());
-
-    // actually: accept profile_name OR profile_name with case like profile_Name
-    const hasProfileFinal = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name".replace("_","_"))
-      || cols.includes("profile_name".trim())
-      || cols.includes("profile_name") // ok
-      || cols.includes("profile_name") // ok
-      || cols.includes("profile_name"); // ok
-
-    const hasProfileCase = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) || cols.includes("profile_name");
-
-    const hasProfileAlt = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name") || cols.includes("profile_name") ||
-      cols.includes("profile_name") ||
-      cols.includes("profile_name");
-
-    const okProfile = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name") // safe
-      || cols.includes("profile_name") || cols.includes("profile_name")
-      || cols.includes("profile_name")
-      || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileAny = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name".trim())
-      || cols.includes("profile_name".toLowerCase().trim())
-      || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileAny2 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name");
-
-    const hasProfileReal = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name");
-
-    const hasProfileOk = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name");
-
-    const hasProfileX = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name");
-
-    const hasProfileNameCol = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase())
-      || cols.includes("profile_name") || cols.includes("profile_name")
-      || cols.includes("profile_name");
-
-    const profileExists = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name".toLowerCase());
-
-    const profileExists2 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name");
-
-    const profileExists3 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) ||
-      cols.includes("profile_name") || cols.includes("profile_name");
-
-    const profileExists4 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileCol = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileCol2 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileCol3 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const hasProfileCol4 = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const okP = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase());
-
-    const hasLog = cols.includes("log");
-    const hasDetails = cols.includes("details");
-
-    // also accept profile_Name (case) by lowercasing already
-    const profileAny = okP || cols.includes("profile_name") || cols.includes("profile_name");
-
-    if(profileAny && hasLog && hasDetails){
-      return {headerIndex:i, delim};
-    }
+  // show overall + maybe selected
+  const list = [];
+  if(selected === "ALL"){
+    for(const [name,st] of k_sessionStats) list.push([name,st]);
+    list.sort((a,b)=>b[1].total - a[1].total);
+    list.splice(8); // show top 8 cards to avoid clutter
+  }else{
+    const st = k_sessionStats.get(selected);
+    if(st) list.push([selected, st]);
   }
-  return null;
+
+  for(const [name,st] of list){
+    const card = document.createElement("div");
+    card.className = "sCard";
+    card.innerHTML = `
+      <div class="row"><b>${escapeHtml(name)}</b><span>${st.total} rows</span></div>
+      <div class="nums">
+        <div class="badge">PROCESSED: <b>${st.processed}</b></div>
+        <div class="badge">NOT: <b>${st.not}</b></div>
+        <div class="badge">DISC: <b>${st.disconnected}</b></div>
+      </div>
+      <div class="smallNote" style="margin-top:8px">Filter: ${escapeHtml(statusFilter)}</div>
+    `;
+    wrap.appendChild(card);
+  }
 }
 
-// simpler, correct header detection (real)
-function k_detectHeader(lines){
-  for(let i=0;i<Math.min(12, lines.length); i++){
-    const ln = lines[i];
-    const delim = detectDelimiter([ln]);
-    const cols = splitCSVLine(ln, delim).map(cleanField).map(x=>x.toLowerCase());
-    const hasProfile = cols.includes("profile_name") || cols.includes("profile_name".toLowerCase()) || cols.includes("profile_name");
-    const hasLog = cols.includes("log");
-    const hasDetails = cols.includes("details");
-    if(hasProfile && hasLog && hasDetails) return {headerIndex:i, delim};
-  }
-  return null;
-}
+function k_applyFilters(){
+  const selectedSession = $("k_sessionSelect").value || "ALL";
+  const statusFilter = $("k_statusSelect").value || "ALL";
 
-function k_parseTable(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
-  if(!lines.length) return {rows:[], error:"Input empty"};
-
-  const headerInfo = k_detectHeader(lines);
-  if(!headerInfo) return {rows:[], error:"Header not found (must include: profile_name + log + details)"};
-
-  const {headerIndex, delim} = headerInfo;
-  const headers = splitCSVLine(lines[headerIndex], delim).map(cleanField);
-  const headersLower = headers.map(h=>h.toLowerCase());
-
-  const idxProfile = headersLower.indexOf("profile_name");
-  const idxLog = headersLower.indexOf("log");
-  const idxDetails = headersLower.indexOf("details");
-  const idxCnx = headersLower.indexOf("cnx_problems");
-  const idxTag = headersLower.indexOf("tag");
-  const idxStatusName = headersLower.indexOf("status_name");
-
-  const out = [];
-  for(let i=headerIndex+1; i<lines.length; i++){
-    const parts = splitCSVLine(lines[i], delim).map(cleanField);
-    if(parts.length === 1 && !parts[0]) continue;
-
-    const profileName = parts[idxProfile] ?? "";
-    if(!String(profileName).trim()) continue;
-
-    const log = parts[idxLog] ?? "";
-    const details = parts[idxDetails] ?? "";
-    const cnx = idxCnx >= 0 ? (parts[idxCnx] ?? "") : "";
-    const tag = idxTag >= 0 ? (parts[idxTag] ?? "") : "";
-    const statusName = idxStatusName >= 0 ? (parts[idxStatusName] ?? "") : "";
-
-    out.push({
-      profile_name: String(profileName).trim(),
-      tag: String(tag).trim(),
-      status_name: String(statusName).trim(),
-      log: String(log),
-      details: String(details),
-      cnx_problems: String(cnx)
-    });
-  }
-  return {rows: out, error: null, delim};
-}
-
-function k_computeStatus(row){
-  const logText = normalizeForSearch(row.log);
-  const detailsText = normalizeForSearch(row.details);
-  const cnxText = normalizeForSearch(row.cnx_problems);
-
-  let processed = false;
-  if(logText || detailsText || cnxText){
-    for(const kw of k_keywords){
-      if(!kw) continue;
-      if(logText.includes(kw) || detailsText.includes(kw) || cnxText.includes(kw)){
-        processed = true;
-        break;
-      }
-    }
-  }
-  return processed ? "PROCESSED" : "NOT PROCESSED";
-}
-
-function k_run(){
-  const txt = $("k_input").value.trim();
-  if(!txt){ setKeywordStatus("Input empty", "bad"); return; }
-
-  const parsed = k_parseTable(txt);
-  if(parsed.error){
-    k_rows = [];
-    k_viewRows = [];
-    k_notProcessedProfileNames = [];
-    $("k_outputBody").innerHTML = `<tr><td colspan="6" class="empty">${escapeHtml(parsed.error)}</td></tr>`;
-    $("k_box").textContent = parsed.error;
-    k_setKpis();
-    setKeywordStatus(parsed.error, "bad");
-    return;
-  }
-
-  k_rows = parsed.rows.map(r=>{
-    const ps = k_computeStatus(r);
-    return {...r, process_status: ps};
+  k_visibleRows = k_allRows.filter(r=>{
+    const okSession = selectedSession === "ALL" ? true : (r.session_norm === selectedSession);
+    const okStatus = statusFilter === "ALL" ? true : (r.process_status === statusFilter);
+    return okSession && okStatus;
   });
-
-  // Apply filter
-  k_applyFilter();
-
-  k_setKpis();
-
-  // Build NOT PROCESSED unique profile_name list
-  const setNP = new Set();
-  for(const r of k_rows){
-    if(r.process_status === "NOT PROCESSED"){
-      setNP.add(String(r.profile_name).trim());
-    }
-  }
-  k_notProcessedProfileNames = [...setNP].filter(Boolean);
-
-  // Output box: ONLY the NOT PROCESSED profile names (no "Keywords used")
-  const show = k_notProcessedProfileNames.slice(0, 400).join("\n");
-  $("k_box").textContent =
-`NOT PROCESSED unique profile_Name:
-Count: ${k_notProcessedProfileNames.length}
-
-${show || "—"}
-
-(Preview first 400)`;
-
-  setKeywordStatus("Keyword check done ✅", "ok");
-}
-
-function k_applyFilter(){
-  const f = $("k_filter").value || "ALL";
-  if(f === "ALL") k_viewRows = [...k_rows];
-  else k_viewRows = k_rows.filter(r=>r.process_status === f);
   k_renderTable();
-  $("k_box").scrollTop = 0;
+  k_buildNotList();
+  k_renderSessionCards();
 }
 
 function k_renderTable(){
-  const body = $("k_outputBody");
+  const body = $("k_tbody");
   body.innerHTML = "";
-  if(!k_viewRows.length){
-    body.innerHTML = `<tr><td colspan="6" class="empty">No rows</td></tr>`;
+
+  if(!k_visibleRows.length){
+    body.innerHTML = `<tr><td colspan="7" class="empty">No rows</td></tr>`;
     return;
   }
-  let n = 1;
-  for(const r of k_viewRows){
-    const preview = (String(r.log||"") + "  " + String(r.details||"") + (r.cnx_problems ? "  " + r.cnx_problems : "")).trim();
-    const short = preview.length > 140 ? preview.slice(0,140) + "…" : preview;
 
+  let i=1;
+  for(const r of k_visibleRows){
     const tr = document.createElement("tr");
+    const preview = (r.log + " " + r.details).trim();
+    const pr = preview.length > 140 ? preview.slice(0,140) + "…" : preview;
+
+    const color = r.process_status === "PROCESSED" ? "var(--ok)"
+                : r.process_status === "DISCONNECTED" ? "var(--warn)"
+                : "var(--bad)";
+
     tr.innerHTML = `
-      <td>${n++}</td>
-      <td>${escapeHtml(r.profile_name)}</td>
-      <td>${escapeHtml(r.tag || "")}</td>
-      <td>${escapeHtml(r.status_name || "")}</td>
-      <td style="font-weight:900; color:${r.process_status==="PROCESSED"?"var(--ok)":"var(--warn)"}">${escapeHtml(r.process_status)}</td>
-      <td title="${escapeHtml(preview)}">${escapeHtml(short)}</td>
+      <td>${i++}</td>
+      <td>${escapeHtml(r.profile_Name)}</td>
+      <td>${escapeHtml(r.tag)}</td>
+      <td>${escapeHtml(r.status_name)}</td>
+      <td style="font-weight:1000;color:${color}">${escapeHtml(r.process_status)}</td>
+      <td>${escapeHtml(r.session_norm)}</td>
+      <td>${escapeHtml(pr)}</td>
     `;
     body.appendChild(tr);
   }
 }
 
-function k_copyNot(){
-  if(!k_rows.length){ setKeywordStatus("Run check first", "warn"); return; }
-  // Copy NOT PROCESSED unique profile_name
-  const setNP = new Set();
-  for(const r of k_rows){
+function k_buildNotList(){
+  // Copy/Export NOT uses unique profile_Name (in current filters if status filter=NOT PROCESSED or ALL -> we still build list from NOT only)
+  const notSet = new Set();
+  for(const r of k_visibleRows){
     if(r.process_status === "NOT PROCESSED"){
-      setNP.add(String(r.profile_name).trim());
+      if(r.profile_Name) notSet.add(r.profile_Name);
     }
   }
-  const list = [...setNP].filter(Boolean);
-  if(!list.length){ setKeywordStatus("No NOT PROCESSED", "ok"); return; }
+  k_notUniqueProfiles = [...notSet].sort((a,b)=>{
+    const na = Number(a), nb = Number(b);
+    if(Number.isFinite(na) && Number.isFinite(nb)) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
 
-  navigator.clipboard.writeText(list.join("\n"))
-    .then(()=>setKeywordStatus(`Copied NOT PROCESSED (${list.length})`, "ok"))
-    .catch(()=>setKeywordStatus("Clipboard blocked by browser", "bad"));
+  $("k_total").textContent = String(k_allRows.length);
+  $("k_not").textContent = String(
+    // global NOT across all rows (not only visible) to keep KPI honest
+    [...new Set(k_allRows.filter(x=>x.process_status==="NOT PROCESSED").map(x=>x.profile_Name).filter(Boolean))].length
+  );
+
+  // Output box: clean (NO "Keywords used")
+  const selectedSession = $("k_sessionSelect").value || "ALL";
+  const statusFilter = $("k_statusSelect").value || "ALL";
+
+  const lines = [];
+  lines.push(`Rows (visible): ${k_visibleRows.length}`);
+  lines.push(`Session filter: ${selectedSession}`);
+  lines.push(`Status filter: ${statusFilter}`);
+  lines.push("");
+  lines.push(`NOT PROCESSED unique profile_Name: ${k_notUniqueProfiles.length}`);
+  lines.push(k_notUniqueProfiles.slice(0,400).join("\n") || "—");
+  if(k_notUniqueProfiles.length > 400) lines.push("\n(Preview first 400)");
+
+  $("k_box").textContent = lines.join("\n");
 }
 
-function k_exportNot(){
-  if(!k_rows.length){ setKeywordStatus("Run check first", "warn"); return; }
-  const setNP = new Set();
-  for(const r of k_rows){
-    if(r.process_status === "NOT PROCESSED"){
-      setNP.add(String(r.profile_name).trim());
-    }
-  }
-  const list = [...setNP].filter(Boolean);
-  if(!list.length){ setKeywordStatus("No NOT PROCESSED", "ok"); return; }
+function k_process(){
+  const text = $("k_input").value.trim();
+  if(!text){ setKStatus("Input empty", "bad"); return; }
 
-  const csv = "profile_Name\n" + list.map(x=>safeCsv(x)).join("\n") + "\n";
-  downloadBlob(csv, "not_processed_profile_name.csv", "text/csv;charset=utf-8;");
-  setKeywordStatus(`Exported NOT (${list.length})`, "ok");
+  const parsed = parseTableWithHeader(text);
+  if(parsed.error){
+    setKStatus(parsed.error, "bad");
+    $("k_total").textContent = "0";
+    $("k_not").textContent = "0";
+    k_allRows = [];
+    k_visibleRows = [];
+    k_sessionStats = new Map();
+    k_fillSessionSelect();
+    k_renderSessionCards();
+    k_renderTable();
+    $("k_box").textContent = "No data…";
+    return;
+  }
+
+  const rows = parsed.rows;
+  if(!rows.length){
+    setKStatus("No valid rows parsed (check format)", "bad");
+    $("k_total").textContent = "0";
+    $("k_not").textContent = "0";
+    return;
+  }
+
+  // Build keyword match exactly like GAS:
+  // processed = keyword in (log OR details) (we also include cnx_problems like you asked)
+  // disconnected priority
+  const keywords = k_keywords.map(x=>String(x).trim().toLowerCase()).filter(Boolean);
+  if(!keywords.length){
+    setKStatus("No keywords (add or default)", "warn");
+  }
+
+  k_sessionStats = new Map();
+  k_allRows = rows.map(r=>{
+    const logText = normalizeForSearch(r.log);
+    const detailsText = normalizeForSearch(r.details);
+    const cnxText = normalizeForSearch(r.cnx_problems);
+
+    let processed = false;
+    if(logText || detailsText || cnxText){
+      for(const kw of keywords){
+        if(!kw) continue;
+        if(logText.includes(kw) || detailsText.includes(kw) || cnxText.includes(kw)){
+          processed = true;
+          break;
+        }
+      }
+    }
+
+    const disc = isDisconnectedRow(r);
+    const process_status = disc ? "DISCONNECTED" : (processed ? "PROCESSED" : "NOT PROCESSED");
+
+    const session_norm = normalizeSessionName(r.session_name);
+
+    // stats
+    if(!k_sessionStats.has(session_norm)){
+      k_sessionStats.set(session_norm, {total:0, processed:0, not:0, disconnected:0});
+    }
+    const st = k_sessionStats.get(session_norm);
+    st.total++;
+    if(process_status === "PROCESSED") st.processed++;
+    else if(process_status === "DISCONNECTED") st.disconnected++;
+    else st.not++;
+
+    return {
+      ...r,
+      session_norm,
+      process_status
+    };
+  });
+
+  // fill session select
+  k_fillSessionSelect();
+
+  // default filter = ALL sessions, ALL status
+  $("k_sessionSelect").value = "ALL";
+  $("k_statusSelect").value = "ALL";
+
+  // visible = all
+  k_visibleRows = [...k_allRows];
+  k_renderTable();
+  k_buildNotList();
+  k_renderSessionCards();
+
+  $("k_thFilterPill").textContent = "▼ Filter";
+  setKStatus("Processed ✅ (now filter by session/status if needed)", "ok");
 }
 
 function k_addKeyword(){
-  const kw = $("k_newKw").value.trim().toLowerCase();
-  if(!kw){ setKeywordStatus("Empty keyword", "warn"); return; }
-  if(k_keywords.includes(kw)){ setKeywordStatus("Keyword already exists", "warn"); return; }
-  k_keywords.push(kw);
-  k_keywords = k_keywords.filter(Boolean);
-  k_saveKeywords();
-  k_renderKeywords();
-  $("k_newKw").value = "";
-  setKeywordStatus("Keyword added ✅", "ok");
+  const v = String($("k_newKeyword").value||"").trim().toLowerCase();
+  if(!v){ setKStatus("Keyword empty", "warn"); return; }
+  if(k_keywords.includes(v)){ setKStatus("Keyword already exists", "warn"); return; }
+  k_keywords.push(v);
+  saveKeywords(k_keywords);
+  $("k_newKeyword").value = "";
+  k_renderChips();
+  setKStatus("Keyword added ✅ (saved)", "ok");
 }
+
 function k_setDefault(){
-  k_keywords = [...DEFAULT_KEYWORDS].map(x=>x.toLowerCase());
-  k_saveKeywords();
-  k_renderKeywords();
-  setKeywordStatus("Default keywords loaded", "ok");
+  k_keywords = [...DEFAULT_KEYWORDS];
+  saveKeywords(k_keywords);
+  k_renderChips();
+  setKStatus("Keywords reset to default ✅", "ok");
 }
-function k_clearAllKeywords(){
+
+function k_clearKeywords(){
   k_keywords = [];
-  k_saveKeywords();
-  k_renderKeywords();
-  setKeywordStatus("All keywords cleared", "ok");
+  saveKeywords(k_keywords);
+  k_renderChips();
+  setKStatus("Keywords cleared ✅", "ok");
 }
 
-/* =========================
-   Keyword header "flesh" filter popover
-========================= */
-let k_popOpen = false;
-
-function k_openPop(anchorEl){
-  const pop = $("k_pop");
-  const rect = anchorEl.getBoundingClientRect();
-  pop.style.left = Math.min(window.innerWidth - 220, rect.left) + "px";
-  pop.style.top = (rect.bottom + 8) + "px";
-  pop.style.display = "block";
-  k_popOpen = true;
-
-  // sync active
-  const val = $("k_filter").value;
-  pop.querySelectorAll("button").forEach(b=>{
-    b.classList.toggle("active", b.dataset.v === val);
-  });
-}
-function k_closePop(){
-  $("k_pop").style.display = "none";
-  k_popOpen = false;
+function k_copyNot(){
+  if(!k_notUniqueProfiles.length){ setKStatus("No NOT PROCESSED profiles in current view", "warn"); return; }
+  navigator.clipboard.writeText(k_notUniqueProfiles.join("\n"))
+    .then(()=>setKStatus(`Copied NOT PROCESSED (${k_notUniqueProfiles.length})`, "ok"))
+    .catch(()=>setKStatus("Clipboard blocked by browser", "bad"));
 }
 
-/* =========================
-   Tabs
-========================= */
-function setMode(mode){
-  APP_MODE = mode;
-  $("modePill").textContent = "Mode: " + mode;
+function k_exportNot(){
+  if(!k_notUniqueProfiles.length){ setKStatus("No NOT PROCESSED profiles in current view", "warn"); return; }
+  const session = $("k_sessionSelect").value || "ALL";
+  const name = `not_processed_${session}.csv`.replace(/[^\w\-.]+/g,"_");
+  downloadBlob("profile_Name\n" + k_notUniqueProfiles.join("\n"), name, "text/csv;charset=utf-8;");
+  setKStatus(`Exported ${name}`, "ok");
 }
 
-$("tabAnalyzer").addEventListener("click", ()=>{
-  $("tabAnalyzer").classList.add("active");
-  $("tabKeyword").classList.remove("active");
-  $("viewAnalyzer").style.display = "block";
-  $("viewKeyword").style.display = "none";
-  setMode("Analyzer");
-  setStatus("Ready", "muted");
-});
-$("tabKeyword").addEventListener("click", ()=>{
-  $("tabKeyword").classList.add("active");
-  $("tabAnalyzer").classList.remove("active");
-  $("viewKeyword").style.display = "block";
-  $("viewAnalyzer").style.display = "none";
-  setMode("Keyword Checker");
-  setStatus("Ready", "muted");
-});
-
-/* =========================
-   Maintenance (Telegram screenshot)
-   - uses getDisplayMedia (browser permission)
-   - if screenshot fails, sends text report only
-   NOTE: For best success run on HTTPS (Netlify), not file://
-========================= */
-async function tg_sendMessage(text){
-  if(!TG.BOT_TOKEN || TG.BOT_TOKEN.includes("PUT_") || !TG.CHAT_ID || TG.CHAT_ID.includes("PUT_")){
-    throw new Error("Telegram BOT_TOKEN / CHAT_ID not configured");
+/* =========================================================
+   Maintenance: Screenshot + Telegram sendPhoto
+   - Uses getDisplayMedia (user picks a screen/window/tab)
+========================================================= */
+async function telegramSendPhoto(caption, blob){
+  if(!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.includes("PUT_") || !TELEGRAM_CHAT_ID || TELEGRAM_CHAT_ID.includes("PUT_")){
+    throw new Error("Telegram config missing (token/chat_id).");
   }
-  const url = `https://api.telegram.org/bot${TG.BOT_TOKEN}/sendMessage`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({chat_id: TG.CHAT_ID, text})
-  });
-  const j = await res.json().catch(()=>null);
-  if(!res.ok || !j || j.ok !== true) throw new Error("sendMessage failed");
-  return true;
-}
-
-async function tg_sendPhoto(blob, caption){
-  if(!TG.BOT_TOKEN || TG.BOT_TOKEN.includes("PUT_") || !TG.CHAT_ID || TG.CHAT_ID.includes("PUT_")){
-    throw new Error("Telegram BOT_TOKEN / CHAT_ID not configured");
-  }
-  const url = `https://api.telegram.org/bot${TG.BOT_TOKEN}/sendPhoto`;
   const fd = new FormData();
-  fd.append("chat_id", TG.CHAT_ID);
-  fd.append("caption", caption.slice(0, 950));
+  fd.append("chat_id", TELEGRAM_CHAT_ID);
+  fd.append("caption", caption);
   fd.append("photo", blob, "screenshot.png");
 
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
   const res = await fetch(url, { method:"POST", body: fd });
-  const j = await res.json().catch(()=>null);
-  if(!res.ok || !j || j.ok !== true) throw new Error("sendPhoto failed");
+  if(!res.ok){
+    const t = await res.text().catch(()=> "");
+    throw new Error("Telegram sendPhoto failed: " + res.status + " " + t.slice(0,180));
+  }
   return true;
 }
 
-async function captureScreenshotBlob(){
-  // Request screen capture, grab one frame, stop tracks.
-  const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: { displaySurface: "browser" },
-    audio: false
-  });
-
-  const track = stream.getVideoTracks()[0];
-  const imageCaptureSupported = typeof ImageCapture !== "undefined";
-  let bitmap = null;
-
+async function captureScreenAsBlob(){
+  // user chooses what to share; we capture one frame
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    throw new Error("Screen capture not supported in this browser.");
+  }
+  const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 } });
   try{
-    if(imageCaptureSupported){
-      const ic = new ImageCapture(track);
-      bitmap = await ic.grabFrame();
-    } else {
-      // fallback: draw video element
-      const v = document.createElement("video");
-      v.srcObject = stream;
-      await v.play();
-      await new Promise(r=>setTimeout(r, 120));
-      const c = document.createElement("canvas");
-      c.width = v.videoWidth || 1280;
-      c.height = v.videoHeight || 720;
-      const ctx = c.getContext("2d");
-      ctx.drawImage(v, 0, 0, c.width, c.height);
-      v.pause();
-      track.stop();
-      stream.getTracks().forEach(t=>t.stop());
-      return await new Promise(resolve=>c.toBlob(resolve, "image/png", 0.92));
-    }
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings ? track.getSettings() : {};
+    const w = settings.width || 1280;
+    const h = settings.height || 720;
 
-    const c = document.createElement("canvas");
-    c.width = bitmap.width;
-    c.height = bitmap.height;
-    const ctx = c.getContext("2d");
-    ctx.drawImage(bitmap, 0, 0);
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.muted = true;
+    await video.play();
 
-    track.stop();
+    // wait a tick
+    await new Promise(r=>setTimeout(r, 250));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise((resolve)=> canvas.toBlob(resolve, "image/png", 0.92));
+    if(!blob) throw new Error("Failed to create screenshot blob.");
+    return blob;
+  } finally {
     stream.getTracks().forEach(t=>t.stop());
-
-    return await new Promise(resolve=>c.toBlob(resolve, "image/png", 0.92));
-  } catch(e){
-    track.stop();
-    stream.getTracks().forEach(t=>t.stop());
-    throw e;
   }
 }
 
-function buildMaintenanceText(){
-  const now = new Date().toISOString();
+function buildMaintenanceCaption(mode, statusText){
+  const time = new Date().toISOString();
   const url = location.href;
   const ua = navigator.userAgent;
-
-  // current status
-  const statusText = APP_MODE === "Analyzer" ? $("a_status").textContent : $("k_status").textContent;
-
   return `🛠 Maintenance report
-Mode: ${APP_MODE}
-Time: ${now}
+Mode: ${mode}
+Time: ${time}
 URL: ${url}
 UA: ${ua}
-Status: ${statusText || "—"}`;
+Status: ${statusText || "-"}`;
 }
 
-async function sendMaintenance(){
-  const base = buildMaintenanceText();
+async function runMaintenance(mode){
+  const statusText = mode === "Analyzer" ? $("status").textContent : $("k_status").textContent;
+  const caption = buildMaintenanceCaption(mode, statusText);
 
+  // Try screenshot + Telegram photo
   try{
-    setStatus("Maintenance: capturing screenshot…", "warn");
-
-    // must be in HTTPS for better reliability. file:// may fail.
-    const blob = await captureScreenshotBlob();
-    if(!blob){
-      await tg_sendMessage(base + "\n\nScreenshot: (failed to capture blob)");
-      setStatus("Maintenance sent (no screenshot)", "warn");
-      return;
-    }
-    await tg_sendPhoto(blob, base);
-    setStatus("Maintenance sent ✅", "ok");
-  } catch(e){
-    // fallback: send text only (and show the reason inside message)
+    const blob = await captureScreenAsBlob();
+    await telegramSendPhoto(caption, blob);
+    if(mode === "Analyzer") setStatus("Maintenance sent ✅ (with screenshot)", "ok");
+    else setKStatus("Maintenance sent ✅ (with screenshot)", "ok");
+  }catch(err){
+    // fallback: send text only (no screenshot)
     try{
-      await tg_sendMessage(base + `\n\nScreenshot: FAILED\nReason: ${String(e && e.message ? e.message : e)}`);
-      setStatus("Maintenance sent (text only) ✅", "ok");
-    } catch(e2){
-      setStatus("Maintenance failed (check token/chat_id + HTTPS)", "bad");
-    }
+      if(TELEGRAM_BOT_TOKEN && !TELEGRAM_BOT_TOKEN.includes("PUT_") && TELEGRAM_CHAT_ID && !TELEGRAM_CHAT_ID.includes("PUT_")){
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        await fetch(url, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: caption })
+        });
+      }
+    }catch(e){}
+
+    const msg = String(err?.message || err || "Maintenance failed");
+    if(mode === "Analyzer") setStatus("Screenshot blocked. Sent text (or failed).", "warn");
+    else setKStatus("Screenshot blocked. Sent text (or failed).", "warn");
+
+    // also log to console for debugging
+    console.error("Maintenance error:", err);
   }
 }
 
-/* =========================
+/* =========================================================
+   Tabs behavior
+========================================================= */
+function showTab(which){
+  const a = $("viewAnalyzer");
+  const k = $("viewKeyword");
+  const ta = $("tabAnalyzer");
+  const tk = $("tabKeyword");
+
+  if(which === "Analyzer"){
+    a.classList.remove("hidden");
+    k.classList.add("hidden");
+    ta.classList.add("active");
+    tk.classList.remove("active");
+    setPill("", "Ready");
+  }else{
+    a.classList.add("hidden");
+    k.classList.remove("hidden");
+    ta.classList.remove("active");
+    tk.classList.add("active");
+    setPill("", "Keyword Checker");
+  }
+}
+
+/* =========================================================
    Wire: Analyzer
-========================= */
-$("a_btnProcess").addEventListener("click", a_processCSV);
-$("a_btnCopy").addEventListener("click", a_copyIDs);
-$("a_btnExport").addEventListener("click", a_exportVisibleCSV);
+========================================================= */
+$("btnProcess").addEventListener("click", processCSV);
+$("btnCopy").addEventListener("click", copyIDs);
+$("btnExport").addEventListener("click", exportVisibleCSV);
 
-$("a_btnApplyDate").addEventListener("click", a_applyDateFilter);
-$("a_btnClearDate").addEventListener("click", a_clearDateFilter);
+$("btnApplyDate").addEventListener("click", applyDateFilter);
+$("btnClearDate").addEventListener("click", clearDateFilter);
 
-$("a_btnCheck").addEventListener("click", a_checkRange);
-$("a_btnCopyMissing").addEventListener("click", a_copyMissing);
-$("a_btnExportMissing").addEventListener("click", a_exportMissing);
+$("btnRange").addEventListener("click", checkRange);
+$("btnCopyMissing").addEventListener("click", copyMissing);
+$("btnExportMissing").addEventListener("click", exportMissing);
 
-document.querySelectorAll('input[name="a_dateMode"]').forEach(r=>{
-  r.addEventListener("change", a_refreshModeUI);
+document.querySelectorAll('input[name="dateMode"]').forEach(r=>{
+  r.addEventListener("change", refreshModeUI);
 });
 
-/* =========================
+$("btnMaintenance").addEventListener("click", ()=>runMaintenance("Analyzer"));
+
+/* =========================================================
    Wire: Keyword Checker
-========================= */
-$("k_btnRun").addEventListener("click", k_run);
+========================================================= */
+$("k_btnProcess").addEventListener("click", k_process);
+$("k_btnAdd").addEventListener("click", k_addKeyword);
+$("k_btnDefault").addEventListener("click", k_setDefault);
+$("k_btnClearKeywords").addEventListener("click", k_clearKeywords);
 $("k_btnCopyNot").addEventListener("click", k_copyNot);
 $("k_btnExportNot").addEventListener("click", k_exportNot);
+$("k_btnMaintenance").addEventListener("click", ()=>runMaintenance("KeywordChecker"));
 
-$("k_btnAdd").addEventListener("click", k_addKeyword);
-$("k_newKw").addEventListener("keydown", (e)=>{
-  if(e.key === "Enter"){ e.preventDefault(); k_addKeyword(); }
+$("k_sessionSelect").addEventListener("change", k_applyFilters);
+$("k_statusSelect").addEventListener("change", k_applyFilters);
+
+/* header arrow click -> quick cycle status filter */
+$("k_thFilterPill").addEventListener("click", ()=>{
+  const sel = $("k_statusSelect");
+  const order = ["ALL","NOT PROCESSED","PROCESSED","DISCONNECTED"];
+  const cur = sel.value || "ALL";
+  const idx = order.indexOf(cur);
+  const next = order[(idx+1) % order.length];
+  sel.value = next;
+  $("k_thFilterPill").textContent = next === "ALL" ? "▼ Filter" : ("▼ " + next);
+  k_applyFilters();
 });
 
-$("k_btnDefault").addEventListener("click", k_setDefault);
-$("k_btnClearAll").addEventListener("click", k_clearAllKeywords);
-
-$("k_filter").addEventListener("change", ()=>{
-  // sync pop state too
-  k_applyFilter();
-  setKeywordStatus(`Filter: ${$("k_filter").value}`, "ok");
-});
-
-/* "flesh" popover */
-$("k_flesh").addEventListener("click", (e)=>{
-  e.stopPropagation();
-  if(k_popOpen) k_closePop();
-  else k_openPop($("k_flesh"));
-});
-
-$("k_pop").querySelectorAll("button").forEach(b=>{
-  b.addEventListener("click", ()=>{
-    $("k_filter").value = b.dataset.v;
-    k_applyFilter();
-    $("k_pop").querySelectorAll("button").forEach(x=>x.classList.toggle("active", x===b));
-    k_closePop();
-    setKeywordStatus(`Filter: ${b.dataset.v}`, "ok");
-  });
-});
-
-document.addEventListener("click", (e)=>{
-  if(!k_popOpen) return;
-  const pop = $("k_pop");
-  if(pop.contains(e.target)) return;
-  if(e.target === $("k_flesh")) return;
-  k_closePop();
-});
-
-/* =========================
-   Maintenance button
-========================= */
-$("btnMaintenance").addEventListener("click", sendMaintenance);
-
-/* =========================
+/* =========================================================
    Init
-========================= */
-setPill("", "Ready");
-setMode("Analyzer");
-a_refreshModeUI();
-k_loadKeywords();
-setAnalyzerStatus("Waiting…", "muted");
-setKeywordStatus("Waiting…", "muted");
-</script>
+========================================================= */
+$("tabAnalyzer").addEventListener("click", ()=>showTab("Analyzer"));
+$("tabKeyword").addEventListener("click", ()=>{
+  showTab("Keyword");
+  // render chips if not rendered
+  k_renderChips();
+});
 
+setPill("", "Ready");
+refreshModeUI();
+k_renderChips();
+k_fillSessionSelect();
+</script>
 </body>
 </html>
-
