@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quality Analyzer</title>
 
   <!-- html2canvas for Maintenance screenshot -->
@@ -10,2075 +10,1676 @@
 
   <style>
     :root{
-      --bg0:#070a14;
-      --bg1:#0a1022;
-      --panel: rgba(255,255,255,0.04);
-      --panel2: rgba(255,255,255,0.06);
-      --stroke: rgba(255,255,255,0.08);
-      --text:#e9ecff;
-      --muted:#aeb6da;
-      --brand1:#6d6bff;
-      --brand2:#14d9ff;
-      --good:#2ee59d;
-      --bad:#ff4d6d;
-      --warn:#ffb020;
-      --chip:#0f1833;
-      --chipStroke: rgba(255,255,255,0.10);
-      --shadow: 0 16px 50px rgba(0,0,0,0.55);
-      --radius: 18px;
-      --radius2: 14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --bg0:#070A12;
+      --bg1:#090E1C;
+      --card:#0D1224cc;
+      --card2:#0C1122f0;
+      --stroke:#2B3350;
+      --stroke2:#384064;
+      --text:#EAF0FF;
+      --muted:#AEB8D9;
+      --muted2:#7E89B2;
+
+      --brandA:#6A5CFF;
+      --brandB:#2EC6FF;
+      --good:#26E37A;
+      --bad:#FF4D6D;
+      --warn:#FFC857;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --r12:12px;
+      --r16:16px;
+      --r18:18px;
+      --r22:22px;
     }
-    *{box-sizing:border-box}
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
-      font-family: var(--sans);
-      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
       background:
-        radial-gradient(1200px 700px at 15% 10%, rgba(109,107,255,0.35), transparent 55%),
-        radial-gradient(1000px 700px at 90% 15%, rgba(20,217,255,0.22), transparent 50%),
-        radial-gradient(900px 650px at 50% 95%, rgba(255,77,109,0.12), transparent 55%),
+        radial-gradient(1200px 600px at 20% 15%, rgba(106,92,255,.28), transparent 60%),
+        radial-gradient(900px 520px at 85% 22%, rgba(46,198,255,.22), transparent 55%),
+        radial-gradient(700px 600px at 60% 85%, rgba(26,227,122,.10), transparent 58%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
-      min-height:100vh;
+      overflow-x:hidden;
     }
 
-    .wrap{
-      max-width: 1320px;
-      margin: 28px auto;
-      padding: 0 18px 32px;
-    }
+    .wrap{ max-width: 1220px; margin: 28px auto; padding: 0 16px 40px; }
 
     .topbar{
-      display:flex;
-      gap:14px;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:14px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px;
+      margin-bottom: 14px;
     }
     .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width: 320px;
+      display:flex; align-items:center; gap:12px;
+      min-width: 280px;
     }
     .logo{
-      width:40px;height:40px;border-radius:12px;
-      background: linear-gradient(135deg, rgba(109,107,255,0.95), rgba(20,217,255,0.9));
-      box-shadow: 0 10px 30px rgba(109,107,255,0.25);
+      width:42px; height:42px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(106,92,255,.95), rgba(46,198,255,.7));
+      box-shadow: 0 10px 30px rgba(106,92,255,.28);
     }
     .brand h1{
-      margin:0;
-      font-size: 18px;
-      letter-spacing: 0.2px;
-      font-weight: 800;
+      margin:0; font-size: 20px; line-height: 1.2;
+      letter-spacing:.2px;
     }
-    .brand .sub{
-      margin-top:2px;
-      color: var(--muted);
-      font-size: 12.5px;
+    .brand p{
+      margin:2px 0 0; font-size: 12px; color: var(--muted);
     }
 
-    .top-actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
+    .chips{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
       justify-content:flex-end;
-      flex-wrap:wrap;
     }
-
-    .pill{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding: 8px 12px;
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border:1px solid rgba(56,64,100,.75);
+      background: rgba(12,17,34,.65);
       border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
       color: var(--muted);
       font-size: 12px;
-      max-width: 520px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .dot{
-      width:9px;height:9px;border-radius:999px;background: var(--warn);
-      box-shadow: 0 0 0 3px rgba(255,176,32,0.18);
-      flex:0 0 auto;
-    }
-    .dot.good{ background: var(--good); box-shadow: 0 0 0 3px rgba(46,229,157,0.16); }
-    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(255,77,109,0.14); }
-
-    .btn{
-      border:0;
-      cursor:pointer;
-      border-radius: 14px;
-      padding: 10px 14px;
-      font-weight: 700;
-      color: var(--text);
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      transition: transform .12s ease, background .12s ease, border-color .12s ease;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
       user-select:none;
+      white-space:nowrap;
     }
-    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.075); border-color: rgba(255,255,255,0.13); }
-    .btn:active{ transform: translateY(0px) scale(0.99); }
-    .btn.primary{
-      background: linear-gradient(90deg, rgba(109,107,255,0.95), rgba(20,217,255,0.75));
-      border-color: rgba(255,255,255,0.10);
-      box-shadow: 0 12px 40px rgba(109,107,255,0.18);
-    }
-    .btn.danger{
-      background: linear-gradient(90deg, rgba(255,77,109,0.95), rgba(255,176,32,0.55));
-      border-color: rgba(255,255,255,0.10);
-    }
-    .btn.good{
-      background: linear-gradient(90deg, rgba(46,229,157,0.95), rgba(20,217,255,0.55));
-      border-color: rgba(255,255,255,0.10);
-    }
-    .btn.small{ padding:8px 12px; border-radius: 12px; font-size: 12.5px; }
-    .btn.ghost{
-      background: rgba(255,255,255,0.03);
-    }
+    .dot{ width:8px; height:8px; border-radius:50%; background: var(--bad); box-shadow:0 0 0 4px rgba(255,77,109,.15); }
+    .dot.good{ background: var(--good); box-shadow:0 0 0 4px rgba(38,227,122,.12); }
+    .dot.warn{ background: var(--warn); box-shadow:0 0 0 4px rgba(255,200,87,.12); }
 
-    .card{
-      border-radius: var(--radius);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
+    .panel{
+      border: 1px solid rgba(56,64,100,.65);
+      background: linear-gradient(180deg, rgba(13,18,36,.72), rgba(10,14,27,.65));
+      border-radius: var(--r22);
       box-shadow: var(--shadow);
       overflow:hidden;
+      backdrop-filter: blur(10px);
     }
 
     .tabs{
-      display:flex;
-      gap:10px;
+      display:flex; gap:10px;
       padding: 14px 14px 0;
     }
-    .tab{
-      padding: 10px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
+    .tabbtn{
+      border:1px solid rgba(56,64,100,.75);
+      background: rgba(12,17,34,.6);
       color: var(--muted);
-      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 14px;
       cursor:pointer;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing:.2px;
+      transition: .18s ease;
+      display:flex; align-items:center; gap:8px;
       user-select:none;
-      transition: .12s ease;
     }
-    .tab.active{
+    .tabbtn:hover{ transform: translateY(-1px); border-color: rgba(106,92,255,.6); color: var(--text); }
+    .tabbtn.active{
+      background: linear-gradient(135deg, rgba(106,92,255,.35), rgba(46,198,255,.16));
+      border-color: rgba(106,92,255,.65);
       color: var(--text);
-      background: rgba(109,107,255,0.12);
-      border-color: rgba(109,107,255,0.28);
-      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.08);
+      box-shadow: 0 10px 40px rgba(106,92,255,.18);
     }
 
-    .page{
-      padding: 14px;
-    }
+    .content{ padding: 14px; }
     .grid{
       display:grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1.45fr 1fr;
       gap: 14px;
       align-items:start;
     }
-
-    @media(max-width: 1050px){
+    @media (max-width: 980px){
       .grid{ grid-template-columns: 1fr; }
-      .brand{ min-width:unset; }
+      .brand{ min-width:auto; }
     }
 
-    .panel{
-      border-radius: var(--radius);
-      background: rgba(0,0,0,0.12);
-      border: 1px solid rgba(255,255,255,0.08);
+    .card{
+      border:1px solid rgba(56,64,100,.55);
+      background: rgba(10,14,27,.55);
+      border-radius: var(--r18);
+      box-shadow: 0 12px 45px rgba(0,0,0,.32);
       overflow:hidden;
     }
-    .panel .head{
-      padding: 12px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.02);
+    .card .hd{
+      display:flex; align-items:flex-start; justify-content:space-between;
+      padding: 12px 12px 0;
+      gap:10px;
     }
-    .panel .head h2{
+    .title{
+      font-size: 13px;
+      font-weight: 800;
       margin:0;
-      font-size: 13.5px;
-      letter-spacing: 0.2px;
+      letter-spacing:.2px;
     }
-    .panel .head .hint{
+    .sub{
+      margin:4px 0 0;
       color: var(--muted);
       font-size: 12px;
+      line-height: 1.35;
+    }
+    .badge{
+      border:1px solid rgba(56,64,100,.75);
+      background: rgba(12,17,34,.55);
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      user-select:none;
+      white-space:nowrap;
     }
 
     textarea{
       width:100%;
-      min-height: 330px;
-      resize: vertical;
-      padding: 12px;
-      border-radius: 14px;
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(109,107,255,0.20);
-      outline:none;
+      min-height: 320px;
+      padding: 12px 12px 14px;
+      border-radius: 16px;
+      border:1px solid rgba(56,64,100,.65);
+      background: rgba(6,8,16,.55);
       color: var(--text);
-      font-family: var(--mono);
-      font-size: 12.6px;
-      line-height: 1.45;
-      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.04);
+      outline:none;
+      resize: vertical;
+      line-height: 1.35;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      box-shadow: inset 0 0 0 2px rgba(106,92,255,.06);
+      transition: .18s ease;
     }
     textarea:focus{
-      border-color: rgba(20,217,255,0.35);
-      box-shadow: 0 0 0 3px rgba(20,217,255,0.12);
+      border-color: rgba(106,92,255,.75);
+      box-shadow: inset 0 0 0 2px rgba(106,92,255,.18), 0 0 0 4px rgba(106,92,255,.10);
     }
 
     .controls{
-      padding: 12px 14px 14px;
+      padding: 10px 12px 14px;
       display:flex;
       flex-direction:column;
       gap: 12px;
     }
 
-    .kpi-row{
+    .kpis{
       display:grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    @media(max-width: 560px){
-      .kpi-row{ grid-template-columns: 1fr; }
+      gap: 10px;
     }
     .kpi{
-      padding: 12px;
+      border: 1px solid rgba(56,64,100,.55);
+      background: rgba(12,17,34,.45);
       border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
+      padding: 10px 10px 9px;
+      min-height: 62px;
     }
-    .kpi .label{
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
+    .kpi .label{ color: var(--muted); font-size: 12px; font-weight: 800; }
     .kpi .value{
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: 0.2px;
-    }
-    .kpi .sub{
       margin-top: 6px;
-      font-size: 11.5px;
-      color: var(--muted);
-      font-family: var(--mono);
+      font-size: 18px; font-weight: 900;
+      letter-spacing:.3px;
     }
+    .kpi .hint{ margin-top: 6px; font-size: 11px; color: var(--muted2); }
 
-    .btn-row{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    @media(max-width: 560px){
-      .btn-row{ grid-template-columns: 1fr; }
-    }
-
-    .section{
-      padding: 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.02);
-    }
-    .section-title{
+    .row{
       display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom: 10px;
-    }
-    .section-title .t{
-      font-weight: 900;
-      font-size: 12.5px;
-      letter-spacing: 0.3px;
-    }
-    .section-title .r{
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .toggle-row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-bottom: 10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
-    .toggle{
-      padding: 12px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.02);
+    .btn{
+      border:1px solid rgba(56,64,100,.75);
+      background: rgba(12,17,34,.55);
+      color: var(--text);
+      padding: 11px 12px;
+      border-radius: 14px;
       cursor:pointer;
-      user-select:none;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
       font-weight: 900;
+      font-size: 13px;
+      letter-spacing:.2px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      min-width: 160px;
+      justify-content:center;
+      user-select:none;
+      transition: .18s ease;
+      white-space:nowrap;
     }
-    .toggle .radio{
-      width: 12px;height:12px;border-radius:999px;
-      border:2px solid rgba(255,255,255,0.35);
-      display:inline-block;
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.35);
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(106,92,255,.7); }
+    .btn.primary{
+      border-color: rgba(106,92,255,.7);
+      background: linear-gradient(135deg, rgba(106,92,255,.55), rgba(46,198,255,.25));
+      box-shadow: 0 12px 34px rgba(106,92,255,.18);
     }
-    .toggle.active{
-      border-color: rgba(109,107,255,0.30);
-      background: rgba(109,107,255,0.08);
+    .btn.ghost{
+      background: rgba(12,17,34,.30);
     }
-    .toggle.active .radio{
-      border-color: rgba(20,217,255,0.9);
-      box-shadow: 0 0 0 4px rgba(20,217,255,0.12);
-      background: rgba(20,217,255,0.8);
+    .btn.warn{
+      border-color: rgba(255,200,87,.55);
+      background: linear-gradient(135deg, rgba(255,200,87,.20), rgba(255,77,109,.12));
+    }
+    .btn.small{
+      min-width: auto;
+      padding: 10px 10px;
+      border-radius: 12px;
+      font-size: 12px;
     }
 
     .field{
       display:flex;
       flex-direction:column;
-      gap: 6px;
-      margin-bottom: 10px;
+      gap: 8px;
+      border: 1px solid rgba(56,64,100,.55);
+      background: rgba(12,17,34,.35);
+      border-radius: 16px;
+      padding: 10px;
     }
-    .field label{
+    .field .lbl{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
       color: var(--muted);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
     }
     .field input, .field select{
       width:100%;
-      padding: 10px 12px;
+      padding: 11px 12px;
       border-radius: 14px;
-      background: rgba(0,0,0,0.14);
-      border: 1px solid rgba(255,255,255,0.10);
+      border: 1px solid rgba(56,64,100,.70);
+      background: rgba(6,8,16,.45);
       color: var(--text);
       outline:none;
-      font-family: var(--sans);
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
+      transition:.18s ease;
     }
     .field input:focus, .field select:focus{
-      border-color: rgba(20,217,255,0.30);
-      box-shadow: 0 0 0 3px rgba(20,217,255,0.10);
+      border-color: rgba(46,198,255,.65);
+      box-shadow: 0 0 0 4px rgba(46,198,255,.10);
     }
-    .hint2{
-      color: var(--muted);
-      font-size: 11.5px;
-      font-family: var(--mono);
-    }
+    .help{ color: var(--muted2); font-size: 11px; }
 
-    .status-box{
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-    }
-    .status-pills{
-      display:flex;
-      flex-wrap:wrap;
-      gap: 8px;
-      max-height: 150px;
-      overflow:auto;
-      padding-right:4px;
-    }
-    .sp{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      padding: 7px 10px;
+    .pillrow{ display:flex; flex-wrap:wrap; gap:8px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(56,64,100,.65);
+      background: rgba(6,8,16,.35);
       color: var(--text);
       font-size: 12px;
-      font-weight: 800;
-      cursor:pointer;
+      font-weight: 900;
       user-select:none;
+      max-width:100%;
     }
-    .sp small{
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 11px;
+    .pill .x{
+      width:18px; height:18px;
+      border-radius: 10px;
+      display:grid; place-items:center;
+      border:1px solid rgba(255,77,109,.35);
+      background: rgba(255,77,109,.12);
+      color: rgba(255,200,210,.95);
+      cursor:pointer;
+      font-weight: 900;
+      line-height:1;
     }
-    .sp.active{
-      border-color: rgba(109,107,255,0.35);
-      background: rgba(109,107,255,0.12);
-      box-shadow: inset 0 0 0 1px rgba(20,217,255,0.06);
+    .pill.mini{ font-weight: 800; }
+
+    .hr{
+      height:1px;
+      background: rgba(56,64,100,.45);
+      margin: 4px 0;
     }
 
-    .msg{
-      margin-top: 6px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.12);
-      color: var(--muted);
-      font-size: 12.5px;
-      font-family: var(--mono);
-      min-height: 40px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .msg .dot{ flex:0 0 auto; }
-
-    /* table */
-    .table-wrap{
+    .tableWrap{
       margin-top: 14px;
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.10);
+      border:1px solid rgba(56,64,100,.55);
+      background: rgba(10,14,27,.35);
+      border-radius: var(--r18);
       overflow:hidden;
     }
     table{
       width:100%;
       border-collapse: collapse;
-      font-size: 12.8px;
     }
     thead th{
       text-align:left;
-      padding: 12px 12px;
+      font-size: 12px;
       color: var(--muted);
       font-weight: 900;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      background: rgba(255,255,255,0.02);
-      user-select:none;
-      position:relative;
-      cursor:pointer;
+      padding: 12px 12px;
+      background: rgba(12,17,34,.55);
+      border-bottom: 1px solid rgba(56,64,100,.45);
       white-space:nowrap;
     }
-    thead th .sort{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-    .chev{
-      width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;
-      border-top:6px solid rgba(255,255,255,0.35);
-      transform: translateY(2px);
-      opacity:0.8;
-    }
-    .chev.up{ border-top:0; border-bottom:6px solid rgba(255,255,255,0.35); transform: translateY(-1px); }
     tbody td{
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(56,64,100,.28);
+      font-size: 12px;
       color: var(--text);
       vertical-align: top;
     }
-    tbody tr:hover td{ background: rgba(255,255,255,0.02); }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    tbody tr:hover{
+      background: rgba(106,92,255,.05);
+    }
+    .statusPill{
+      display:inline-flex; align-items:center; justify-content:center;
       padding: 6px 10px;
       border-radius: 999px;
-      font-weight: 900;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.16);
+      font-size: 12px;
+      font-weight: 1000;
+      letter-spacing:.2px;
+      border: 1px solid rgba(56,64,100,.65);
+      background: rgba(6,8,16,.35);
+      user-select:none;
       white-space:nowrap;
     }
-    .badge.good{ border-color: rgba(46,229,157,0.22); background: rgba(46,229,157,0.10); color: #bfffe7; }
-    .badge.bad{ border-color: rgba(255,77,109,0.22); background: rgba(255,77,109,0.10); color: #ffd0da; }
-    .badge.warn{ border-color: rgba(255,176,32,0.22); background: rgba(255,176,32,0.10); color: #ffe4b8; }
-    .mono{ font-family: var(--mono); }
+    .statusPill.good{ border-color: rgba(38,227,122,.35); background: rgba(38,227,122,.10); color: #bfffe0; }
+    .statusPill.bad{ border-color: rgba(255,77,109,.35); background: rgba(255,77,109,.10); color: #ffd0d8; }
+    .statusPill.warn{ border-color: rgba(255,200,87,.40); background: rgba(255,200,87,.10); color: #ffe7b0; }
+
     .muted{ color: var(--muted); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
-    /* Keyword chips */
-    .kw-row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .kw-input{
-      flex:1 1 260px;
-      min-width: 220px;
-    }
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.18);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-      color: var(--text);
-      font-weight: 800;
-      font-size: 12.3px;
-    }
-    .chip .x{
-      width: 18px; height: 18px;
-      border-radius: 999px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(255,77,109,0.16);
-      border: 1px solid rgba(255,77,109,0.20);
-      color: #ffd0da;
-      cursor:pointer;
-      user-select:none;
-      font-weight: 900;
-      line-height:1;
-      transform: translateY(-0.5px);
-    }
-    .chip .x:hover{ background: rgba(255,77,109,0.22); }
-
-    /* Modal */
-    .modal-back{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,0.55);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 16px;
-      z-index: 999;
-    }
-    .modal{
-      width: min(640px, 100%);
-      border-radius: 18px;
-      background: rgba(10,16,34,0.95);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 30px 90px rgba(0,0,0,0.70);
-      overflow:hidden;
-    }
-    .modal .mhead{
-      padding: 14px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.02);
-    }
-    .modal .mhead .title{
-      font-weight: 900;
-      letter-spacing: 0.2px;
-    }
-    .modal .mbody{
-      padding: 14px 16px 16px;
+    .toast{
+      position: fixed;
+      right: 14px;
+      top: 14px;
+      z-index: 9999;
       display:flex;
       flex-direction:column;
-      gap: 10px;
+      gap:10px;
+      pointer-events:none;
     }
-    .modal .mfoot{
-      padding: 12px 16px 16px;
-      display:flex;
-      gap: 10px;
-      justify-content:flex-end;
-    }
-    .closeX{
-      cursor:pointer;
-      border-radius: 12px;
-      padding: 8px 10px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.20);
-      color: var(--text);
-      font-weight: 900;
-    }
-    .closeX:hover{ background: rgba(0,0,0,0.30); }
-    .mini{
-      font-size: 12px;
-      color: var(--muted);
-      line-height:1.5;
-    }
-
-    .sessionBox{
-      margin-top: 10px;
-      border-top: 1px dashed rgba(255,255,255,0.10);
-      padding-top: 10px;
-    }
-    details{
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      background: rgba(0,0,0,0.16);
+    .toast .t{
+      pointer-events:auto;
+      min-width: 280px;
+      max-width: 420px;
       padding: 10px 12px;
-      margin-bottom: 10px;
-    }
-    details summary{
-      cursor:pointer;
-      font-weight: 900;
+      border-radius: 16px;
+      border:1px solid rgba(56,64,100,.75);
+      background: rgba(12,17,34,.78);
+      box-shadow: var(--shadow);
       color: var(--text);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .t .head{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom: 6px;
+      font-weight: 1000;
+    }
+    .t .close{
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 1000;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border:1px solid rgba(56,64,100,.55);
+      background: rgba(6,8,16,.35);
+    }
+    .t.good{ border-color: rgba(38,227,122,.35); }
+    .t.bad{ border-color: rgba(255,77,109,.35); }
+    .t.warn{ border-color: rgba(255,200,87,.40); }
+
+    /* small filter arrow in header */
+    .thFlex{
+      display:flex; align-items:center; gap:8px;
+    }
+    .thFilterBtn{
+      width:22px; height:22px;
+      border-radius: 10px;
+      border:1px solid rgba(56,64,100,.65);
+      background: rgba(6,8,16,.35);
+      display:grid; place-items:center;
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 1000;
+      user-select:none;
+    }
+    .thFilterBtn:hover{ border-color: rgba(46,198,255,.55); color: var(--text); }
+
+    .sessionList{
+      margin-top: 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height: 220px;
+      overflow:auto;
+      padding-right: 4px;
+    }
+    .sessionItem{
+      border:1px solid rgba(56,64,100,.45);
+      background: rgba(6,8,16,.25);
+      border-radius: 14px;
+      padding: 10px 10px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 10px;
+      gap:10px;
     }
-    .counts{
-      color: var(--muted);
+    .sessionName{
+      font-weight: 1000;
       font-size: 12px;
-      font-family: var(--mono);
-      font-weight: 800;
+      letter-spacing:.2px;
+      color: var(--text);
     }
-	/* Make select dropdown options readable (Windows/Chrome) */
-#kwFilter {
-  color: #e9ecff !important;
-  background: rgba(0,0,0,0.18) !important;
-}
+    .sessionMeta{
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-size: 11px;
+      color: var(--muted);
+      white-space:nowrap;
+      justify-content:flex-end;
+    }
+    .sessionMeta b{ color: var(--text); }
 
-#kwFilter option {
-  background: #0a1022 !important;
-  color: #e9ecff !important;
-}
-
-/* Hover/selected feel (not all browsers support) */
-#kwFilter option:checked {
-  background: #1a2a55 !important;
-  color: #e9ecff !important;
-}
-
-
+    .hidden{ display:none !important; }
   </style>
 </head>
 
 <body>
+  <div class="toast" id="toast"></div>
+
   <div class="wrap" id="appRoot">
     <div class="topbar">
       <div class="brand">
         <div class="logo"></div>
         <div>
-          <h1>Analyzer Toolkit</h1>
-          <div class="sub"></div>
+          <h1>Quality Analyzer</h1>
+          <p></p>
         </div>
       </div>
 
-      <div class="top-actions">
-        <div class="pill" id="globalPill">
-          <span class="dot bad" id="pillDot"></span>
-          <span id="pillText">No valid rows parsed (check format)</span>
-        </div>
+      <div class="chips">
+        <div class="chip" id="tipChip"><span class="dot warn"></span> Tip: Process → Apply filters → Check</div>
+        <div class="chip" id="statusChip"><span class="dot" id="statusDot"></span> <span id="statusText">No valid rows parsed (check format)</span></div>
+        <button class="chip" id="maintenanceBtn" style="cursor:pointer; border-style:dashed;">
+          <span class="dot warn"></span> 🛠 Maintenance report
+        </button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="panel">
       <div class="tabs">
-        <div class="tab active" id="tabAnalyzer">Imacros</div>
-        <div class="tab" id="tabKeyword">Webautomate</div>
+        <button class="tabbtn active" id="tabAnalyzer">📊 Imacors</button>
+        <button class="tabbtn" id="tabKeyword">🧠 webautomate</button>
       </div>
 
-      <div class="page" id="pageAnalyzer">
-        <div class="grid">
-          <div class="panel">
-            <div class="head">
-              <h2>Input</h2>
-              <div class="hint">Paste CSV / logs here</div>
-            </div>
-            <div style="padding:12px;">
-              <textarea id="anInput" placeholder='"2720,birthday already exist,29-01-2026 13-13"
-5731,script Add_language,failed to change language,27-01-2026 11-57
+      <div class="content">
+
+        <!-- ===================== Analyzer ===================== -->
+        <div id="viewAnalyzer">
+          <div class="grid">
+            <div class="card">
+              <div class="hd">
+                <div>
+                  <p class="title">Input</p>
+                  <p class="sub">Paste CSV / logs here (date can be anywhere in the line). We detect ID + DATE + STATUS.</p>
+                </div>
+                <span class="badge">Classic output</span>
+              </div>
+              <div style="padding:12px;">
+                <textarea id="anInput" placeholder='"5731,script Add_language,failed to change language,27-01-2026 11-57"
+"5732,success,birthday already exist,29-01-2026 13:19"
 ...'></textarea>
-              <div class="hint2" style="margin-top:8px;">
-                Supported dates: YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY, M/D/YYYY — time: HH:MM or HH-MM.
-                Lines wrapped in quotes like <span class="mono">"2720,...,29-01-2026 13-13"</span> are supported.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="hd">
+                <div>
+                  <p class="title">Controls</p>
+                  <p class="sub">Filters affect table + range check.</p>
+                </div>
+                <span class="badge">Analyzer</span>
+              </div>
+
+              <div class="controls">
+                <div class="kpis">
+                  <div class="kpi">
+                    <div class="label">Total rows</div>
+                    <div class="value" id="anTotal">0</div>
+                    <div class="hint" id="anDays">Days: —</div>
+                  </div>
+                  <div class="kpi">
+                    <div class="label">Visible rows</div>
+                    <div class="value" id="anVisible">0</div>
+                    <div class="hint" id="anVisibleHint">—</div>
+                  </div>
+                  <div class="kpi">
+                    <div class="label">Not processed</div>
+                    <div class="value" id="anNotProcessed">0</div>
+                    <div class="hint">after Check</div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <button class="btn primary" id="anProcessBtn">⚡ Process</button>
+                  <button class="btn" id="anCopyIdsBtn">📋 Copy IDs</button>
+                  <button class="btn" id="anExportCsvBtn">⬇ Export CSV</button>
+                </div>
+
+                <div class="field">
+                  <div class="lbl">
+                    <span>Date filter</span>
+                    <span class="muted">Single day / Date range</span>
+                  </div>
+
+                  <div class="row" style="justify-content:space-between;">
+                    <button class="btn small ghost" id="anSingleModeBtn" style="min-width: 140px;">◉ Single day</button>
+                    <button class="btn small ghost" id="anRangeModeBtn" style="min-width: 140px;">○ Date range</button>
+                  </div>
+
+                  <div class="row" id="anSingleRow">
+                    <input id="anSingleDay" placeholder="Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)" />
+                  </div>
+
+                  <div class="row hidden" id="anRangeRow">
+                    <input id="anFromDay" placeholder="From (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)" />
+                    <input id="anToDay" placeholder="To (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)" />
+                  </div>
+
+                  <div class="help">Examples: 2026-01-20 | 20-01-2026 | 1/20/2026. Tip: if From &gt; To we auto-swap.</div>
+
+                  <div class="row">
+                    <button class="btn primary" id="anApplyDateBtn" style="min-width: 180px;">✅ Apply date</button>
+                    <button class="btn ghost" id="anClearDateBtn" style="min-width: 140px;">↩ Clear</button>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="lbl">
+                    <span>ID range check</span>
+                    <span class="muted">Type: 3376 - 4375</span>
+                  </div>
+                  <input id="anIdRange" placeholder="1961 - 2240" />
+                  <div class="help">You can type: <b>1961-2240</b> or <b>1961 - 2240</b>. We compare on visible rows.</div>
+
+                  <div class="row">
+                    <button class="btn primary" id="anCheckBtn">🔎 Check</button>
+                    <button class="btn" id="anCopyNotBtn">📋 Copy NOT</button>
+                    <button class="btn" id="anExportNotBtn">⬇ Export NOT</button>
+                  </div>
+
+                  <div class="row" style="gap:8px;">
+                    <span class="chip" style="pointer-events:none;"><span class="dot good"></span> Processed unique: <b id="anProcessedUnique">0</b></span>
+                    <span class="chip" style="pointer-events:none;"><span class="dot"></span> Not processed: <b id="anNotCount">0</b></span>
+                    <span class="chip" style="pointer-events:none;"><span class="dot warn"></span> Duplicates: <b id="anDupCount">0</b></span>
+                  </div>
+
+                  <div class="field" style="padding:10px; background: rgba(6,8,16,.25);">
+                    <div class="lbl"><span>Run “Check”…</span><span class="muted">log</span></div>
+                    <div id="anLog" class="mono" style="font-size:12px; color:var(--muted); white-space:pre-wrap; min-height: 18px;"></div>
+                    <div id="anErr" class="mono" style="font-size:12px; color:#ff9fb0; white-space:pre-wrap;"></div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
 
-          <div class="panel">
-            <div class="head">
-              <h2>Controls</h2>
-              <div class="hint">Classic output</div>
-            </div>
-
-            <div class="controls">
-              <div class="kpi-row">
-                <div class="kpi">
-                  <div class="label">Total rows</div>
-                  <div class="value" id="anTotal">0</div>
-                </div>
-                <div class="kpi">
-                  <div class="label">Visible rows</div>
-                  <div class="value" id="anVisible">0</div>
-                </div>
-                <div class="kpi">
-                  <div class="label">Not processed</div>
-                  <div class="value" id="anMissingCount">0</div>
-                  <div class="sub">after Check</div>
-                </div>
-              </div>
-
-              <div class="btn-row">
-                <button class="btn primary" id="anProcess">⚡ Process</button>
-                <button class="btn" id="anCopyIds">📋 Copy IDs</button>
-                <button class="btn" id="anExportCsv">⬇ Export CSV</button>
-              </div>
-
-              <div class="section">
-                <div class="section-title">
-                  <div class="t">Date filter</div>
-                  <div class="r" id="anDateModeLabel">Single day</div>
-                </div>
-
-                <div class="toggle-row">
-                  <div class="toggle active" id="anModeSingle">
-                    <span class="radio"></span>
-                    <span>Single day</span>
-                  </div>
-                  <div class="toggle" id="anModeRange">
-                    <span class="radio"></span>
-                    <span>Date range</span>
-                  </div>
-                </div>
-
-                <div class="field" id="anSingleField">
-                  <label>Day (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)</label>
-                  <input id="anDaySingle" placeholder="2026-01-20 or 20-01-2026 or 1/20/2026" />
-                </div>
-
-                <div class="field" id="anRangeFields" style="display:none;">
-                  <label>From (day)</label>
-                  <input id="anDayFrom" placeholder="24-01-2026" />
-                  <label style="margin-top:10px;">To (day)</label>
-                  <input id="anDayTo" placeholder="26-01-2026" />
-                  <div class="hint2">Tip: if From > To we auto-swap</div>
-                </div>
-
-                <div class="btn-row" style="grid-template-columns: 1fr 1fr;">
-                  <button class="btn primary" id="anApplyDate">✅ Apply date</button>
-                  <button class="btn" id="anClearDate">↩ Clear</button>
-                </div>
-              </div>
-
-              <div class="section">
-                <div class="section-title">
-                  <div class="t">Status filter</div>
-                  <div class="r">Multi-select</div>
-                </div>
-
-                <div class="field">
-                  <label>Search status</label>
-                  <input id="anStatusSearch" placeholder="type to search..." />
-                </div>
-
-                <div class="status-box">
-                  <div class="hint2">If none selected → all statuses</div>
-                  <div class="status-pills" id="anStatusPills"></div>
-                  <button class="btn small ghost" id="anClearStatus">Clear status</button>
-                </div>
-              </div>
-
-              <div class="section">
-                <div class="section-title">
-                  <div class="t">ID range check</div>
-                  <div class="r">Type: <span class="mono">3376 - 4375</span></div>
-                </div>
-                <div class="field">
-                  <label>Range</label>
-                  <input id="anRange" placeholder="1961 - 2240" value="1961 - 2240" />
-                  <div class="hint2">You can type: <span class="mono">1961-2240</span> | <span class="mono">1961 - 2240</span></div>
-                </div>
-
-                <div class="btn-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                  <button class="btn good" id="anCheck">🔎 Check</button>
-                  <button class="btn" id="anCopyNot">📋 Copy NOT</button>
-                  <button class="btn" id="anExportNot">⬇ Export NOT</button>
-                </div>
-
-                <div class="kpi-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                  <div class="kpi"><div class="label">Processed unique</div><div class="value" id="anUnique">0</div></div>
-                  <div class="kpi"><div class="label">Not processed</div><div class="value" id="anNot">0</div></div>
-                  <div class="kpi"><div class="label">Duplicates</div><div class="value" id="anDup">0</div></div>
-                </div>
-
-                <div class="msg" id="anMsg"><span class="dot bad"></span><span class="mono">No valid rows parsed (check format)</span></div>
-              </div>
-            </div>
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:90px;">ID</th>
+                  <th style="width:140px;">STATUS</th>
+                  <th style="width:180px;">DATETIME</th>
+                  <th style="width:140px;">DAY</th>
+                  <th>RAW (preview)</th>
+                </tr>
+              </thead>
+              <tbody id="anTableBody">
+                <tr><td colspan="5" class="muted">No rows</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th data-k="id"><span class="sort">ID <span class="chev" id="anSortId"></span></span></th>
-                <th data-k="status"><span class="sort">STATUS <span class="chev" id="anSortStatus"></span></span></th>
-                <th data-k="datetime"><span class="sort">DATETIME <span class="chev" id="anSortDatetime"></span></span></th>
-                <th data-k="day"><span class="sort">DAY <span class="chev" id="anSortDay"></span></span></th>
-              </tr>
-            </thead>
-            <tbody id="anTableBody">
-              <tr><td colspan="4" class="muted">No rows</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- ===================== Keyword Checker ===================== -->
+        <div id="viewKeyword" class="hidden">
+          <div class="grid">
+            <div class="card">
+              <div class="hd">
+                <div>
+                  <p class="title">Keyword Checker Input</p>
+                  <p class="sub">Paste table text (TAB/CSV/semicolon) <b>with headers</b>.</p>
+                </div>
+                <span class="badge">Keyword Checker mode</span>
+              </div>
 
-      </div>
-
-      <div class="page" id="pageKeyword" style="display:none;">
-        <div class="grid">
-          <div class="panel">
-            <div class="head">
-              <h2>Keyword Checker Input</h2>
-              <div class="hint">Paste your table (TAB/CSV/; ) with headers</div>
-            </div>
-            <div style="padding:12px;">
-              <textarea id="kwInput" placeholder="profile_Name	tag	status_name	log	cnx_problems	details	script_name	session_name
-1	[07AD...]	Completed	[ Status => connected Updated!]			...	CMH1_IT_3(173.225.106.66)
+              <div style="padding:12px;">
+                <textarea id="kwInput" placeholder="profile_Name	tag	status_name	log	cnx_problems	details	script_name	session_name
+1	[07AD...]	Completed	[ Status =&gt; connected Updated!]		...
 ..."></textarea>
-              <div class="hint2" style="margin-top:8px;">
-                Required headers (case-insensitive): <span class="mono">profile_Name</span> + <span class="mono">log</span> + <span class="mono">details</span>
-                (optional: <span class="mono">cnx_problems</span>, <span class="mono">session_name</span>, <span class="mono">script_name</span>, <span class="mono">tag</span>, <span class="mono">status_name</span>)
+
+                <div class="help" style="margin-top:10px;">
+                  Required headers (case-insensitive): <b>profile_Name</b> + <b>log</b> + <b>details</b>
+                  (optional: cnx_problems, session_name, script_name, tag, status_name).
+                  <br/>
+                  Session name like <b>CMH1_IT_3(173.225.106.66)</b> will be normalized to <b>CMH1_IT_3</b>.
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="panel">
-            <div class="head">
-              <h2>Keyword Checker Controls</h2>
-              <div class="hint">Same logic as Apps Script</div>
-            </div>
-            <div class="controls">
-              <div class="kpi-row" style="grid-template-columns: 1fr 1fr;">
-                <div class="kpi">
-                  <div class="label">Total rows</div>
-                  <div class="value" id="kwTotal">0</div>
+            <div class="card">
+              <div class="hd">
+                <div>
+                  <p class="title">Keyword Checker Controls</p>
+                  <p class="sub">Same logic as your Apps Script: keyword in (log/details) → PROCESSED.</p>
                 </div>
-                <div class="kpi">
-                  <div class="label" id="kwFilterLabel">NOT PROCESSED</div>
-                  <div class="value" id="kwCountFiltered">0</div>
-                </div>
+                <span class="badge">Same logic</span>
               </div>
 
-              <div class="btn-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                <button class="btn primary" id="kwProcess">⚡ Process</button>
-                <button class="btn" id="kwCopy">📋 Copy</button>
-                <button class="btn" id="kwExport">⬇ Export</button>
-              </div>
-
-              <div class="section">
-                <div class="section-title">
-                  <div class="t">Keywords</div>
-                  <div class="r">saved in browser (localStorage)</div>
-                </div>
-
-                <div class="kw-row">
-                  <div class="field kw-input" style="margin:0;">
-                    <label>Add keyword (ex: done, already, success...)</label>
-                    <input id="kwAddInput" placeholder="type keyword then click Add" />
+              <div class="controls">
+                <div class="kpis" style="grid-template-columns: repeat(3,1fr);">
+                  <div class="kpi">
+                    <div class="label">Total rows</div>
+                    <div class="value" id="kwTotal">0</div>
+                    <div class="hint" id="kwDelim">Delim: —</div>
                   </div>
-                  <button class="btn primary" id="kwAddBtn">+ Add</button>
+                  <div class="kpi">
+                    <div class="label">Processed</div>
+                    <div class="value" id="kwProcessed">0</div>
+                    <div class="hint">keyword matched</div>
+                  </div>
+                  <div class="kpi">
+                    <div class="label">Not processed</div>
+                    <div class="value" id="kwNotProcessed">0</div>
+                    <div class="hint">no keyword</div>
+                  </div>
                 </div>
 
-                <div class="btn-row" style="grid-template-columns: 1fr 1fr;">
-                  <button class="btn" id="kwDefault">↺ Default list</button>
-                  <button class="btn danger" id="kwClearAll">🧽 Clear all</button>
+                <div class="row">
+                  <button class="btn primary" id="kwProcessBtn">⚡ Process</button>
+                  <button class="btn" id="kwCopyBtn">📋 Copy</button>
+                  <button class="btn" id="kwExportBtn">⬇ Export</button>
                 </div>
 
-                <div class="chips" id="kwChips"></div>
+                <div class="field">
+                  <div class="lbl">
+                    <span>Keywords</span>
+                    <span class="muted">saved in browser (localStorage)</span>
+                  </div>
+
+                  <div class="row" style="gap:10px;">
+                    <input id="kwNew" placeholder="type keyword then click Add" />
+                    <button class="btn small primary" id="kwAddBtn">＋ Add</button>
+                  </div>
+
+                  <div class="row" style="justify-content:space-between;">
+                    <button class="btn small ghost" id="kwDefaultBtn">↺ Default list</button>
+                    <button class="btn small warn" id="kwClearBtn" style="min-width:180px;">🧽 Clear all</button>
+                  </div>
+
+                  <div class="help">Matching is case-insensitive. If no keyword matches → row becomes <b>NOT PROCESSED</b>.</div>
+
+                  <div class="pillrow" id="kwPills"></div>
+                </div>
+
+                <div class="field">
+                  <div class="lbl">
+                    <span>Filter</span>
+                    <span class="muted">by result type</span>
+                  </div>
+
+                  <div class="row" style="gap:10px;">
+                    <select id="kwTypeFilter">
+                      <option value="NOT PROCESSED">NOT PROCESSED</option>
+                      <option value="DISCONNECTED">DISCONNECTED</option>
+                      <option value="PROCESSED">PROCESSED</option>
+                      <option value="ALL">ALL</option>
+                    </select>
+
+                    <select id="kwSessionFilter" title="Select session">
+                      <option value="__ALL__">All sessions</option>
+                    </select>
+                  </div>
+
+                  <div class="help">
+                    Copy/Export uses <b>profile_Name</b> (unique).
+                    DISCONNECTED is detected from <b>cnx_problems/log/details/status_name</b>.
+                  </div>
+
+                  <div class="row" style="gap:8px;">
+                    <span class="chip" style="pointer-events:none;"><span class="dot good"></span> Processed: <b id="kwChipP">0</b></span>
+                    <span class="chip" style="pointer-events:none;"><span class="dot"></span> Not processed: <b id="kwChipN">0</b></span>
+                    <span class="chip" style="pointer-events:none;"><span class="dot warn"></span> Disconnected: <b id="kwChipD">0</b></span>
+                  </div>
+
+                  <div class="sessionList" id="kwSessions"></div>
+                </div>
+
               </div>
-
-              <div class="section">
-                <div class="section-title">
-                  <div class="t">Filter</div>
-                  <div class="r">by result type</div>
-                </div>
-
-                <div class="field" style="margin-bottom:0;">
-                  <label>Show</label>
-                  <select id="kwFilter">
-                    <option value="NOT_PROCESSED">NOT PROCESSED</option>
-                    <option value="DISCONNECTED">DISCONNECTED</option>
-                    <option value="PROCESSED">PROCESSED</option>
-                    <option value="ALL">ALL</option>
-                  </select>
-                </div>
-
-                <div class="hint2" style="margin-top:10px;">
-                  Copy/Export uses <span class="mono">profile_Name</span> (unique). DISCONNECTED is detected from cnx_problems/log/details/status_name.
-                </div>
-              </div>
-
-              <div class="msg" id="kwMsg"><span class="dot bad"></span><span class="mono">Paste table then click Process</span></div>
-
-              <div class="sessionBox" id="kwSessionsBox" style="display:none;"></div>
             </div>
+          </div>
+
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:60px;">#</th>
+                  <th style="width:120px;">profile_Name</th>
+                  <th style="width:220px;">tag</th>
+                  <th style="width:140px;">status_name</th>
+                  <th style="width:160px;">
+                    <span class="thFlex">
+                      <span>process_status</span>
+                      <span class="thFilterBtn" id="kwHeaderFilterBtn" title="Filter">▾</span>
+                    </span>
+                  </th>
+                  <th style="width:160px;">session</th>
+                  <th>log/details (preview)</th>
+                </tr>
+              </thead>
+              <tbody id="kwTableBody">
+                <tr><td colspan="7" class="muted">No rows</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th data-k="profile_Name"><span class="sort">profile_Name <span class="chev" id="kwSortProfile"></span></span></th>
-                <th data-k="tag"><span class="sort">tag <span class="chev" id="kwSortTag"></span></span></th>
-                <th data-k="status_name"><span class="sort">status_name <span class="chev" id="kwSortStatusName"></span></span></th>
-                <th data-k="process_status"><span class="sort">process_status <span class="chev" id="kwSortProc"></span></span></th>
-                <th data-k="session_short"><span class="sort">session <span class="chev" id="kwSortSess"></span></span></th>
-                <th data-k="preview"><span class="sort">log/details (preview) <span class="chev" id="kwSortPrev"></span></span></th>
-              </tr>
-            </thead>
-            <tbody id="kwTableBody">
-              <tr><td colspan="6" class="muted">No rows</td></tr>
-            </tbody>
-          </table>
-        </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Telegram Settings Modal -->
-  <div class="modal-back" id="tgModalBack">
-    <div class="modal">
-      <div class="mhead">
-        <div class="title">Telegram settings</div>
-        <div class="closeX" id="tgClose">✕</div>
-      </div>
-      <div class="mbody">
-        <div class="mini">
-          Used only for <b>Maintenance screenshot</b>. Stored locally in your browser (localStorage).
-        </div>
-        <div class="field">
-          <label>Bot token</label>
-          <input id="tgToken" placeholder="123456:AA...." />
-        </div>
-        <div class="field">
-          <label>Chat ID</label>
-          <input id="tgChat" placeholder="8469427662" />
-        </div>
-        <div class="mini">
-          If screenshot fails: we still send the report message + error details.
-        </div>
-      </div>
-      <div class="mfoot">
-        <button class="btn" id="tgCancel">Cancel</button>
-        <button class="btn primary" id="tgSave">Save</button>
-      </div>
-    </div>
-  </div>
-
-<script>
-/** =========================
- *  Helpers (shared)
- *  ========================= */
-const $ = (id)=>document.getElementById(id);
-
-function setPill(type, text){
-  const dot = $("pillDot");
-  const msg = $("pillText");
-  dot.classList.remove("good","bad");
-  if(type==="good") dot.classList.add("good");
-  else if(type==="bad") dot.classList.add("bad");
-  msg.textContent = text;
-}
-
-function cleanField(v){
-  if(v===null || v===undefined) return "";
-  let s = String(v).trim();
-  // strip excel formula-like prefix to avoid broken copy
-  s = s.replace(/^[=;]+>?/g, "");
-  // unwrap outer quotes if field is quoted
-  if((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))){
-    s = s.slice(1,-1);
-  }
-  return s.trim();
-}
-
-function normalizeForSearch(v){
-  if(v===null || v===undefined) return "";
-  let s = String(v);
-  if(s==="#ERROR!") return "";
-  s = s.replace(/^[=;]+>?/g, "");
-  return s.toLowerCase();
-}
-
-function detectDelimiter(lines){
-  // prefer TAB if any tab exists in header or lines
-  const sample = lines.slice(0, 6).join("\n");
-  if(sample.includes("\t")) return "\t";
-  // else pick between comma/semicolon by frequency
-  const commas = (sample.match(/,/g)||[]).length;
-  const semis  = (sample.match(/;/g)||[]).length;
-  return semis > commas ? ";" : ",";
-}
-
-// CSV splitter that respects quotes
-function splitCSVLine(line, delim){
-  const out = [];
-  let cur = "";
-  let inQ = false;
-  for(let i=0;i<line.length;i++){
-    const ch = line[i];
-    if(ch === '"'){
-      // toggle quotes
-      inQ = !inQ;
-      cur += ch;
-      continue;
-    }
-    if(!inQ && ch === delim){
-      out.push(cur);
-      cur = "";
-      continue;
-    }
-    cur += ch;
-  }
-  out.push(cur);
-  return out;
-}
-
-// Parse date only in flexible formats
-function parseDateOnlyFlexible(s){
-  if(!s) return null;
-  const t = String(s).trim();
-  // YYYY-MM-DD
-  let m = t.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/);
-  if(m){
-    const yyyy = +m[1], mm=+m[2], dd=+m[3];
-    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
-  }
-  // DD-MM-YYYY
-  m = t.match(/\b(\d{1,2})-(\d{1,2})-(\d{4})\b/);
-  if(m){
-    const dd=+m[1], mm=+m[2], yyyy=+m[3];
-    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
-  }
-  // DD/MM/YYYY or M/D/YYYY
-  m = t.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
-  if(m){
-    const a=+m[1], b=+m[2], yyyy=+m[3];
-    // ambiguous: assume first is month if <=12 and second <=31? we accept as-is but common is M/D
-    // We'll treat as M/D when a<=12 and b<=31; else D/M
-    let mm, dd;
-    if(a<=12 && b<=31){ mm=a; dd=b; }
-    else { dd=a; mm=b; }
-    if(mm>=1&&mm<=12&&dd>=1&&dd<=31) return {yyyy,mm,dd, raw:m[0]};
-  }
-  return null;
-}
-
-function pad2(n){ return String(n).padStart(2,"0"); }
-function dayKeyFrom(y,m,d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
-
-function isTimeField(s){
-  if(!s) return false;
-  const t = String(s).trim();
-  return /^\d{1,2}[:\-]\d{2}([:\-]\d{2})?$/.test(t);
-}
-
-function normalizeTime(t){
-  if(!t) return "";
-  const x = String(t).trim().replace(/-/g,":");
-  // if HH:MM:SS ok
-  return x;
-}
-
-function parseRangeInput(s){
-  if(!s) return null;
-  const t = String(s).trim();
-  // allow "a - b" or "a-b" or "a — b"
-  const m = t.match(/^\s*(\d+)\s*[-–—]\s*(\d+)\s*$/);
-  if(!m) return null;
-  let a = parseInt(m[1],10), b = parseInt(m[2],10);
-  if(!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  if(a>b){ const tmp=a; a=b; b=tmp; }
-  return {from:a,to:b};
-}
-
-function downloadText(filename, text){
-  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function downloadCSV(filename, rows, headers){
-  const esc = (v)=>{
-    const s = String(v ?? "");
-    if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
-    return s;
-  };
-  const csv = [
-    headers.map(esc).join(","),
-    ...rows.map(r => headers.map(h => esc(r[h])).join(","))
-  ].join("\n");
-  downloadText(filename, csv);
-}
-
-function copyToClipboard(text){
-  return navigator.clipboard.writeText(text);
-}
-
-function safePreview(s, max=120){
-  const t = String(s ?? "");
-  if(t.length<=max) return t;
-  return t.slice(0,max-1)+"…";
-}
-
-/** =========================
- *  Tabs
- *  ========================= */
-$("tabAnalyzer").onclick = ()=>{
-  $("tabAnalyzer").classList.add("active");
-  $("tabKeyword").classList.remove("active");
-  $("pageAnalyzer").style.display = "";
-  $("pageKeyword").style.display = "none";
-};
-$("tabKeyword").onclick = ()=>{
-  $("tabKeyword").classList.add("active");
-  $("tabAnalyzer").classList.remove("active");
-  $("pageKeyword").style.display = "";
-  $("pageAnalyzer").style.display = "none";
-};
-
-/** =========================
- *  Analyzer
- *  ========================= */
-let anAllRows = [];
-let anFilteredRows = [];
-let anMissing = [];
-let anSelectedStatuses = new Set();
-let anStatusCounts = new Map();
-let anDateMode = "single"; // single|range
-let anActiveDateFilter = null; // {type, day} or {type, fromDay, toDay}
-let anSort = { key:"id", dir:"asc" };
-
-function analyzerParseText(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
-  if(!lines.length) return [];
-
-  const delim = detectDelimiter(lines);
-  const rows = [];
-
-  for(let line0 of lines){
-    // ✅ FIX: if whole line wrapped in quotes and contains delimiter, unwrap outer quotes
-    const t = String(line0).trim();
-    const wrappedDouble = t.startsWith('"') && t.endsWith('"');
-    const wrappedSingle = t.startsWith("'") && t.endsWith("'");
-    if((wrappedDouble || wrappedSingle) && t.includes(delim)){
-      line0 = t.slice(1, -1);
-    }
-
-    const parts = splitCSVLine(line0, delim).map(cleanField).filter(x => x !== "");
-    if(parts.length < 2) continue;
-
-    const id = parseInt(parts[0],10);
-    if(!Number.isFinite(id)) continue;
-
-    // Find date field anywhere after id
-    let dateIdx = -1, d = null;
-    for(let i=1;i<parts.length;i++){
-      const maybe = parseDateOnlyFlexible(parts[i]);
-      if(maybe){ dateIdx = i; d = maybe; break; }
-    }
-    if(dateIdx === -1) continue;
-
-    let timeStr = "";
-    // time might be next field OR embedded at end of same field
-    if(dateIdx + 1 < parts.length && isTimeField(parts[dateIdx + 1])) {
-      timeStr = normalizeTime(parts[dateIdx + 1]);
-    } else {
-      // try to find a time inside current field (like "29-01-2026 13-13")
-      const joined = parts[dateIdx];
-      const tm = String(joined).match(/(\d{1,2}[:\-]\d{2}(?:[:\-]\d{2})?)/);
-      if(tm) timeStr = normalizeTime(tm[1]);
-    }
-
-    const day = dayKeyFrom(d.yyyy, d.mm, d.dd);
-    const dt = (d.raw + (timeStr ? " " + timeStr : "")).trim();
-
-    // status = everything between id and date field (excluding time field)
-    const status = parts.slice(1, dateIdx).join(" ").trim() || "(no status)";
-
-    rows.push({ id, status, datetime: dt, day });
-  }
-  return rows;
-}
-
-function analyzerBuildStatusCounts(rows){
-  const map = new Map();
-  for(const r of rows){
-    const k = r.status || "(no status)";
-    map.set(k, (map.get(k)||0)+1);
-  }
-  anStatusCounts = map;
-}
-
-function analyzerRenderStatusPills(){
-  const box = $("anStatusPills");
-  box.innerHTML = "";
-  const search = $("anStatusSearch").value.trim().toLowerCase();
-
-  // sort statuses by count desc
-  const arr = [...anStatusCounts.entries()]
-    .sort((a,b)=> b[1]-a[1])
-    .filter(([st])=> !search || st.toLowerCase().includes(search));
-
-  if(!arr.length){
-    box.innerHTML = `<div class="muted">No statuses found</div>`;
-    return;
-  }
-
-  for(const [st,count] of arr){
-    const pill = document.createElement("div");
-    pill.className = "sp" + (anSelectedStatuses.has(st) ? " active":"");
-    pill.innerHTML = `<span>${st}</span><small>(${count})</small>`;
-    pill.onclick = ()=>{
-      if(anSelectedStatuses.has(st)) anSelectedStatuses.delete(st);
-      else anSelectedStatuses.add(st);
-      analyzerApplyFiltersAndRender();
-      analyzerRenderStatusPills();
+  <script>
+    /***********************
+     * CONFIG (Maintenance)
+     ***********************/
+    // Put your Telegram bot token & chat id here.
+    // IMPORTANT: In many browsers, Telegram API calls from a local HTML can fail بسبب CORS.
+    // We keep your Maintenance logic as-is (send text) + we TRY to send screenshot.
+    // If screenshot upload fails, we show the real reason + we auto-download the screenshot to help you debug.
+    const TELEGRAM = {
+      BOT_TOKEN: "8548469922:AAFRNc6mOUvvpH6Hs9tumIpaHy-VmVuSUmA",
+      CHAT_ID: "8469427662",
     };
-    box.appendChild(pill);
-  }
-}
 
-function analyzerDateFilterMatch(row){
-  if(!anActiveDateFilter) return true;
-  if(anActiveDateFilter.type==="single"){
-    return row.day === anActiveDateFilter.day;
-  }
-  if(anActiveDateFilter.type==="range"){
-    return row.day >= anActiveDateFilter.fromDay && row.day <= anActiveDateFilter.toDay;
-  }
-  return true;
-}
+    /***********************
+     * Small helpers
+     ***********************/
+    const $ = (id) => document.getElementById(id);
 
-function analyzerStatusFilterMatch(row){
-  if(!anSelectedStatuses.size) return true;
-  return anSelectedStatuses.has(row.status);
-}
-
-function analyzerApplyFiltersAndRender(){
-  anFilteredRows = anAllRows.filter(r => analyzerDateFilterMatch(r) && analyzerStatusFilterMatch(r));
-
-  // sort
-  const dir = anSort.dir === "asc" ? 1 : -1;
-  anFilteredRows.sort((a,b)=>{
-    let va=a[anSort.key], vb=b[anSort.key];
-    if(typeof va === "string") va = va.toLowerCase();
-    if(typeof vb === "string") vb = vb.toLowerCase();
-    if(va<vb) return -1*dir;
-    if(va>vb) return 1*dir;
-    return 0;
-  });
-
-  $("anTotal").textContent = anAllRows.length;
-  $("anVisible").textContent = anFilteredRows.length;
-
-  analyzerRenderTable();
-  analyzerUpdateSortIcons();
-}
-
-function analyzerRenderTable(){
-  const body = $("anTableBody");
-  if(!anFilteredRows.length){
-    body.innerHTML = `<tr><td colspan="4" class="muted">No rows</td></tr>`;
-    return;
-  }
-  body.innerHTML = anFilteredRows.slice(0, 2000).map(r=>{
-    return `<tr>
-      <td class="mono">${r.id}</td>
-      <td>${r.status}</td>
-      <td class="mono">${r.datetime}</td>
-      <td class="mono">${r.day}</td>
-    </tr>`;
-  }).join("");
-}
-
-function analyzerUpdateSortIcons(){
-  const ids = ["id","status","datetime","day"];
-  const map = {
-    id:$("anSortId"),
-    status:$("anSortStatus"),
-    datetime:$("anSortDatetime"),
-    day:$("anSortDay")
-  };
-  for(const k of ids){
-    map[k].className = "chev";
-  }
-  const el = map[anSort.key];
-  if(!el) return;
-  el.className = "chev" + (anSort.dir==="asc" ? " up":"");
-}
-
-document.querySelectorAll("#pageAnalyzer thead th").forEach(th=>{
-  th.addEventListener("click", ()=>{
-    const k = th.getAttribute("data-k");
-    if(!k) return;
-    if(anSort.key === k){
-      anSort.dir = anSort.dir==="asc" ? "desc" : "asc";
-    }else{
-      anSort.key = k;
-      anSort.dir = "asc";
+    function toast(type, title, msg){
+      const wrap = $("toast");
+      const el = document.createElement("div");
+      el.className = "t " + (type || "");
+      el.innerHTML = `
+        <div class="head">
+          <span>${escapeHtml(title || "Info")}</span>
+          <span class="close">✕</span>
+        </div>
+        <div>${escapeHtml(msg || "")}</div>
+      `;
+      el.querySelector(".close").onclick = () => el.remove();
+      wrap.appendChild(el);
+      setTimeout(()=>{ if(el.isConnected) el.remove(); }, 6800);
     }
-    analyzerApplyFiltersAndRender();
-  });
-});
 
-$("anStatusSearch").addEventListener("input", analyzerRenderStatusPills);
-$("anClearStatus").onclick = ()=>{
-  anSelectedStatuses.clear();
-  analyzerApplyFiltersAndRender();
-  analyzerRenderStatusPills();
-};
-
-$("anModeSingle").onclick = ()=>{
-  anDateMode="single";
-  $("anModeSingle").classList.add("active");
-  $("anModeRange").classList.remove("active");
-  $("anSingleField").style.display = "";
-  $("anRangeFields").style.display = "none";
-  $("anDateModeLabel").textContent = "Single day";
-};
-$("anModeRange").onclick = ()=>{
-  anDateMode="range";
-  $("anModeRange").classList.add("active");
-  $("anModeSingle").classList.remove("active");
-  $("anSingleField").style.display = "none";
-  $("anRangeFields").style.display = "";
-  $("anDateModeLabel").textContent = "Date range";
-};
-
-$("anApplyDate").onclick = ()=>{
-  if(anDateMode==="single"){
-    const d = parseDateOnlyFlexible($("anDaySingle").value);
-    if(!d){
-      analyzerSetMsg("bad", "Invalid day. Example: 2026-01-20 or 20-01-2026 or 1/20/2026");
-      return;
+    function setStatus(ok, text){
+      $("statusText").textContent = text;
+      $("statusDot").className = "dot " + (ok ? "good" : "");
     }
-    anActiveDateFilter = {type:"single", day: dayKeyFrom(d.yyyy,d.mm,d.dd)};
-  }else{
-    const d1 = parseDateOnlyFlexible($("anDayFrom").value);
-    const d2 = parseDateOnlyFlexible($("anDayTo").value);
-    if(!d1 || !d2){
-      analyzerSetMsg("bad", "Invalid range. Fill From and To (day).");
-      return;
+
+    function escapeHtml(s){
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
     }
-    let a = dayKeyFrom(d1.yyyy,d1.mm,d1.dd);
-    let b = dayKeyFrom(d2.yyyy,d2.mm,d2.dd);
-    if(a>b){ const tmp=a; a=b; b=tmp; }
-    anActiveDateFilter = {type:"range", fromDay:a, toDay:b};
-  }
-  analyzerApplyFiltersAndRender();
-  analyzerSetMsg("good", "Date filter applied.");
-};
 
-$("anClearDate").onclick = ()=>{
-  anActiveDateFilter = null;
-  $("anDaySingle").value = "";
-  $("anDayFrom").value = "";
-  $("anDayTo").value = "";
-  analyzerApplyFiltersAndRender();
-  analyzerSetMsg("good", "Date filter cleared.");
-};
+    function normalizeForSearch(v){
+      if (v === null || v === undefined) return "";
+      let s = String(v);
+      if (s === "#ERROR!") return "";
+      s = s.replace(/^[=;]+>?/g, "");
+      return s.toLowerCase();
+    }
 
-function analyzerSetMsg(type, text){
-  const box = $("anMsg");
-  const dot = box.querySelector(".dot");
-  dot.classList.remove("good","bad");
-  dot.classList.add(type==="good" ? "good" : "bad");
-  box.querySelector("span.mono").textContent = text;
-  setPill(type, text);
-}
+    // For sessions like "CMH1_IT_3(173.225...)" => "CMH1_IT_3"
+    function normalizeSessionName(v){
+      const s = String(v ?? "").trim();
+      if(!s) return "";
+      // take first token before "("
+      const idx = s.indexOf("(");
+      return (idx >= 0 ? s.slice(0, idx) : s).trim();
+    }
 
-$("anProcess").onclick = ()=>{
-  const txt = $("anInput").value || "";
-  const rows = analyzerParseText(txt);
+    // detect DISCONNECTED from cnx_problems/log/details/status_name
+    function isDisconnectedRow(row){
+      const blob = [
+        row.cnx_problems, row.status_name, row.log, row.details
+      ].map(normalizeForSearch).join(" | ");
 
-  anAllRows = rows;
-  anMissing = [];
-  $("anMissingCount").textContent = "0";
-  $("anUnique").textContent = "0";
-  $("anNot").textContent = "0";
-  $("anDup").textContent = "0";
+      // keep it strict enough to avoid false positives, but practical
+      return (
+        /disconnected/.test(blob) ||
+        /disconnect(ed)? profile/.test(blob) ||
+        /notconnected/.test(blob) ||
+        /not connected/.test(blob) ||
+        /status\s*=>\s*disconnected/.test(blob) ||
+        /status\s*=>\s*notconnected/.test(blob) ||
+        /cnx/.test(blob) && /problem/.test(blob) && /disconnect/.test(blob)
+      );
+    }
 
-  if(!rows.length){
-    analyzerBuildStatusCounts([]);
-    analyzerRenderStatusPills();
-    analyzerApplyFiltersAndRender();
-    analyzerSetMsg("bad","No valid rows parsed (check format)");
-    return;
-  }
-
-  analyzerBuildStatusCounts(rows);
-  analyzerRenderStatusPills();
-  analyzerApplyFiltersAndRender();
-  analyzerSetMsg("good",`Parsed ${rows.length} rows ✅`);
-};
-
-$("anCopyIds").onclick = async ()=>{
-  if(!anFilteredRows.length){
-    analyzerSetMsg("bad","No visible rows to copy");
-    return;
-  }
-  const s = anFilteredRows.map(r=>r.id).join("\n");
-  try{
-    await copyToClipboard(s);
-    analyzerSetMsg("good",`Copied ${anFilteredRows.length} IDs`);
-  }catch(e){
-    analyzerSetMsg("bad","Copy failed (browser blocked clipboard)");
-  }
-};
-
-$("anExportCsv").onclick = ()=>{
-  if(!anFilteredRows.length){
-    analyzerSetMsg("bad","No visible rows to export");
-    return;
-  }
-  downloadCSV("analyzer_visible.csv", anFilteredRows, ["id","status","datetime","day"]);
-  analyzerSetMsg("good",`Exported ${anFilteredRows.length} rows (CSV)`);
-};
-
-$("anCheck").onclick = ()=>{
-  if(!anFilteredRows.length){
-    analyzerSetMsg("bad","No visible rows. Click Process first.");
-    return;
-  }
-  const range = parseRangeInput($("anRange").value);
-  if(!range){
-    analyzerSetMsg("bad","Invalid range. Example: 1961 - 2240");
-    return;
-  }
-
-  // Determine missing ids in range based on visible rows
-  const ids = anFilteredRows.map(r=>r.id);
-  const freq = new Map();
-  for(const id of ids) freq.set(id, (freq.get(id)||0)+1);
-
-  let dup = 0;
-  for(const [id,c] of freq.entries()) if(c>1) dup += (c-1);
-
-  const uniqueSet = new Set(ids);
-  const missing = [];
-  for(let x=range.from; x<=range.to; x++){
-    if(!uniqueSet.has(x)) missing.push(x);
-  }
-
-  anMissing = missing;
-  $("anMissingCount").textContent = missing.length;
-  $("anUnique").textContent = uniqueSet.size;
-  $("anNot").textContent = missing.length;
-  $("anDup").textContent = dup;
-
-  analyzerSetMsg("good", `Check done. Missing: ${missing.length}`);
-};
-
-$("anCopyNot").onclick = async ()=>{
-  if(!anMissing.length){
-    analyzerSetMsg("bad","No missing IDs. Click Check first.");
-    return;
-  }
-  try{
-    await copyToClipboard(anMissing.join("\n"));
-    analyzerSetMsg("good",`Copied NOT PROCESSED (${anMissing.length})`);
-  }catch(e){
-    analyzerSetMsg("bad","Copy failed (browser blocked clipboard)");
-  }
-};
-
-$("anExportNot").onclick = ()=>{
-  if(!anMissing.length){
-    analyzerSetMsg("bad","No missing IDs. Click Check first.");
-    return;
-  }
-  downloadText("not_processed_ids.txt", anMissing.join("\n"));
-  analyzerSetMsg("good",`Exported NOT PROCESSED (${anMissing.length})`);
-};
-
-/** =========================
- *  Keyword Checker (Apps Script logic)
- *  ========================= */
-const KW_STORAGE_KEY = "analyzer_kw_list_v3";
-const TG_TOKEN_KEY = "analyzer_tg_token_v1";
-const TG_CHAT_KEY = "analyzer_tg_chat_v1";
-
-const DEFAULT_KEYWORDS = [
-  "done","already","reply","forward","search completed for","markUnread","sendMessage",
-  "successfully","BirthdayChanged","click","Gender Updated","Theme already changed",
-  "Gmail Template updated","LanguageValue Updated","English has been added"
-].map(x=>x.trim()).filter(Boolean);
-
-let kwKeywords = loadKeywords();
-let kwAllRows = [];
-let kwVisibleRows = [];
-let kwSort = { key:"profile_Name", dir:"asc" };
-
-function loadKeywords(){
-  try{
-    const raw = localStorage.getItem(KW_STORAGE_KEY);
-    if(!raw) return [...DEFAULT_KEYWORDS];
-    const arr = JSON.parse(raw);
-    if(!Array.isArray(arr)) return [...DEFAULT_KEYWORDS];
-    return arr.map(x=>String(x).trim()).filter(Boolean);
-  }catch(e){
-    return [...DEFAULT_KEYWORDS];
-  }
-}
-function saveKeywords(){
-  localStorage.setItem(KW_STORAGE_KEY, JSON.stringify(kwKeywords));
-}
-
-function renderKeywordChips(){
-  const box = $("kwChips");
-  box.innerHTML = "";
-  if(!kwKeywords.length){
-    box.innerHTML = `<div class="muted">No keywords</div>`;
-    return;
-  }
-  for(const kw of kwKeywords){
-    const c = document.createElement("div");
-    c.className = "chip";
-    c.innerHTML = `<span>${kw}</span><span class="x" title="remove">×</span>`;
-    c.querySelector(".x").onclick = ()=>{
-      kwKeywords = kwKeywords.filter(k => k !== kw);
-      saveKeywords();
-      renderKeywordChips();
+    /***********************
+     * Tabs
+     ***********************/
+    $("tabAnalyzer").onclick = () => {
+      $("tabAnalyzer").classList.add("active");
+      $("tabKeyword").classList.remove("active");
+      $("viewAnalyzer").classList.remove("hidden");
+      $("viewKeyword").classList.add("hidden");
     };
-    box.appendChild(c);
-  }
-}
+    $("tabKeyword").onclick = () => {
+      $("tabKeyword").classList.add("active");
+      $("tabAnalyzer").classList.remove("active");
+      $("viewKeyword").classList.remove("hidden");
+      $("viewAnalyzer").classList.add("hidden");
+    };
 
-function kwDetectDelimiter(lines){
-  return detectDelimiter(lines);
-}
+    /***********************
+     * =======================
+     * Analyzer (old logic-ish)
+     * =======================
+     ***********************/
+    let AN = {
+      rows: [],          // all parsed rows
+      visible: [],       // after date filter
+      notList: [],       // after check
+      parsedDays: new Set(),
+      dateMode: "single", // single | range
+      filter: { type: null, from: null, to: null }, // stored
+    };
 
-function kwParseTable(text){
-  const lines = text.replace(/\r/g,"").split("\n").map(x=>x.trimEnd()).filter(x=>x.trim()!=="");
-  if(lines.length < 2) return { rows:[], delim:null, err:"Need header + data rows" };
-
-  const delim = kwDetectDelimiter(lines);
-  const headParts = (delim === "\t" ? lines[0].split("\t") : splitCSVLine(lines[0], delim)).map(cleanField);
-  const headers = headParts.map(h => h.toLowerCase().trim());
-
-  const idx = (name)=> headers.indexOf(name.toLowerCase());
-  const iProfile = idx("profile_name") !== -1 ? idx("profile_name") : idx("profile_name".replace("_","")); // keep
-  // handle profile_Name
-  const iProfile2 = idx("profile_name") !== -1 ? idx("profile_name") : headers.indexOf("profile_name");
-  const iProfile3 = headers.indexOf("profile_name");
-  const iProfileName = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
-  // More robust: accept profile_Name or profile_name
-  const profileIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
-  // The above doesn't help; do direct alternatives:
-  const pIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
-               headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
-               headers.indexOf("profile_name") ;
-  // Let's just search alternatives:
-  const profileAlt = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
-                     headers.indexOf("profile_name".toLowerCase()) ;
-  // We'll do a clean fallback:
-  const profileNameIdx =
-    headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
-    headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
-    headers.indexOf("profile_name") ; // placeholder
-
-  // Real: support both "profile_name" and "profile_Name"
-  const profileIdx2 = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") : headers.indexOf("profile_name");
-  // This is messy; we do:
-  const getIdxAny = (names)=>{
-    for(const n of names){
-      const j = headers.indexOf(n.toLowerCase());
-      if(j!==-1) return j;
-    }
-    return -1;
-  };
-
-  const idxProfile = getIdxAny(["profile_name","profile_Name","profile"]);
-  const idxTag = getIdxAny(["tag"]);
-  const idxStatusName = getIdxAny(["status_name","status"]);
-  const idxLog = getIdxAny(["log"]);
-  const idxCnx = getIdxAny(["cnx_problems","cnx_problem","cnx"]);
-  const idxDetails = getIdxAny(["details","detail"]);
-  const idxScript = getIdxAny(["script_name","script"]);
-  const idxSession = getIdxAny(["session_name","session"]);
-
-  if(idxProfile === -1 || idxLog === -1 || idxDetails === -1){
-    return { rows:[], delim, err:"Missing required headers: profile_Name + log + details" };
-  }
-
-  const rows = [];
-  for(let i=1;i<lines.length;i++){
-    let line = lines[i];
-
-    // If whole line wrapped in quotes, unwrap (helps CSV paste)
-    const t = String(line).trim();
-    if((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))){
-      // only unwrap if it likely contains delimiter inside
-      if(t.includes(delim)) line = t.slice(1,-1);
+    function parseDateAny(s){
+      const text = String(s ?? "");
+      // 1) YYYY-MM-DD
+      let m = text.match(/\b(20\d{2})[-\/](\d{1,2})[-\/](\d{1,2})\b/);
+      if(m){
+        const y = +m[1], mo = +m[2], d = +m[3];
+        if(mo>=1 && mo<=12 && d>=1 && d<=31) return { y, mo, d };
+      }
+      // 2) DD-MM-YYYY
+      m = text.match(/\b(\d{1,2})[-\/](\d{1,2})[-\/](20\d{2})\b/);
+      if(m){
+        const d = +m[1], mo = +m[2], y = +m[3];
+        if(mo>=1 && mo<=12 && d>=1 && d<=31) return { y, mo, d };
+      }
+      // 3) M/D/YYYY
+      m = text.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+      if(m){
+        const mo = +m[1], d = +m[2], y = +m[3];
+        if(mo>=1 && mo<=12 && d>=1 && d<=31) return { y, mo, d };
+      }
+      return null;
     }
 
-    const parts = (delim === "\t") ? line.split("\t") : splitCSVLine(line, delim);
-    const vals = parts.map(cleanField);
+    function dayKey(d){ // {y,mo,d}
+      const mm = String(d.mo).padStart(2,"0");
+      const dd = String(d.d).padStart(2,"0");
+      return `${d.y}-${mm}-${dd}`;
+    }
 
-    const profile_Name = vals[idxProfile] ?? "";
-    if(profile_Name === "") continue;
+    function parseTimeAny(s){
+      const text = String(s ?? "");
+      // support "11:57" or "11-57" or "9-39"
+      const m = text.match(/\b(\d{1,2})[:\-](\d{2})\b/);
+      if(!m) return null;
+      const hh = +m[1], mi = +m[2];
+      if(hh<0 || hh>23 || mi<0 || mi>59) return null;
+      return { hh, mi };
+    }
 
-    const tag = idxTag !== -1 ? (vals[idxTag] ?? "") : "";
-    const status_name = idxStatusName !== -1 ? (vals[idxStatusName] ?? "") : "";
-    const log = vals[idxLog] ?? "";
-    const cnx_problems = idxCnx !== -1 ? (vals[idxCnx] ?? "") : "";
-    const details = vals[idxDetails] ?? "";
-    const script_name = idxScript !== -1 ? (vals[idxScript] ?? "") : "";
-    const session_name = idxSession !== -1 ? (vals[idxSession] ?? "") : "";
+    function detectStatusAny(s){
+      const t = normalizeForSearch(s);
+      // user asked: status not only success/failed
+      if(/\b(success|successful|done|completed|ok)\b/.test(t)) return "SUCCESS";
+      if(/\b(fail|failed|error|ko)\b/.test(t)) return "FAILED";
+      if(/\b(waiting|pending)\b/.test(t)) return "WAITING";
+      return "OTHER";
+    }
 
-    const session_short = extractSessionShort(session_name);
-    rows.push({
-      profile_Name,
-      tag,
-      status_name,
-      log,
-      cnx_problems,
-      details,
-      script_name,
-      session_name,
-      session_short
-    });
-  }
+    function parseAnalyzerLines(text){
+      const lines = String(text ?? "")
+        .split(/\r?\n/)
+        .map(l=>l.trim())
+        .filter(Boolean);
 
-  return { rows, delim, err:null };
-}
+      const rows = [];
+      const days = new Set();
 
-function extractSessionShort(s){
-  if(!s) return "";
-  const t = String(s).trim();
-  const i = t.indexOf("(");
-  if(i !== -1) return t.slice(0,i).trim();
-  // also remove trailing ip-like patterns if separated by space
-  return t.trim();
-}
+      for(const raw of lines){
+        const clean = raw.replace(/^["']|["']$/g, ""); // strip outer quotes if any
+        const idm = clean.match(/\b(\d{1,9})\b/);
+        if(!idm) continue;
+        const id = +idm[1];
 
-function isDisconnectedRow(r){
-  const a = normalizeForSearch(r.cnx_problems);
-  const b = normalizeForSearch(r.log);
-  const c = normalizeForSearch(r.details);
-  const d = normalizeForSearch(r.status_name);
-  return /disconnected/.test(a) || /disconnected/.test(b) || /disconnected/.test(c) || /disconnected/.test(d);
-}
+        const d = parseDateAny(clean);
+        if(!d) continue;
 
-function computeProcessStatus(row){
-  // EXACT Apps Script logic: keyword in log OR details (and we also include cnx_problems) => PROCESSED
-  const logText = normalizeForSearch(row.log);
-  const detailsText = normalizeForSearch(row.details);
-  const cnxText = normalizeForSearch(row.cnx_problems);
+        const t = parseTimeAny(clean);
+        const dtText = t ? `${dayKey(d)} ${String(t.hh).padStart(2,"0")}:${String(t.mi).padStart(2,"0")}` : `${dayKey(d)}`;
 
-  let processed = false;
-  if(logText || detailsText || cnxText){
-    for(const kw of kwKeywords){
-      const k = String(kw).trim().toLowerCase();
-      if(!k) continue;
-      if(logText.includes(k) || detailsText.includes(k) || cnxText.includes(k)){
-        processed = true;
-        break;
+        const status = detectStatusAny(clean);
+
+        rows.push({
+          id,
+          status,
+          datetime: dtText,
+          day: dayKey(d),
+          raw: clean
+        });
+        days.add(dayKey(d));
+      }
+
+      return { rows, days };
+    }
+
+    function renderAnalyzerTable(rows){
+      const tb = $("anTableBody");
+      if(!rows.length){
+        tb.innerHTML = `<tr><td colspan="5" class="muted">No rows</td></tr>`;
+        return;
+      }
+      tb.innerHTML = rows.slice(0, 4000).map(r=>{
+        const pill = r.status === "SUCCESS" ? "good" : (r.status === "FAILED" ? "bad" : (r.status === "WAITING" ? "warn" : ""));
+        return `
+          <tr>
+            <td class="mono">${r.id}</td>
+            <td><span class="statusPill ${pill}">${escapeHtml(r.status)}</span></td>
+            <td class="mono">${escapeHtml(r.datetime)}</td>
+            <td class="mono">${escapeHtml(r.day)}</td>
+            <td class="mono muted">${escapeHtml(r.raw.slice(0, 220))}${r.raw.length>220 ? "…" : ""}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function applyAnalyzerDateFilter(){
+      const f = AN.filter;
+      if(!f.type) { AN.visible = AN.rows.slice(); return; }
+      if(f.type === "single"){
+        AN.visible = AN.rows.filter(r => r.day === f.from);
+        return;
+      }
+      // range
+      const from = f.from, to = f.to;
+      AN.visible = AN.rows.filter(r => r.day >= from && r.day <= to);
+    }
+
+    function updateAnalyzerKpis(){
+      $("anTotal").textContent = AN.rows.length;
+      $("anVisible").textContent = AN.visible.length;
+      $("anVisibleHint").textContent = AN.filter.type ? (AN.filter.type === "single" ? `Day: ${AN.filter.from}` : `${AN.filter.from} → ${AN.filter.to}`) : "No filter";
+      const daysArr = Array.from(AN.parsedDays).sort();
+      $("anDays").textContent = daysArr.length ? `Days: ${daysArr[0]} … ${daysArr[daysArr.length-1]}` : "Days: —";
+    }
+
+    function analyzerProcess(){
+      const { rows, days } = parseAnalyzerLines($("anInput").value);
+      AN.rows = rows;
+      AN.parsedDays = days;
+      AN.notList = [];
+      AN.filter = { type: null, from: null, to: null };
+
+      applyAnalyzerDateFilter();
+      updateAnalyzerKpis();
+      renderAnalyzerTable(AN.visible);
+
+      if(rows.length){
+        setStatus(true, `Parsed ✅ ${rows.length} rows`);
+        toast("good","Analyzer","Parsed rows successfully.");
+      }else{
+        setStatus(false, "No valid rows parsed (check format)");
+        toast("bad","Analyzer","No valid rows parsed. Make sure each line contains an ID + a date.");
+      }
+      $("anLog").textContent = "";
+      $("anErr").textContent = "";
+      $("anNotProcessed").textContent = "0";
+      $("anProcessedUnique").textContent = "0";
+      $("anNotCount").textContent = "0";
+      $("anDupCount").textContent = "0";
+    }
+
+    function parseDayInput(v){
+      const d = parseDateAny(String(v||"").trim());
+      return d ? dayKey(d) : null;
+    }
+
+    function setAnalyzerMode(mode){
+      AN.dateMode = mode;
+      $("anSingleRow").classList.toggle("hidden", mode !== "single");
+      $("anRangeRow").classList.toggle("hidden", mode !== "range");
+      $("anSingleModeBtn").textContent = (mode==="single" ? "◉ Single day" : "○ Single day");
+      $("anRangeModeBtn").textContent  = (mode==="range"  ? "◉ Date range" : "○ Date range");
+    }
+
+    $("anSingleModeBtn").onclick = ()=> setAnalyzerMode("single");
+    $("anRangeModeBtn").onclick  = ()=> setAnalyzerMode("range");
+
+    $("anApplyDateBtn").onclick = ()=>{
+      if(!AN.rows.length){ toast("warn","Analyzer","Process first."); return; }
+      if(AN.dateMode === "single"){
+        const day = parseDayInput($("anSingleDay").value);
+        if(!day){ toast("bad","Date filter","Invalid day format."); return; }
+        AN.filter = { type:"single", from: day, to: day };
+      }else{
+        let from = parseDayInput($("anFromDay").value);
+        let to   = parseDayInput($("anToDay").value);
+        if(!from || !to){ toast("bad","Date range","Invalid From/To."); return; }
+        if(from > to){ const tmp=from; from=to; to=tmp; }
+        AN.filter = { type:"range", from, to };
+      }
+      applyAnalyzerDateFilter();
+      updateAnalyzerKpis();
+      renderAnalyzerTable(AN.visible);
+      toast("good","Date filter","Applied.");
+    };
+
+    $("anClearDateBtn").onclick = ()=>{
+      AN.filter = { type:null, from:null, to:null };
+      applyAnalyzerDateFilter();
+      updateAnalyzerKpis();
+      renderAnalyzerTable(AN.visible);
+      toast("good","Date filter","Cleared.");
+    };
+
+    function parseIdRange(s){
+      const m = String(s||"").match(/(\d+)\s*[-–]\s*(\d+)/);
+      if(!m) return null;
+      let a = +m[1], b = +m[2];
+      if(a>b){ const t=a; a=b; b=t; }
+      return { from:a, to:b };
+    }
+
+    function analyzerCheck(){
+      $("anErr").textContent = "";
+      $("anLog").textContent = "";
+      if(!AN.visible.length){
+        $("anErr").textContent = "No visible rows to check.";
+        toast("warn","Check","No visible rows.");
+        return;
+      }
+
+      const range = parseIdRange($("anIdRange").value);
+      if(!range){
+        $("anErr").textContent = "Invalid ID range. Example: 3376 - 4375";
+        toast("bad","Check","Invalid ID range.");
+        return;
+      }
+
+      const ids = AN.visible.map(r=>r.id);
+      const unique = new Set(ids);
+
+      // duplicates
+      const seen = new Set();
+      let dup = 0;
+      for(const id of ids){
+        if(seen.has(id)) dup++;
+        else seen.add(id);
+      }
+
+      // not processed = in range but missing from visible ids
+      const not = [];
+      for(let i=range.from; i<=range.to; i++){
+        if(!unique.has(i)) not.push(i);
+      }
+
+      AN.notList = not;
+
+      $("anProcessedUnique").textContent = unique.size;
+      $("anNotCount").textContent = not.length;
+      $("anDupCount").textContent = dup;
+      $("anNotProcessed").textContent = not.length;
+
+      $("anLog").textContent =
+        `Visible IDs unique: ${unique.size}\n` +
+        `Range: ${range.from} - ${range.to}\n` +
+        `Missing (NOT processed): ${not.length}\n` +
+        `Duplicates in visible: ${dup}`;
+
+      if(AN.rows.length) setStatus(true, `Parsed ✅ ${AN.rows.length} rows`);
+    }
+
+    function copyToClipboard(text){
+      const v = String(text ?? "");
+      return navigator.clipboard.writeText(v);
+    }
+
+    function downloadText(filename, content, mime="text/plain"){
+      const blob = new Blob([content], {type:mime});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 800);
+    }
+
+    $("anProcessBtn").onclick = analyzerProcess;
+    $("anCheckBtn").onclick = analyzerCheck;
+
+    $("anCopyIdsBtn").onclick = async ()=>{
+      if(!AN.visible.length){ toast("warn","Copy IDs","Nothing to copy."); return; }
+      const ids = Array.from(new Set(AN.visible.map(r=>r.id))).sort((a,b)=>a-b);
+      await copyToClipboard(ids.join("\n"));
+      toast("good","Copy IDs",`Copied ${ids.length} unique IDs.`);
+    };
+
+    $("anExportCsvBtn").onclick = ()=>{
+      if(!AN.visible.length){ toast("warn","Export CSV","Nothing to export."); return; }
+      const ids = Array.from(new Set(AN.visible.map(r=>r.id))).sort((a,b)=>a-b);
+      const csv = "id\n" + ids.join("\n");
+      downloadText("analyzer_ids.csv", csv, "text/csv");
+      toast("good","Export CSV",`Exported ${ids.length} IDs.`);
+    };
+
+    $("anCopyNotBtn").onclick = async ()=>{
+      if(!AN.notList.length){ toast("warn","Copy NOT","Run Check first."); return; }
+      await copyToClipboard(AN.notList.join("\n"));
+      toast("good","Copy NOT",`Copied NOT PROCESSED (${AN.notList.length}).`);
+    };
+
+    $("anExportNotBtn").onclick = ()=>{
+      if(!AN.notList.length){ toast("warn","Export NOT","Run Check first."); return; }
+      const csv = "id\n" + AN.notList.join("\n");
+      downloadText("analyzer_not_processed.csv", csv, "text/csv");
+      toast("good","Export NOT",`Exported NOT PROCESSED (${AN.notList.length}).`);
+    };
+
+    setAnalyzerMode("single");
+
+    /***********************
+     * =======================
+     * Keyword Checker (GAS logic)
+     * =======================
+     ***********************/
+    const DEFAULT_KEYWORDS = [
+      "done","already","reply","forward","search completed for","markunread","sendmessage",
+      "successfully","birthdaychanged","click","gender updated","theme already changed",
+      "gmail template updated","languagevalue updated","english has been added"
+    ];
+
+    function loadKeywords(){
+      try{
+        const raw = localStorage.getItem("kw_keywords");
+        if(!raw) return DEFAULT_KEYWORDS.slice();
+        const arr = JSON.parse(raw);
+        if(!Array.isArray(arr)) return DEFAULT_KEYWORDS.slice();
+        return arr.map(x=>String(x).trim()).filter(Boolean);
+      }catch(e){
+        return DEFAULT_KEYWORDS.slice();
       }
     }
-  }
-  return processed ? "PROCESSED" : "NOT PROCESSED";
-}
+    function saveKeywords(arr){
+      localStorage.setItem("kw_keywords", JSON.stringify(arr));
+    }
 
-function kwRebuild(){
-  const txt = $("kwInput").value || "";
-  const parsed = kwParseTable(txt);
-
-  kwAllRows = [];
-  if(parsed.err){
-    kwSetMsg("bad", parsed.err);
-    $("kwTotal").textContent = "0";
-    $("kwCountFiltered").textContent = "0";
-    $("kwSessionsBox").style.display = "none";
-    renderKeywordTable([]);
-    setPill("bad", "Keyword Checker: " + parsed.err);
-    return;
-  }
-
-  const out = parsed.rows.map(r=>{
-    const proc = computeProcessStatus(r);
-    const disc = isDisconnectedRow(r);
-    const preview = `${r.log} ${r.details} ${r.cnx_problems}`.trim();
-    return {
-      ...r,
-      process_status: proc,
-      disconnected: disc,
-      preview
+    let KW = {
+      keywords: loadKeywords(),
+      rows: [],        // all parsed table rows with computed fields
+      filtered: [],    // after type+session filter
+      sessions: new Map(), // session -> stats
+      delim: "—"
     };
-  });
 
-  kwAllRows = out;
-  kwApplyFilterRender();
-  kwSetMsg("good", `Processed ${kwAllRows.length} rows ✅ (delim: ${parsed.delim === "\t" ? "TAB" : parsed.delim})`);
-  setPill("good", "Keyword check done ✅");
-}
-
-function kwApplyFilterRender(){
-  const filter = $("kwFilter").value;
-
-  let visible = kwAllRows;
-  if(filter === "PROCESSED"){
-    visible = kwAllRows.filter(r => r.process_status === "PROCESSED" && !r.disconnected);
-  }else if(filter === "NOT_PROCESSED"){
-    visible = kwAllRows.filter(r => r.process_status === "NOT PROCESSED" && !r.disconnected);
-  }else if(filter === "DISCONNECTED"){
-    visible = kwAllRows.filter(r => r.disconnected);
-  }else{
-    visible = kwAllRows;
-  }
-
-  // sort
-  const dir = kwSort.dir === "asc" ? 1 : -1;
-  visible.sort((a,b)=>{
-    let va=a[kwSort.key], vb=b[kwSort.key];
-    if(typeof va === "string") va = va.toLowerCase();
-    if(typeof vb === "string") vb = vb.toLowerCase();
-    if(va<vb) return -1*dir;
-    if(va>vb) return 1*dir;
-    return 0;
-  });
-
-  kwVisibleRows = visible;
-
-  $("kwTotal").textContent = kwAllRows.length;
-
-  // update right KPI label & count
-  const label = filter;
-  $("kwFilterLabel").textContent = label.replace("_"," ");
-  $("kwCountFiltered").textContent = uniqueProfiles(kwVisibleRows).length;
-
-  // sessions breakdown
-  renderSessionBreakdown(filter);
-
-  // table
-  renderKeywordTable(kwVisibleRows);
-  kwUpdateSortIcons();
-}
-
-function uniqueProfiles(rows){
-  const set = new Set();
-  for(const r of rows) set.add(String(r.profile_Name));
-  return [...set];
-}
-
-function renderSessionBreakdown(filter){
-  const box = $("kwSessionsBox");
-  if(!kwAllRows.length){
-    box.style.display = "none";
-    return;
-  }
-
-  // group by session_short (fallback "—")
-  const groups = new Map();
-  for(const r of kwAllRows){
-    const s = r.session_short || "—";
-    if(!groups.has(s)) groups.set(s, []);
-    groups.get(s).push(r);
-  }
-
-  // build HTML
-  const blocks = [];
-  const order = [...groups.keys()].sort((a,b)=>a.localeCompare(b));
-  for(const sess of order){
-    const arr = groups.get(sess);
-
-    const proc = arr.filter(x => x.process_status === "PROCESSED" && !x.disconnected).length;
-    const notp = arr.filter(x => x.process_status === "NOT PROCESSED" && !x.disconnected).length;
-    const disc = arr.filter(x => x.disconnected).length;
-
-    // list profiles for current filter
-    let listRows = arr;
-    if(filter === "PROCESSED") listRows = arr.filter(x => x.process_status==="PROCESSED" && !x.disconnected);
-    else if(filter === "NOT_PROCESSED") listRows = arr.filter(x => x.process_status==="NOT PROCESSED" && !x.disconnected);
-    else if(filter === "DISCONNECTED") listRows = arr.filter(x => x.disconnected);
-    else listRows = arr;
-
-    const unique = uniqueProfiles(listRows);
-
-    blocks.push(`
-      <details>
-        <summary>
-          <span class="mono">${escapeHtml(sess)}</span>
-          <span class="counts">P:${proc} | N:${notp} | D:${disc} | show:${unique.length}</span>
-        </summary>
-        <div class="hint2" style="margin-top:10px;">Unique profile_Name (first 300):</div>
-        <div class="mono" style="margin-top:8px; white-space:pre-wrap; font-size:12px; color: var(--text);">${escapeHtml(unique.slice(0,300).join("\n"))}</div>
-      </details>
-    `);
-  }
-
-  box.innerHTML = blocks.join("");
-  box.style.display = "";
-}
-
-function escapeHtml(s){
-  return String(s??"")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;");
-}
-
-function renderKeywordTable(rows){
-  const body = $("kwTableBody");
-  if(!rows.length){
-    body.innerHTML = `<tr><td colspan="6" class="muted">No rows</td></tr>`;
-    return;
-  }
-  body.innerHTML = rows.slice(0,2000).map((r, idx)=>{
-    const proc = r.disconnected ? "DISCONNECTED" : r.process_status;
-    const badgeClass = r.disconnected ? "warn" : (r.process_status==="PROCESSED" ? "good":"bad");
-    const preview = safePreview(r.preview, 150);
-
-    return `<tr>
-      <td class="mono">${escapeHtml(r.profile_Name)}</td>
-      <td class="mono">${escapeHtml(r.tag || "")}</td>
-      <td>${escapeHtml(r.status_name || "")}</td>
-      <td><span class="badge ${badgeClass}">${escapeHtml(proc)}</span></td>
-      <td class="mono">${escapeHtml(r.session_short || "")}</td>
-      <td class="mono">${escapeHtml(preview)}</td>
-    </tr>`;
-  }).join("");
-}
-
-function kwSetMsg(type, text){
-  const box = $("kwMsg");
-  const dot = box.querySelector(".dot");
-  dot.classList.remove("good","bad");
-  dot.classList.add(type==="good" ? "good" : "bad");
-  box.querySelector("span.mono").textContent = text;
-}
-
-function kwUpdateSortIcons(){
-  const map = {
-    profile_Name:$("kwSortProfile"),
-    tag:$("kwSortTag"),
-    status_name:$("kwSortStatusName"),
-    process_status:$("kwSortProc"),
-    session_short:$("kwSortSess"),
-    preview:$("kwSortPrev")
-  };
-  for(const k in map){
-    map[k].className = "chev";
-  }
-  const el = map[kwSort.key];
-  if(!el) return;
-  el.className = "chev" + (kwSort.dir==="asc" ? " up":"");
-}
-
-document.querySelectorAll("#pageKeyword thead th").forEach(th=>{
-  th.addEventListener("click", ()=>{
-    const k = th.getAttribute("data-k");
-    if(!k) return;
-    if(kwSort.key === k){
-      kwSort.dir = kwSort.dir==="asc" ? "desc" : "asc";
-    }else{
-      kwSort.key = k;
-      kwSort.dir = "asc";
+    function renderKeywordPills(){
+      const wrap = $("kwPills");
+      const arr = KW.keywords.slice();
+      wrap.innerHTML = arr.map((k,idx)=>`
+        <span class="pill" title="${escapeHtml(k)}">
+          <span class="mono">${escapeHtml(k)}</span>
+          <span class="x" data-i="${idx}">×</span>
+        </span>
+      `).join("");
+      wrap.querySelectorAll(".x").forEach(btn=>{
+        btn.onclick = ()=>{
+          const i = +btn.getAttribute("data-i");
+          KW.keywords.splice(i,1);
+          saveKeywords(KW.keywords);
+          renderKeywordPills();
+        };
+      });
     }
-    kwApplyFilterRender();
-  });
-});
 
-$("kwProcess").onclick = kwRebuild;
-
-$("kwFilter").onchange = ()=>{
-  kwApplyFilterRender();
-};
-
-$("kwCopy").onclick = async ()=>{
-  if(!kwVisibleRows.length){
-    kwSetMsg("bad","No rows to copy. Click Process first.");
-    return;
-  }
-  // copy unique profile_Name
-  const uniq = uniqueProfiles(kwVisibleRows);
-  try{
-    await copyToClipboard(uniq.join("\n"));
-    kwSetMsg("good",`Copied ${uniq.length} profile_Name ✅`);
-    setPill("good", `Copied ${uniq.length}`);
-  }catch(e){
-    kwSetMsg("bad","Copy failed (browser blocked clipboard)");
-  }
-};
-
-$("kwExport").onclick = ()=>{
-  if(!kwVisibleRows.length){
-    kwSetMsg("bad","No rows to export. Click Process first.");
-    return;
-  }
-  const filter = $("kwFilter").value;
-  const uniq = uniqueProfiles(kwVisibleRows);
-  downloadText(`${filter.toLowerCase()}_profiles.txt`, uniq.join("\n"));
-  kwSetMsg("good",`Exported ${uniq.length} profile_Name ✅`);
-};
-
-$("kwAddBtn").onclick = ()=>{
-  const v = $("kwAddInput").value.trim();
-  if(!v) return;
-  const low = v.toLowerCase();
-  if(!kwKeywords.map(x=>x.toLowerCase()).includes(low)){
-    kwKeywords.push(v);
-    kwKeywords = kwKeywords.map(x=>String(x).trim()).filter(Boolean);
-    saveKeywords();
-    renderKeywordChips();
-    $("kwAddInput").value = "";
-    kwSetMsg("good","Keyword added ✅");
-  }else{
-    kwSetMsg("bad","Keyword already exists");
-  }
-};
-
-$("kwAddInput").addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){
-    e.preventDefault();
-    $("kwAddBtn").click();
-  }
-});
-
-$("kwDefault").onclick = ()=>{
-  kwKeywords = [...DEFAULT_KEYWORDS];
-  saveKeywords();
-  renderKeywordChips();
-  kwSetMsg("good","Default list loaded ✅");
-};
-
-$("kwClearAll").onclick = ()=>{
-  kwKeywords = [];
-  saveKeywords();
-  renderKeywordChips();
-  kwSetMsg("good","Keywords cleared ✅");
-};
-
-/** =========================
- *  Maintenance (Telegram screenshot)
- *  ========================= */
-function getTgCreds(){
-  const token = localStorage.getItem(TG_TOKEN_KEY) || "";
-  const chat = localStorage.getItem(TG_CHAT_KEY) || "";
-  return {token, chat};
-}
-function setTgCreds(token, chat){
-  localStorage.setItem(TG_TOKEN_KEY, token || "");
-  localStorage.setItem(TG_CHAT_KEY, chat || "");
-}
-
-function openTgModal(){
-  const {token, chat} = getTgCreds();
-  $("tgToken").value = token;
-  $("tgChat").value = chat;
-  $("tgModalBack").style.display = "flex";
-}
-function closeTgModal(){
-  $("tgModalBack").style.display = "none";
-}
-
-$("btnMaintSettings").onclick = openTgModal;
-$("tgClose").onclick = closeTgModal;
-$("tgCancel").onclick = closeTgModal;
-$("tgModalBack").addEventListener("click",(e)=>{
-  if(e.target === $("tgModalBack")) closeTgModal();
-});
-$("tgSave").onclick = ()=>{
-  const token = $("tgToken").value.trim();
-  const chat = $("tgChat").value.trim();
-  setTgCreds(token, chat);
-  closeTgModal();
-  setPill("good","Telegram settings saved ✅");
-};
-
-async function sendTelegramPhoto(token, chatId, caption, blob){
-  const url = `https://api.telegram.org/bot${token}/sendPhoto`;
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("caption", caption);
-  form.append("photo", blob, "screenshot.png");
-  const res = await fetch(url, { method:"POST", body: form });
-  const data = await res.json().catch(()=>({ok:false, description:"Invalid JSON"}));
-  if(!data.ok) throw new Error(data.description || "Telegram sendPhoto failed");
-  return data;
-}
-
-async function sendTelegramMessage(token, chatId, text){
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("text", text);
-  const res = await fetch(url, { method:"POST", body: form });
-  const data = await res.json().catch(()=>({ok:false, description:"Invalid JSON"}));
-  if(!data.ok) throw new Error(data.description || "Telegram sendMessage failed");
-  return data;
-}
-
-function buildMaintenanceReport(mode){
-  const now = new Date().toISOString();
-  const ua = navigator.userAgent;
-  const url = location.href;
-  const pill = $("pillText").textContent;
-
-  return [
-    "🛠 Maintenance report",
-    `Mode: ${mode}`,
-    `Time: ${now}`,
-    `URL: ${url}`,
-    `UA: ${ua}`,
-    `Status: ${pill}`
-  ].join("\n");
-}
-
-async function captureScreenshotBlob(){
-  // small delay to allow UI to settle
-  await new Promise(r=>setTimeout(r, 120));
-  const canvas = await html2canvas(document.body, {
-    backgroundColor: null,
-    scale: 1.5,
-    useCORS: true
-  });
-  return await new Promise((resolve, reject)=>{
-    canvas.toBlob((blob)=>{
-      if(!blob) return reject(new Error("Failed to create screenshot blob"));
-      resolve(blob);
-    }, "image/png", 0.95);
-  });
-}
-
-$("btnMaint").onclick = async ()=>{
-  const {token, chat} = getTgCreds();
-  if(!token || !chat){
-    setPill("bad","Set Telegram token/chat first (⚙ Telegram)");
-    openTgModal();
-    return;
-  }
-
-  const mode = $("pageKeyword").style.display === "none" ? "Analyzer" : "Keyword Checker";
-  const report = buildMaintenanceReport(mode);
-
-  setPill("good","Maintenance: capturing screenshot…");
-
-  try{
-    const blob = await captureScreenshotBlob();
-    await sendTelegramPhoto(token, chat, report, blob);
-    setPill("good","Maintenance sent ✅ (screenshot + report)");
-  }catch(err){
-    // fallback: send message only
-    try{
-      await sendTelegramMessage(token, chat, report + "\n\n⚠ Screenshot failed: " + String(err.message || err));
-      setPill("bad","Screenshot failed, but report sent ✅");
-    }catch(e2){
-      setPill("bad","Maintenance failed: " + String(e2.message || e2));
+    function detectDelimiter(text){
+      // If it contains TAB header, prefer TAB
+      if(/\t/.test(text)) return "\t";
+      // else if CSV likely
+      // but we accept semicolon too
+      const lines = String(text||"").split(/\r?\n/).filter(Boolean).slice(0,10);
+      const sample = lines.join("\n");
+      const comma = (sample.match(/,/g)||[]).length;
+      const semi  = (sample.match(/;/g)||[]).length;
+      if(semi > comma) return ";";
+      return ",";
     }
-  }
-};
 
-/** =========================
- *  Init
- *  ========================= */
-renderKeywordChips();
-setPill("bad","No valid rows parsed (check format)");
+    function splitLine(line, delim){
+      // minimal CSV splitter that respects quotes
+      const out = [];
+      let cur = "";
+      let q = false;
+      for(let i=0;i<line.length;i++){
+        const ch = line[i];
+        if(ch === '"'){ q = !q; continue; }
+        if(!q && ch === delim){
+          out.push(cur);
+          cur = "";
+        }else{
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    }
 
-// make analyzer show correct sort icon at start
-analyzerUpdateSortIcons();
-kwUpdateSortIcons();
-</script>
+    function parseTable(text){
+      const raw = String(text||"").trim();
+      if(!raw) return { rows: [], delim:"—", err:"Empty input." };
+
+      const delim = detectDelimiter(raw);
+      const lines = raw.split(/\r?\n/).map(l=>l.replace(/\u00A0/g," ").trimEnd());
+      const nonEmpty = lines.filter(l=>l.trim().length>0);
+      if(nonEmpty.length < 2) return { rows: [], delim, err:"Need header + at least one row." };
+
+      // header
+      const headerLine = nonEmpty[0].trim();
+      const headerCells = (delim === "\t") ? headerLine.split("\t") : splitLine(headerLine, delim);
+      const headers = headerCells.map(h => String(h||"").trim().toLowerCase());
+
+      const idx = (name) => headers.indexOf(name);
+      const h_profile = idx("profile_name") >= 0 ? idx("profile_name") : idx("profile_name".replace("_",""));
+      const h_profile2 = idx("profile_name") >= 0 ? idx("profile_name") : idx("profile_name");
+      // handle profile_Name exact (case-insensitive) => headers already lower
+      const profileIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+                         headers.indexOf("profile_name".replace("_","")) !== -1 ? headers.indexOf("profile_name".replace("_","")) :
+                         headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name") :
+                         headers.indexOf("profile_name") ;
+
+      // better: accept profile_name or profile_name with missing underscore: profilename
+      const profIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name")
+                    : (headers.indexOf("profilename") !== -1 ? headers.indexOf("profilename")
+                    : (headers.indexOf("profile_name ") !== -1 ? headers.indexOf("profile_name ") : -1));
+
+      const logIdx     = headers.indexOf("log");
+      const detailsIdx = headers.indexOf("details");
+      const cnxIdx     = headers.indexOf("cnx_problems");
+      const tagIdx     = headers.indexOf("tag");
+      const statusIdx  = headers.indexOf("status_name");
+      const scriptIdx  = headers.indexOf("script_name");
+      const sessionIdx = headers.indexOf("session_name");
+
+      if(profIdx === -1 && headers.indexOf("profile_name") === -1 && headers.indexOf("profilename") === -1){
+        // still try "profile_name" with camel "profile_Name" -> lower becomes "profile_name" already
+      }
+
+      const realProfIdx = headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name")
+                       : headers.indexOf("profilename") !== -1 ? headers.indexOf("profilename")
+                       : headers.indexOf("profile_name") ;
+
+      const finalProfIdx = (headers.indexOf("profile_name") !== -1 ? headers.indexOf("profile_name")
+                          : (headers.indexOf("profilename") !== -1 ? headers.indexOf("profilename") : -1));
+
+      const pIdx = finalProfIdx;
+
+      if(pIdx === -1 || logIdx === -1 || detailsIdx === -1){
+        return {
+          rows: [],
+          delim,
+          err: "Missing required headers: profile_Name + log + details"
+        };
+      }
+
+      const rows = [];
+      for(let i=1;i<nonEmpty.length;i++){
+        const line = nonEmpty[i];
+        const cells = (delim === "\t") ? line.split("\t") : splitLine(line, delim);
+        // pad
+        while(cells.length < headers.length) cells.push("");
+        const row = {
+          profile_Name: String(cells[pIdx] ?? "").trim(),
+          tag: String(cells[tagIdx] ?? "").trim(),
+          status_name: String(cells[statusIdx] ?? "").trim(),
+          log: String(cells[logIdx] ?? "").trim(),
+          cnx_problems: String(cells[cnxIdx] ?? "").trim(),
+          details: String(cells[detailsIdx] ?? "").trim(),
+          script_name: String(cells[scriptIdx] ?? "").trim(),
+          session_name: normalizeSessionName(cells[sessionIdx] ?? "")
+        };
+        // drop empty profile_Name
+        if(!row.profile_Name) continue;
+
+        rows.push(row);
+      }
+
+      return { rows, delim, err: rows.length ? null : "No data rows parsed." };
+    }
+
+    function keywordMatchRow(row){
+      const logText = normalizeForSearch(row.log);
+      const detailsText = normalizeForSearch(row.details);
+      if(!logText && !detailsText) return false;
+      for(const kw of KW.keywords){
+        const k = String(kw||"").trim().toLowerCase();
+        if(!k) continue;
+        if(logText.includes(k) || detailsText.includes(k)) return true;
+      }
+      return false;
+    }
+
+    function computeKW(){
+      const parsed = parseTable($("kwInput").value);
+      KW.delim = (parsed.delim === "\t") ? "TAB" : (parsed.delim === "," ? "CSV" : "SEMICOLON");
+      $("kwDelim").textContent = "Delim: " + KW.delim;
+
+      if(parsed.err){
+        KW.rows = [];
+        KW.filtered = [];
+        KW.sessions = new Map();
+        $("kwTotal").textContent = "0";
+        $("kwProcessed").textContent = "0";
+        $("kwNotProcessed").textContent = "0";
+        $("kwChipP").textContent = "0";
+        $("kwChipN").textContent = "0";
+        $("kwChipD").textContent = "0";
+        $("kwSessions").innerHTML = "";
+        $("kwSessionFilter").innerHTML = `<option value="__ALL__">All sessions</option>`;
+        $("kwTableBody").innerHTML = `<tr><td colspan="7" class="muted">${escapeHtml(parsed.err)}</td></tr>`;
+        setStatus(false, "No valid rows parsed (check format)");
+        toast("bad","Keyword Checker", parsed.err);
+        return;
+      }
+
+      // compute statuses with GAS logic + disconnected extra
+      const out = [];
+      for(const r of parsed.rows){
+        const disc = isDisconnectedRow(r);
+        const proc = disc ? false : keywordMatchRow(r);
+        const status = disc ? "DISCONNECTED" : (proc ? "PROCESSED" : "NOT PROCESSED");
+        out.push({
+          ...r,
+          process_status: status,
+          session: r.session_name || "—",
+          preview: (r.log || "") + (r.details ? (" | " + r.details) : "")
+        });
+      }
+
+      KW.rows = out;
+
+      // sessions stats
+      const sessions = new Map();
+      for(const r of out){
+        const s = r.session || "—";
+        if(!sessions.has(s)) sessions.set(s, {P:0,N:0,D:0,total:0});
+        const st = sessions.get(s);
+        st.total++;
+        if(r.process_status === "PROCESSED") st.P++;
+        else if(r.process_status === "DISCONNECTED") st.D++;
+        else st.N++;
+      }
+      KW.sessions = sessions;
+
+      // KPIs totals
+      let P=0,N=0,D=0;
+      for(const v of sessions.values()){ P+=v.P; N+=v.N; D+=v.D; }
+      $("kwTotal").textContent = String(out.length);
+      $("kwProcessed").textContent = String(P);
+      $("kwNotProcessed").textContent = String(N);
+      $("kwChipP").textContent = String(P);
+      $("kwChipN").textContent = String(N);
+      $("kwChipD").textContent = String(D);
+
+      // build session dropdown
+      const sel = $("kwSessionFilter");
+      const current = sel.value || "__ALL__";
+      const sessionNames = Array.from(sessions.keys()).sort((a,b)=>a.localeCompare(b));
+      sel.innerHTML = `<option value="__ALL__">All sessions</option>` + sessionNames.map(s=>{
+        const v = sessions.get(s);
+        return `<option value="${escapeHtml(s)}">${escapeHtml(s)} (P:${v.P} N:${v.N} D:${v.D})</option>`;
+      }).join("");
+      // restore selection if still exists
+      if(Array.from(sel.options).some(o=>o.value === current)) sel.value = current;
+
+      // render session list
+      const list = $("kwSessions");
+      list.innerHTML = sessionNames.slice(0, 250).map(s=>{
+        const v = sessions.get(s);
+        return `
+          <div class="sessionItem">
+            <div class="sessionName mono">${escapeHtml(s)}</div>
+            <div class="sessionMeta mono">
+              P:<b>${v.P}</b> | N:<b>${v.N}</b> | D:<b>${v.D}</b> | show:<b>${v.total}</b>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      applyKWFilters();
+      setStatus(true, `Keyword check done ✅ (${out.length} rows)`);
+      toast("good","Keyword Checker","Processed with Apps Script logic.");
+    }
+
+    function applyKWFilters(){
+      const type = $("kwTypeFilter").value;
+      const sess = $("kwSessionFilter").value;
+
+      let rows = KW.rows.slice();
+      if(sess !== "__ALL__"){
+        rows = rows.filter(r => (r.session || "—") === sess);
+      }
+      if(type !== "ALL"){
+        rows = rows.filter(r => r.process_status === type);
+      }
+
+      KW.filtered = rows;
+      renderKWTable(rows);
+    }
+
+    function renderKWTable(rows){
+      const tb = $("kwTableBody");
+      if(!rows.length){
+        tb.innerHTML = `<tr><td colspan="7" class="muted">No rows</td></tr>`;
+        return;
+      }
+
+      tb.innerHTML = rows.slice(0, 2500).map((r, i)=>{
+        const pillClass = r.process_status === "PROCESSED" ? "good" : (r.process_status === "DISCONNECTED" ? "warn" : "bad");
+        return `
+          <tr>
+            <td class="mono">${i+1}</td>
+            <td class="mono">${escapeHtml(r.profile_Name)}</td>
+            <td class="mono muted">${escapeHtml(r.tag || "")}</td>
+            <td class="mono muted">${escapeHtml(r.status_name || "")}</td>
+            <td><span class="statusPill ${pillClass}">${escapeHtml(r.process_status)}</span></td>
+            <td class="mono">${escapeHtml(r.session || "—")}</td>
+            <td class="mono muted">${escapeHtml((r.preview||"").slice(0, 160))}${(r.preview||"").length>160 ? "…" : ""}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function uniqueProfileNames(rows){
+      const set = new Set();
+      for(const r of rows){
+        set.add(String(r.profile_Name).trim());
+      }
+      return Array.from(set).filter(Boolean).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+    }
+
+    $("kwProcessBtn").onclick = computeKW;
+    $("kwTypeFilter").onchange = applyKWFilters;
+    $("kwSessionFilter").onchange = applyKWFilters;
+
+    $("kwHeaderFilterBtn").onclick = ()=>{
+      // focus the type filter (this is the "small arrow" you requested)
+      $("kwTypeFilter").focus();
+      $("kwTypeFilter").click();
+    };
+
+    $("kwAddBtn").onclick = ()=>{
+      const v = String($("kwNew").value||"").trim();
+      if(!v) return;
+      // prevent duplicates (case-insensitive)
+      const lower = v.toLowerCase();
+      const exists = KW.keywords.some(k => String(k).toLowerCase() === lower);
+      if(exists){
+        toast("warn","Keywords","Already exists.");
+        $("kwNew").value = "";
+        return;
+      }
+      KW.keywords.push(v);
+      saveKeywords(KW.keywords);
+      renderKeywordPills();
+      $("kwNew").value = "";
+      toast("good","Keywords","Added.");
+    };
+
+    $("kwDefaultBtn").onclick = ()=>{
+      KW.keywords = DEFAULT_KEYWORDS.slice();
+      saveKeywords(KW.keywords);
+      renderKeywordPills();
+      toast("good","Keywords","Default list restored.");
+    };
+
+    $("kwClearBtn").onclick = ()=>{
+      KW.keywords = [];
+      saveKeywords(KW.keywords);
+      renderKeywordPills();
+      toast("good","Keywords","Cleared all.");
+    };
+
+    $("kwCopyBtn").onclick = async ()=>{
+      if(!KW.filtered.length){ toast("warn","Copy","No rows in current filter."); return; }
+      const ids = uniqueProfileNames(KW.filtered);
+      await copyToClipboard(ids.join("\n"));
+      toast("good","Copy",`Copied ${ids.length} unique profile_Name.`);
+    };
+
+    $("kwExportBtn").onclick = ()=>{
+      if(!KW.filtered.length){ toast("warn","Export","No rows in current filter."); return; }
+      const ids = uniqueProfileNames(KW.filtered);
+      const csv = "profile_Name\n" + ids.join("\n");
+      downloadText(`keyword_${$("kwTypeFilter").value.toLowerCase()}_${$("kwSessionFilter").value === "__ALL__" ? "all_sessions" : $("kwSessionFilter").value}.csv`, csv, "text/csv");
+      toast("good","Export",`Exported ${ids.length} profile_Name.`);
+    };
+
+    renderKeywordPills();
+
+    /***********************
+     * Maintenance Telegram
+     ***********************/
+    async function telegramSendMessage(text){
+      const url = `https://api.telegram.org/bot${TELEGRAM.BOT_TOKEN}/sendMessage`;
+      const body = new URLSearchParams();
+      body.set("chat_id", TELEGRAM.CHAT_ID);
+      body.set("text", text);
+      body.set("parse_mode", "HTML");
+      const res = await fetch(url, { method:"POST", body });
+      // If CORS blocks, this will throw before response.
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        throw new Error("sendMessage failed: " + res.status + " " + t);
+      }
+      return res.json().catch(()=> ({}));
+    }
+
+    async function telegramSendPhoto(blob, caption){
+      const url = `https://api.telegram.org/bot${TELEGRAM.BOT_TOKEN}/sendPhoto`;
+      const form = new FormData();
+      form.append("chat_id", TELEGRAM.CHAT_ID);
+      form.append("caption", caption || "");
+      form.append("photo", blob, "screenshot.png");
+      const res = await fetch(url, { method:"POST", body: form });
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        throw new Error("sendPhoto failed: " + res.status + " " + t);
+      }
+      return res.json().catch(()=> ({}));
+    }
+
+    async function captureScreenshotBlob(){
+      const canvas = await html2canvas(document.body, {
+        scale: 1.6,
+        backgroundColor: null,
+        useCORS: true
+      });
+      return await new Promise((resolve) => canvas.toBlob(resolve, "image/png", 0.95));
+    }
+
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 800);
+    }
+
+    $("maintenanceBtn").onclick = async ()=>{
+      const activeMode = $("viewKeyword").classList.contains("hidden") ? "Analyzer" : "Keyword Checker";
+      const now = new Date().toISOString();
+
+      const report =
+`🛠 Maintenance report
+Mode: ${activeMode}
+Time: ${now}
+URL: ${location.href}
+UA: ${navigator.userAgent}
+Status: Waiting…`;
+
+      // Keep original behavior: send text first
+      try{
+        if(!TELEGRAM.BOT_TOKEN.includes("PUT_") && !TELEGRAM.CHAT_ID.includes("PUT_")){
+          await telegramSendMessage(report);
+          toast("good","Maintenance","Report text sent to Telegram.");
+        }else{
+          toast("warn","Maintenance","Set BOT_TOKEN and CHAT_ID in the HTML first.");
+          return;
+        }
+      }catch(e){
+        toast("bad","Maintenance","Text send failed. " + (e?.message || e));
+        // continue to screenshot anyway (for local debugging)
+      }
+
+      // Try screenshot
+      let blob = null;
+      try{
+        blob = await captureScreenshotBlob();
+        if(!blob) throw new Error("Screenshot blob is null.");
+        const cap = `🖼 Screenshot (${activeMode}) - ${now}`;
+        await telegramSendPhoto(blob, cap);
+        toast("good","Maintenance","Screenshot sent to Telegram.");
+        setStatus(true, "Maintenance screenshot sent ✅");
+      }catch(e){
+        // This is the most common issue: Telegram API CORS in browser
+        const msg = (e?.message || String(e));
+        toast("bad","Maintenance","Screenshot NOT sent. " + msg);
+        setStatus(false, "Maintenance screenshot failed (see toast)");
+
+        // Help you debug: download the screenshot locally so you can share it
+        try{
+          if(!blob) blob = await captureScreenshotBlob();
+          if(blob) downloadBlob(blob, "maintenance_screenshot.png");
+          toast("warn","Maintenance","Downloaded screenshot locally (fallback). If you need Telegram screenshot: use a small proxy (CORS).");
+        }catch(_){}
+      }
+    };
+
+    /***********************
+     * Boot
+     ***********************/
+    // Start with strict status
+    setStatus(false, "No valid rows parsed (check format)");
+  </script>
 </body>
 </html>
-
