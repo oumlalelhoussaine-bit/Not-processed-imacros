@@ -801,7 +801,7 @@
 A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
 ..."></textarea>
                 <div class="help" style="margin-top:10px;">
-                  Headers are flexible (case-insensitive): profile/profile_name, status/status_name, script/script_name, tag, log, session/session_name.
+                  
                 </div>
               </div>
             </div>
@@ -852,7 +852,7 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
                   </div>
 
                   <div class="help">
-                    If Telegram send fails (CORS on file://), use “Copy msg” and send manually.
+                   
                   </div>
                 </div>
               </div>
@@ -1644,146 +1644,156 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
 
     renderKeywordPills();
 
-    /***********************
-     * DAILY REPORT LOGIC
-     ***********************/
-    const D = {
+  /***********************
+ * DAILY REPORT LOGIC (EXACT HEADERS)
+ ***********************/
+const D = {
+  rows: [],
+  reportRows: [],
+  headerTag: "UNKNOWN",
+  counts: { total:0, activated:0, appeal:0, disconnected:0, errors:0 },
+  topErrors: []
+};
+
+function smartLabel(status, blob){
+  const text = (String(status || "") + " ; " + String(blob || ""))
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  const RULES = [
+    { key: "accountNotBelongYou", tests: [/not belong/, /not yours/, /belongs to another/, /accountnotbelongyou/]},
+    { key: "appeal", tests: [/account disabled/, /\bappel\b/, /\bappeal\b/, /accountdisabled/]},
+    { key: "wrongPassword", tests: [/wrong password/, /incorrect password/]},
+    { key: "apiProblem", tests: [/api problem/, /\bapi\b/, /server error/]},
+    { key: "providePhoneNumber", tests: [/phone number/, /provide phone/, /recovery phone/, /sms code/]},
+    { key: "captchaText", tests: [/captcha text/, /text captcha/]},
+    { key: "captchaVerification", tests: [/captcha verification/, /security check/]},
+    { key: "captchaCantSolve", tests: [/captcha can'?t solve/, /cant solve/, /can't solve/, /cant solved/, /can't solved/]},
+    { key: "slowProxy", tests: [/slow proxy/, /proxy is slow/]},
+    { key: "retryAutomatically", tests: [/auto retry/, /\bretry\b/]},
+    { key: "disconnected", tests: [/disconnected/, /connection lost/, /session expired/, /proxy dropped/]},
+    { key: "activated", tests: [/connected profile/, /\bconnected\b/, /logged in/, /status\s*=>\s*connected/]},
+    { key: "someoneTryingAccess", tests: [/\btrying to access\b/, /someone.*access/, /suspicious/, /unusual login/]},
+    { key: "close", tests: [/closed/, /closing/, /change proxy/, /restart session/]},
+  ];
+
+  for (const rule of RULES) {
+    for (const re of rule.tests) {
+      if (re.test(text)) return rule.key;
+    }
+  }
+  return "unknownError";
+}
+
+function buildTopErrors(errorCounts, topN){
+  const entries = Object.entries(errorCounts);
+  entries.sort((a,b)=>{
+    const ia = (IMPORTANCE[a[0]] ?? 0);
+    const ib = (IMPORTANCE[b[0]] ?? 0);
+    if(ib !== ia) return ib - ia;
+    return b[1] - a[1];
+  });
+  return entries.slice(0, topN);
+}
+
+function detectDelimGeneral(lines){
+  let tab=0, semi=0, comma=0;
+  for(const ln of lines.slice(0,25)){
+    tab += (ln.match(/\t/g)||[]).length;
+    semi += (ln.match(/;/g)||[]).length;
+    comma += (ln.match(/,/g)||[]).length;
+  }
+  if(tab > semi && tab > comma) return "\t";
+  return semi > comma ? ";" : ",";
+}
+
+function splitCsvLine(line, delim){
+  if(delim === "\t") return line.split("\t");
+  const out = [];
+  let cur="", inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1] === '"'){ cur += '"'; i++; continue; }
+      inQ = !inQ; continue;
+    }
+    if(!inQ && ch === delim){ out.push(cur); cur=""; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function mapHeadersFlex(headerRow){
+  const H = {};
+  headerRow.forEach((h, idx)=>{
+    const key = String(h||"").toLowerCase().replace(/\u00A0/g," ").trim().replace(/\s+/g," ");
+    if(key) H[key]=idx;
+  });
+  return H;
+}
+
+function findHeaderFlex(H, names){
+  for(const n of names){
+    const k = n.toLowerCase();
+    if(H[k] != null) return H[k];
+  }
+  return null;
+}
+
+function parseDailyInputExact(text){
+  const lines = String(text||"").replace(/\r/g,"").split("\n").filter(l=>l.trim().length);
+  if(lines.length < 2) return { rows: [], err: "Need header + at least one row." };
+
+  const delim = detectDelimGeneral(lines);
+  const head = splitCsvLine(lines[0], delim).map(s=>String(s||"").trim());
+  const H = mapHeadersFlex(head);
+
+  // EXACT REQUIRED HEADERS (case-insensitive)
+  const COL_PROFILE = findHeaderFlex(H, ["profile_name"]);
+  const COL_TAG     = findHeaderFlex(H, ["tag"]);
+  const COL_STATUS  = findHeaderFlex(H, ["status_name"]);
+  const COL_LOG     = findHeaderFlex(H, ["log"]);
+  const COL_CNX     = findHeaderFlex(H, ["cnx_problems"]);
+  const COL_DETAILS = findHeaderFlex(H, ["details"]);
+  const COL_SCRIPT  = findHeaderFlex(H, ["script_name"]);
+  const COL_SESSION = findHeaderFlex(H, ["session_name"]);
+
+  if([COL_PROFILE,COL_TAG,COL_STATUS,COL_LOG,COL_CNX,COL_DETAILS,COL_SCRIPT,COL_SESSION].some(x=>x==null)){
+    return {
       rows: [],
-      reportRows: [],
-      headerTag: "UNKNOWN",
-      counts: { total:0, activated:0, appeal:0, disconnected:0, errors:0 },
-      topErrors: []
+      err: "Missing headers. Required: profile_Name tag status_name log cnx_problems details script_name session_name"
     };
+  }
 
-    function smartLabel(status, blob){
-      const text = (String(status || "") + " ; " + String(blob || ""))
-        .toLowerCase()
-        .replace(/\s+/g, " ");
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const parts = splitCsvLine(lines[i], delim).map(s=>String(s||"").trim());
+    const profile = parts[COL_PROFILE] ?? "";
+    if(!String(profile).trim()) continue;
 
-      const RULES = [
-        { key: "accountNotBelongYou", tests: [/not belong/, /not yours/, /belongs to another/, /accountnotbelongyou/]},
-        { key: "appeal", tests: [/account disabled/, /\bappel\b/, /\bappeal\b/, /accountdisabled/]},
-        { key: "wrongPassword", tests: [/wrong password/, /incorrect password/]},
-        { key: "apiProblem", tests: [/api problem/, /\bapi\b/, /server error/]},
-        { key: "providePhoneNumber", tests: [/phone number/, /provide phone/, /recovery phone/, /sms code/]},
-        { key: "captchaText", tests: [/captcha text/, /text captcha/]},
-        { key: "captchaVerification", tests: [/captcha verification/, /security check/]},
-        { key: "captchaCantSolve", tests: [/captcha can'?t solve/, /cant solve/, /can't solve/, /cant solved/, /can't solved/]},
-        { key: "slowProxy", tests: [/slow proxy/, /proxy is slow/]},
-        { key: "retryAutomatically", tests: [/auto retry/, /retry/]},
-        { key: "disconnected", tests: [/disconnected/, /connection lost/, /session expired/, /proxy dropped/]},
-        { key: "activated", tests: [/connected profile/, /\bconnected\b/, /logged in/]},
-        { key: "someoneTryingAccess", tests: [/\btrying to access\b/, /someone.*access/, /suspicious/, /unusual login/]},
-        { key: "close", tests: [/closed/, /closing/, /change proxy/, /restart session/]},
-      ];
+    rows.push({
+      profile_Name: String(profile).trim(),
+      tag: String(parts[COL_TAG] ?? "").trim(),
+      status_name: String(parts[COL_STATUS] ?? "").trim(),
+      log: String(parts[COL_LOG] ?? "").trim(),
+      cnx_problems: String(parts[COL_CNX] ?? "").trim(),
+      details: String(parts[COL_DETAILS] ?? "").trim(),
+      script_name: String(parts[COL_SCRIPT] ?? "").trim(),
+      session_name: String(parts[COL_SESSION] ?? "").trim(),
+    });
+  }
 
-      for (const rule of RULES) {
-        for (const re of rule.tests) {
-          if (re.test(text)) return rule.key;
-        }
-      }
-      return "unknownError";
-    }
+  if(!rows.length) return { rows: [], err: "No data rows parsed." };
+  return { rows, err: null };
+}
 
-    function buildTopErrors(errorCounts, topN){
-      const entries = Object.entries(errorCounts);
-      entries.sort((a,b)=>{
-        const ia = (IMPORTANCE[a[0]] ?? 0);
-        const ib = (IMPORTANCE[b[0]] ?? 0);
-        if(ib !== ia) return ib - ia;
-        return b[1] - a[1];
-      });
-      return entries.slice(0, topN);
-    }
+function buildDailyMessageExact(){
+  const { total, activated, appeal, errors, disconnected } = D.counts;
+  const blocked = (errors + disconnected + appeal);
+  const topLines = D.topErrors.map(([name,count]) => `– ${name}: ${count}`).join("\n");
 
-    function detectDelimGeneral(lines){
-      let tab=0, semi=0, comma=0;
-      for(const ln of lines.slice(0,25)){
-        tab += (ln.match(/\t/g)||[]).length;
-        semi += (ln.match(/;/g)||[]).length;
-        comma += (ln.match(/,/g)||[]).length;
-      }
-      if(tab > semi && tab > comma) return "\t";
-      return semi > comma ? ";" : ",";
-    }
-
-    function splitCsvLine(line, delim){
-      if(delim === "\t") return line.split("\t");
-      const out = [];
-      let cur="", inQ=false;
-      for(let i=0;i<line.length;i++){
-        const ch=line[i];
-        if(ch === '"'){
-          if(inQ && line[i+1] === '"'){ cur += '"'; i++; continue; }
-          inQ = !inQ; continue;
-        }
-        if(!inQ && ch === delim){ out.push(cur); cur=""; continue; }
-        cur += ch;
-      }
-      out.push(cur);
-      return out;
-    }
-
-    function mapHeadersFlex(headerRow){
-      const H = {};
-      headerRow.forEach((h, idx)=>{
-        const key = String(h||"").toLowerCase().replace(/\u00A0/g," ").trim().replace(/\s+/g," ");
-        if(key) H[key]=idx;
-      });
-      return H;
-    }
-
-    function findHeaderFlex(H, names){
-      for(const n of names){
-        const k = n.toLowerCase();
-        if(H[k] != null) return H[k];
-      }
-      return null;
-    }
-
-    function parseDailyInput(text){
-      const lines = String(text||"").replace(/\r/g,"").split("\n").filter(l=>l.trim().length);
-      if(lines.length < 2) return [];
-
-      const delim = detectDelimGeneral(lines);
-      const head = splitCsvLine(lines[0], delim).map(s=>String(s||"").trim());
-      const H = mapHeadersFlex(head);
-
-      const COL_PROFILE = findHeaderFlex(H, ["profile","profile_name","profilename"]);
-      const COL_STATUS  = findHeaderFlex(H, ["status","status_name"]);
-      const COL_SCRIPT  = findHeaderFlex(H, ["script","script_name"]);
-      const COL_TAG     = findHeaderFlex(H, ["tag"]);
-      const COL_LOG     = findHeaderFlex(H, ["log","logs"]);
-      const COL_SESSION = findHeaderFlex(H, ["session","session_name"]);
-
-      if([COL_PROFILE,COL_STATUS,COL_SCRIPT,COL_TAG,COL_LOG,COL_SESSION].some(x=>x==null)){
-        return [];
-      }
-
-      const rows = [];
-      for(let i=1;i<lines.length;i++){
-        const parts = splitCsvLine(lines[i], delim).map(s=>String(s||"").trim());
-        const profile = parts[COL_PROFILE] ?? "";
-        if(!String(profile).trim()) continue;
-
-        rows.push({
-          profile: String(profile).trim(),
-          status: String(parts[COL_STATUS] ?? "").trim(),
-          script: String(parts[COL_SCRIPT] ?? "").trim(),
-          tag: String(parts[COL_TAG] ?? "").trim(),
-          log: String(parts[COL_LOG] ?? "").trim(),
-          session: String(parts[COL_SESSION] ?? "").trim(),
-        });
-      }
-      return rows;
-    }
-
-    function buildDailyMessageExact(){
-      const { total, activated, appeal, errors } = D.counts;
-      const blocked = (errors + D.counts.disconnected + appeal);
-      const topLines = D.topErrors.map(([name,count]) => `– ${name}: ${count}`).join("\n");
-
-      return `#${D.headerTag} webautomat
+  return `#${D.headerTag} webautomat
 ━━━━━━━━━━━━━━━━━━
 🔴Rate blocked seeds :${blocked}
 🟡 Checked Seeds:   ${total}
@@ -1794,128 +1804,148 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
 ━━━━━━━━━━━━━━━━━━
 🔍 Top Errors:
 ${topLines || "– none: 0"}`.trim();
-    }
+}
 
-    function renderDailyTable(){
-      const tb = $("dTableBody");
-      if(!D.reportRows.length){
-        tb.innerHTML = `<tr><td colspan="4" class="muted">No report yet</td></tr>`;
-        return;
-      }
-      tb.innerHTML = D.reportRows.slice(0, 2500).map(r=>`
-        <tr>
-          <td class="mono">${escapeHtml(r.Profile)}</td>
-          <td class="mono">${escapeHtml(r.Date)}</td>
-          <td class="mono muted">${escapeHtml(r.Tag)}</td>
-          <td class="mono">${escapeHtml(r.Status)}</td>
-        </tr>
-      `).join("");
-    }
+function renderDailyTable(){
+  const tb = $("dTableBody");
+  if(!D.reportRows.length){
+    tb.innerHTML = `<tr><td colspan="10" class="muted">No report yet</td></tr>`;
+    return;
+  }
 
-    function runDaily(){
-      const raw = $("dInput").value.trim();
-      if(!raw){ toast("bad","Daily","Empty input."); return; }
+  tb.innerHTML = D.reportRows.slice(0, 2500).map(r=>`
+    <tr>
+      <td class="mono">${escapeHtml(r.profile_Name)}</td>
+      <td class="mono muted">${escapeHtml(r.tag)}</td>
+      <td class="mono muted">${escapeHtml(r.status_name)}</td>
+      <td class="mono muted">${escapeHtml(r.log)}</td>
+      <td class="mono muted">${escapeHtml(r.cnx_problems)}</td>
+      <td class="mono muted">${escapeHtml(r.details)}</td>
+      <td class="mono">${escapeHtml(r.script_name)}</td>
+      <td class="mono">${escapeHtml(r.session_name)}</td>
+      <td class="mono">${escapeHtml(r.Date)}</td>
+      <td class="mono">${escapeHtml(r.Status)}</td>
+    </tr>
+  `).join("");
+}
 
-      const rows = parseDailyInput(raw);
-      if(!rows.length){
-        toast("bad","Daily","Missing headers or no valid rows.");
-        return;
-      }
+function runDaily(){
+  const raw = $("dInput").value.trim();
+  if(!raw){ toast("bad","Daily","Empty input."); return; }
 
-      D.rows = rows;
-      D.headerTag = extractHeaderTagFromSession(rows[0].session || "");
-      const now = fmtDayTZ(DAILY_CFG.TZ);
+  const parsed = parseDailyInputExact(raw);
+  if(parsed.err){
+    toast("bad","Daily", parsed.err);
+    return;
+  }
 
-      let total=0, activated=0, appeals=0, disconnected=0;
-      const errorCounts = {};
-      const reportRows = [];
+  const rows = parsed.rows;
+  D.rows = rows;
 
-      for(const r of rows){
-        total++;
+  D.headerTag = extractHeaderTagFromSession(rows[0].session_name || "");
+  const now = fmtDayTZ(DAILY_CFG.TZ);
 
-        const label = smartLabel(r.status, `${r.script} ; ${r.log}`);
+  let total=0, activated=0, appeals=0, disconnected=0;
+  const errorCounts = {};
+  const reportRows = [];
 
-        if(label === "activated") activated++;
-        else if(label === "appeal") appeals++;
-        else if(label === "disconnected") disconnected++;
-        else errorCounts[label] = (errorCounts[label] || 0) + 1;
+  for(const r of rows){
+    total++;
 
-        reportRows.push({
-          Profile: r.profile,
-          Date: now.ddmm,
-          Tag: r.tag,
-          Status: `- ${label}`
-        });
-      }
+    const label = smartLabel(
+      r.status_name,
+      `${r.log} ; ${r.details} ; ${r.cnx_problems} ; ${r.script_name} ; ${r.session_name}`
+    );
 
-      const errors = total - activated - appeals - disconnected;
+    if(label === "activated") activated++;
+    else if(label === "appeal") appeals++;
+    else if(label === "disconnected") disconnected++;
+    else errorCounts[label] = (errorCounts[label] || 0) + 1;
 
-      D.counts = { total, activated, appeal:appeals, disconnected, errors };
-      D.topErrors = buildTopErrors(errorCounts, DAILY_CFG.TOP_N);
-      D.reportRows = reportRows;
+    reportRows.push({
+      ...r,
+      Date: now.ddmm,
+      Status: `- ${label}`
+    });
+  }
 
-      $("dTotal").textContent = String(total);
-      $("dConnected").textContent = String(activated);
-      $("dErrors").textContent = String(errors);
-      $("dDay").textContent = "Day: " + now.ddmm;
+  const errors = total - activated - appeals - disconnected;
 
-      renderDailyTable();
+  D.counts = { total, activated, appeal:appeals, disconnected, errors };
+  D.topErrors = buildTopErrors(errorCounts, DAILY_CFG.TOP_N);
+  D.reportRows = reportRows;
 
-      // Editable message preview
-      $("dMsg").value = buildDailyMessageExact();
+  $("dTotal").textContent = String(total);
+  $("dConnected").textContent = String(activated);
+  $("dErrors").textContent = String(errors);
+  $("dDay").textContent = "Day: " + now.ddmm;
 
-      setStatus(true, `Daily built ✅ (${total} rows)`);
-      toast("good","Daily","Report built + message ready (editable).");
-    }
+  renderDailyTable();
 
-    $("dRunBtn").onclick = runDaily;
+  // Editable message preview
+  $("dMsg").value = buildDailyMessageExact();
 
-    $("dCopyMsgBtn").onclick = async ()=>{
-      const msg = $("dMsg").value.trim();
-      if(!msg){ toast("warn","Daily","Run report first."); return; }
-      await copyToClipboard(msg);
-      toast("good","Daily","Message copied.");
-    };
+  setStatus(true, `Daily built ✅ (${total} rows)`);
+  toast("good","Daily","Report built + message ready (editable).");
+}
 
-    $("dExportBtn").onclick = ()=>{
-      if(!D.reportRows.length){ toast("warn","Daily","Run report first."); return; }
-      const header = "Profile;Date;Tag;Status\n";
-      const body = D.reportRows.map(r=>{
-        const safe = (x)=> {
-          const s = String(x??"");
-          return /[;\n\r"]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-        };
-        return `${safe(r.Profile)};${safe(r.Date)};${safe(r.Tag)};${safe(r.Status)}`;
-      }).join("\n");
-      downloadText(`Report_${D.headerTag}_${Date.now()}.csv`, header + body, "text/csv");
-      toast("good","Daily","Exported report CSV.");
-    };
+$("dRunBtn").onclick = runDaily;
 
-    async function telegramSendMessage(text){
-      const url = `https://api.telegram.org/bot${TELEGRAM.BOT_TOKEN}/sendMessage`;
-      const body = new URLSearchParams();
-      body.set("chat_id", TELEGRAM.CHAT_ID);
-      body.set("text", text);
-      const res = await fetch(url, { method:"POST", body });
-      if(!res.ok){
-        const t = await res.text().catch(()=> "");
-        throw new Error("sendMessage failed: " + res.status + " " + t);
-      }
-      return res.json().catch(()=> ({}));
-    }
+$("dCopyMsgBtn").onclick = async ()=>{
+  const msg = $("dMsg").value.trim();
+  if(!msg){ toast("warn","Daily","Run report first."); return; }
+  await copyToClipboard(msg);
+  toast("good","Daily","Message copied.");
+};
 
-    $("dSendBtn").onclick = async ()=>{
-      const msg = $("dMsg").value.trim();
-      if(!msg){ toast("warn","Daily","Run report first."); return; }
-      try{
-        await telegramSendMessage(msg);
-        toast("good","Daily","Sent to Telegram ✅");
-        setStatus(true, "Daily sent ✅");
-      }catch(e){
-        toast("bad","Daily","Telegram send failed (CORS?) — use Copy msg. " + (e?.message || e));
-        setStatus(false, "Daily send failed (see toast)");
-      }
-    };
+$("dExportBtn").onclick = ()=>{
+  if(!D.reportRows.length){ toast("warn","Daily","Run report first."); return; }
+
+  // Export with SAME HEADERS + Date + StatusLabel
+  const header =
+    "profile_Name;tag;status_name;log;cnx_problems;details;script_name;session_name;Date;Status\n";
+
+  const safe = (x)=> {
+    const s = String(x??"");
+    return /[;\n\r"]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+
+  const body = D.reportRows.map(r=>[
+    r.profile_Name, r.tag, r.status_name, r.log, r.cnx_problems, r.details,
+    r.script_name, r.session_name, r.Date, r.Status
+  ].map(safe).join(";")).join("\n");
+
+  downloadText(`Daily_Report_${D.headerTag}_${Date.now()}.csv`, header + body, "text/csv");
+  toast("good","Daily","Exported report CSV (full headers).");
+};
+
+async function telegramSendMessage(text){
+  const url = `https://api.telegram.org/bot${TELEGRAM.BOT_TOKEN}/sendMessage`;
+  const body = new URLSearchParams();
+  body.set("chat_id", TELEGRAM.CHAT_ID);
+  body.set("text", text);
+
+  const res = await fetch(url, { method:"POST", body });
+  if(!res.ok){
+    const t = await res.text().catch(()=> "");
+    throw new Error("sendMessage failed: " + res.status + " " + t);
+  }
+  return res.json().catch(()=> ({}));
+}
+
+$("dSendBtn").onclick = async ()=>{
+  const msg = $("dMsg").value.trim();
+  if(!msg){ toast("warn","Daily","Run report first."); return; }
+  try{
+    await telegramSendMessage(msg);
+    toast("good","Daily","Sent to Telegram ✅");
+    setStatus(true, "Daily sent ✅");
+  }catch(e){
+    toast("bad","Daily","Telegram send failed (CORS?) — use Copy msg. " + (e?.message || e));
+    setStatus(false, "Daily send failed (see toast)");
+  }
+};
+
 
     /***********************
      * Maintenance Telegram (your code)
@@ -2006,5 +2036,4 @@ ${topLines || "– none: 0"}`.trim();
   </script>
 </body>
 </html>
-
 
