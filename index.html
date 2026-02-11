@@ -324,7 +324,6 @@
       font-weight: 900;
       line-height:1;
     }
-    .pill.mini{ font-weight: 800; }
 
     .hr{
       height:1px;
@@ -854,11 +853,6 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
                   <div class="row">
                     <button class="btn primary" id="dSendBtn">📨 Send Telegram</button>
                   </div>
-
-                  <div class="help">
-                    ⚠️ Security note: put your Telegram token in code only if this file stays private.
-                    Better: keep token server-side.
-                  </div>
                 </div>
               </div>
             </div>
@@ -881,7 +875,7 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
           </div>
         </div>
 
-        <!-- ===================== 30 Days Planner ===================== -->
+        <!-- ===================== Planner ===================== -->
         <div id="viewPlanner" class="hidden">
           <div class="grid">
             <div class="card">
@@ -945,9 +939,10 @@ CMH13_WEB"></textarea>
                     • Workdays only: 1 action/day.<br/>
                     • One-time actions: only once in whole 30 days (workdays only).<br/>
                     • Same week: action cannot repeat inside the week.<br/>
-                    • ✅ First 2 workdays fixed: <b>Connect</b>, then <b>Language</b>.<br/>
-                    • ✅ <b>Confirmation Newsletters</b> happens <b>+3 workdays</b> after <b>NewsLetters With Tracking</b>.<br/>
-                    • ✅ <b>Mark unread</b> and <b>Open unread</b never come consecutive.<br/>
+                    • Connect + Language are forced on first 2 workdays.<br/>
+                    • Tracking newsletter is 1x/month, Confirmation is 1x/month and scheduled +3 days (workdays).<br/>
+                    • Mark unread and Open unread must NOT be consecutive (no A→B, B→A, A→A, B→B).<br/>
+                    • Multi sessions have different random plan (seeded).
                   </div>
                 </div>
 
@@ -1003,10 +998,10 @@ CMH13_WEB"></textarea>
     /***********************
      * CONFIG (Telegram + TZ)
      ***********************/
-    // ⚠️ Put your real token here ONLY if this file is private.
+    // ⚠️ Replace with your real token/chat id. (Keep in mind: exposing token in HTML is unsafe for public hosting.)
     const TELEGRAM = {
-      BOT_TOKEN: "PUT_YOUR_TOKEN_HERE",
-      CHAT_ID: "PUT_YOUR_CHAT_ID_HERE",
+      BOT_TOKEN: "8268561557:AAFVTAA2JyK7I1ti4toDZojyY72wckvnxyE",
+      CHAT_ID: "7435435784",
     };
 
     const DAILY_CFG = {
@@ -1078,65 +1073,19 @@ CMH13_WEB"></textarea>
       return (idx >= 0 ? s.slice(0, idx) : s).trim();
     }
 
-    function uniqCaseInsensitive(arr){
-      const seen = new Set();
-      const out = [];
-      for(const x of arr){
-        const v = String(x||"").trim();
-        if(!v) continue;
-        const k = v.toLowerCase();
-        if(seen.has(k)) continue;
-        seen.add(k);
-        out.push(v);
-      }
-      return out;
-    }
-
-    function normalizeSessionLines(text){
-      const lines = String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-      const sessions = lines.map(s => normalizeSessionName(s));
-      return uniqCaseInsensitive(sessions).filter(Boolean);
-    }
-
-    function shuffle(arr){
-      const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    function todayISOByTZ(tz){
+    function fmtDayTZ(tz){
       const dt = new Date();
       const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit"
+        timeZone: tz,
+        year:"numeric", month:"2-digit", day:"2-digit",
+        hour:"2-digit", minute:"2-digit", second:"2-digit",
+        hour12:false
       }).formatToParts(dt).reduce((acc,p)=>{ acc[p.type]=p.value; return acc; }, {});
-      return `${parts.year}-${parts.month}-${parts.day}`;
-    }
-
-    function addDaysISO(dateISO, n){
-      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return null;
-      const y = +m[1], mo = +m[2], d = +m[3];
-      const dt = new Date(Date.UTC(y, mo-1, d));
-      dt.setUTCDate(dt.getUTCDate() + n);
-      const yy = dt.getUTCFullYear();
-      const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
-      const dd = String(dt.getUTCDate()).padStart(2,"0");
-      return `${yy}-${mm}-${dd}`;
-    }
-
-    function weekdayIndexUTC(dateISO){
-      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return null;
-      const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
-      return dt.getUTCDay(); // 0 Sun ... 6 Sat
-    }
-
-    function isWeekendISO(dateISO){
-      const wd = weekdayIndexUTC(dateISO);
-      return wd === 0 || wd === 6;
+      return {
+        dayISO: `${parts.year}-${parts.month}-${parts.day}`,
+        ddmm: `${parts.day}-${parts.month}`,
+        time: `${parts.hour}:${parts.minute}:${parts.second}`
+      };
     }
 
     /***********************
@@ -1823,15 +1772,183 @@ CMH13_WEB"></textarea>
     kwUpdateLogFilterUI();
 
     /***********************
-     * DAILY (placeholder)
+     * Daily Report (Simple working implementation)
      ***********************/
-    $("dRunBtn").onclick = ()=> toast("warn","Daily","Daily logic not included in this cleaned file (paste it and I’ll merge).");
-    $("dCopyMsgBtn").onclick = ()=> toast("warn","Daily","Run daily first (logic missing).");
-    $("dExportBtn").onclick = ()=> toast("warn","Daily","Run daily first (logic missing).");
-    $("dSendBtn").onclick = ()=> toast("warn","Daily","Send logic missing (paste your daily code).");
+    function detectDelimiterDaily(text){
+      if(/\t/.test(text)) return "\t";
+      const sample = String(text||"");
+      const comma = (sample.match(/,/g)||[]).length;
+      const semi  = (sample.match(/;/g)||[]).length;
+      if(semi > comma) return ";";
+      return ",";
+    }
+
+    function parseDailyTable(text){
+      const raw = String(text||"").trim();
+      if(!raw) return { rows: [], err: "Empty input." };
+
+      const delim = detectDelimiterDaily(raw);
+      const lines = raw.split(/\r?\n/).filter(l=>l.trim().length);
+      if(lines.length < 2) return { rows: [], err: "Need header + at least 1 row." };
+
+      const header = (delim === "\t") ? lines[0].split("\t") : splitLine(lines[0], delim);
+      const H = header.map(h=>String(h||"").trim().toLowerCase());
+
+      const find = (...names)=> names.map(n=>H.indexOf(n)).find(i=>i!==-1) ?? -1;
+
+      const iProfile = find("profile","profile_name","profilename");
+      const iStatus  = find("status","status_name");
+      const iScript  = find("script","script_name");
+      const iTag     = find("tag");
+      const iLog     = find("log");
+      const iSess    = find("session","session_name");
+
+      if(iProfile === -1 || iStatus === -1 || iLog === -1){
+        return { rows: [], err: "Missing headers. Need at least: Profile + Status + Log." };
+      }
+
+      const rows = [];
+      for(let i=1;i<lines.length;i++){
+        const cells = (delim === "\t") ? lines[i].split("\t") : splitLine(lines[i], delim);
+        while(cells.length < H.length) cells.push("");
+        rows.push({
+          profile: String(cells[iProfile]??"").trim(),
+          status: String(cells[iStatus]??"").trim(),
+          script: iScript !== -1 ? String(cells[iScript]??"").trim() : "",
+          tag: iTag !== -1 ? String(cells[iTag]??"").trim() : "",
+          log: String(cells[iLog]??"").trim(),
+          session: iSess !== -1 ? normalizeSessionName(cells[iSess]??"") : ""
+        });
+      }
+      return { rows: rows.filter(r=>r.profile), err: null };
+    }
+
+    function dailyBuildMessage(rows){
+      const now = fmtDayTZ(DAILY_CFG.TZ);
+      const total = rows.length;
+
+      const connected = rows.filter(r=>/connected|activated/i.test(r.status+" "+r.log)).length;
+      const errors = Math.max(0, total - connected);
+
+      const bySession = new Map();
+      for(const r of rows){
+        const s = r.session || "—";
+        if(!bySession.has(s)) bySession.set(s, {total:0, connected:0, errors:0});
+        const o = bySession.get(s);
+        o.total++;
+        if(/connected|activated/i.test(r.status+" "+r.log)) o.connected++;
+        else o.errors++;
+      }
+
+      let msg = "";
+      msg += `📩 Daily Report (${now.dayISO} ${now.time})\n`;
+      msg += `Total: ${total}\nConnected: ${connected}\nErrors: ${errors}\n\n`;
+
+      const sessions = Array.from(bySession.keys()).sort((a,b)=>a.localeCompare(b));
+      for(const s of sessions){
+        const o = bySession.get(s);
+        msg += `• ${s} => total:${o.total} | ok:${o.connected} | err:${o.errors}\n`;
+      }
+
+      msg += `\nTop ${DAILY_CFG.TOP_N} errors (preview):\n`;
+      const errRows = rows.filter(r=>!(/connected|activated/i.test(r.status+" "+r.log))).slice(0, DAILY_CFG.TOP_N);
+      for(const r of errRows){
+        msg += `- ${r.profile} | ${r.session||"—"} | ${r.status} | ${(r.log||"").slice(0,90)}\n`;
+      }
+
+      return { msg, total, connected, errors, dayISO: now.dayISO };
+    }
+
+    function dailyRenderTable(rows, dayISO){
+      const tb = $("dTableBody");
+      if(!rows.length){
+        tb.innerHTML = `<tr><td colspan="4" class="muted">No report yet</td></tr>`;
+        return;
+      }
+      tb.innerHTML = rows.slice(0, 2500).map(r=>`
+        <tr>
+          <td class="mono">${escapeHtml(r.profile)}</td>
+          <td class="mono">${escapeHtml(dayISO || "")}</td>
+          <td class="mono muted">${escapeHtml(r.tag || "")}</td>
+          <td class="mono">${escapeHtml(r.status || "")}</td>
+        </tr>
+      `).join("");
+    }
+
+    let DAILY = { rows: [], msg: "" };
+
+    $("dRunBtn").onclick = ()=>{
+      const parsed = parseDailyTable($("dInput").value);
+      if(parsed.err){
+        toast("bad","Daily", parsed.err);
+        setStatus(false, "Daily: invalid input");
+        return;
+      }
+      DAILY.rows = parsed.rows;
+      const pack = dailyBuildMessage(DAILY.rows);
+      DAILY.msg = pack.msg;
+
+      $("dTotal").textContent = String(pack.total);
+      $("dConnected").textContent = String(pack.connected);
+      $("dErrors").textContent = String(pack.errors);
+      $("dDay").textContent = "Day: " + pack.dayISO;
+      $("dMsg").value = pack.msg;
+
+      dailyRenderTable(DAILY.rows, pack.dayISO);
+
+      toast("good","Daily", "Report built.");
+      setStatus(true, `Daily ✅ (${pack.total} rows)`);
+    };
+
+    $("dCopyMsgBtn").onclick = async ()=>{
+      const txt = String($("dMsg").value||"").trim();
+      if(!txt){ toast("warn","Daily","Run report first."); return; }
+      await copyToClipboard(txt);
+      toast("good","Daily","Message copied.");
+    };
+
+    $("dExportBtn").onclick = ()=>{
+      if(!DAILY.rows.length){ toast("warn","Daily","Run report first."); return; }
+      const header = "profile;status;script;tag;log;session\n";
+      const safe = (x)=> {
+        const s = String(x??"");
+        return /[;\n\r"]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+      };
+      const body = DAILY.rows.map(r=>[
+        r.profile, r.status, r.script, r.tag, r.log, r.session
+      ].map(safe).join(";")).join("\n");
+      downloadText(`daily_report_${Date.now()}.csv`, header + body, "text/csv");
+      toast("good","Daily","CSV exported.");
+    };
+
+    async function telegramSend(text){
+      const url = `https://api.telegram.org/bot${TELEGRAM.BOT_TOKEN}/sendMessage`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ chat_id: TELEGRAM.CHAT_ID, text })
+      });
+      const data = await res.json().catch(()=>null);
+      if(!res.ok || !data || data.ok !== true){
+        const err = data && data.description ? data.description : "Telegram request failed";
+        throw new Error(err);
+      }
+      return data;
+    }
+
+    $("dSendBtn").onclick = async ()=>{
+      const txt = String($("dMsg").value||"").trim();
+      if(!txt){ toast("warn","Telegram","Message empty."); return; }
+      try{
+        await telegramSend(txt);
+        toast("good","Telegram","Sent ✅");
+      }catch(e){
+        toast("bad","Telegram", String(e && e.message ? e.message : e));
+      }
+    };
 
     /***********************
-     * ✅ PLANNER (CLEAN + RULES)
+     * Planner (FINAL with your rules)
      ***********************/
     const PLANNER_TZ = "Africa/Casablanca";
 
@@ -1839,7 +1956,6 @@ CMH13_WEB"></textarea>
       "Connect",
       "Add Birthday",
       "Add Address",
-      "Recent Activity",
       "Language",
       "Change Picture",
       "Gender",
@@ -1866,16 +1982,106 @@ CMH13_WEB"></textarea>
       "Gender"
     ];
 
-    // remove Confirmation from random pool (it will be scheduled only as dependency)
-    const ACTIONS_REPEAT_BASE = ACTIONS_ALL
-      .filter(a => !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase()))
-      .filter(a => a.toLowerCase() !== "confirmation newsletters".toLowerCase());
+    // ✅ Plan state
+    const PLAN = { sessions: [], rows: [], startISO: "", days: 30 };
 
+    // Show actions help
     if($("pActionsHelp")) $("pActionsHelp").textContent = ACTIONS_ALL.join(" • ");
     if($("pOneTimeHelp")) $("pOneTimeHelp").textContent = ACTIONS_ONE_TIME.join(" • ");
 
-    const PLAN = { sessions: [], rows: [], startISO: "", days: 30 };
+    function uniqCaseInsensitive(arr){
+      const seen = new Set();
+      const out = [];
+      for(const x of arr){
+        const v = String(x||"").trim();
+        if(!v) continue;
+        const k = v.toLowerCase();
+        if(seen.has(k)) continue;
+        seen.add(k);
+        out.push(v);
+      }
+      return out;
+    }
 
+    function normalizeSessionLines(text){
+      const lines = String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      const sessions = lines.map(s => normalizeSessionName(s));
+      return uniqCaseInsensitive(sessions).filter(Boolean);
+    }
+
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ✅ seeded shuffle (to make multi sessions different)
+    function hashString32(str){
+      let h = 2166136261;
+      for (let i=0;i<str.length;i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+    function mulberry32(seed){
+      let t = seed >>> 0;
+      return function(){
+        t += 0x6D2B79F5;
+        let x = t;
+        x = Math.imul(x ^ (x >>> 15), x | 1);
+        x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function shuffleSeeded(arr, seed){
+      const a = arr.slice();
+      const rnd = mulberry32(seed);
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(rnd()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function todayISOByTZ(tz){
+      const dt = new Date();
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit"
+      }).formatToParts(dt).reduce((acc,p)=>{ acc[p.type]=p.value; return acc; }, {});
+      return `${parts.year}-${parts.month}-${parts.day}`;
+    }
+
+    function addDaysISO(dateISO, n){
+      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return null;
+      const y = +m[1], mo = +m[2], d = +m[3];
+      const dt = new Date(Date.UTC(y, mo-1, d));
+      dt.setUTCDate(dt.getUTCDate() + n);
+      const yy = dt.getUTCFullYear();
+      const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
+      const dd = String(dt.getUTCDate()).padStart(2,"0");
+      return `${yy}-${mm}-${dd}`;
+    }
+
+    function weekdayIndexUTC(dateISO){
+      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return null;
+      const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+      return dt.getUTCDay(); // 0 Sun ... 6 Sat
+    }
+
+    function isWeekendISO(dateISO){
+      const wd = weekdayIndexUTC(dateISO);
+      return wd === 0 || wd === 6;
+    }
+
+    /***********************
+     * Planner extra constraints
+     ***********************/
     const ACTION_CONNECT = "Connect";
     const ACTION_LANGUAGE = "Language";
     const ACTION_NEWS_TRACK = "NewsLetters With Tracking";
@@ -1883,73 +2089,110 @@ CMH13_WEB"></textarea>
     const ACTION_MARK_UNREAD = "Mark unread";
     const ACTION_OPEN_UNREAD = "Open unread";
 
+    // ✅ Tracking 1x/30d and Confirmation 1x/30d
+    const ACTION_LIMITS_30D = {
+      "NewsLetters With Tracking": 1,
+      "Confirmation Newsletters": 1
+    };
+
+    // ✅ remove Tracking + Confirmation from random repeat pool (scheduled by rules)
+    const ACTIONS_REPEAT_BASE = ACTIONS_ALL
+      .filter(a => !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase()))
+      .filter(a => {
+        const low = a.toLowerCase();
+        return low !== ACTION_NEWS_TRACK.toLowerCase()
+            && low !== ACTION_NEWS_CONFIRM.toLowerCase();
+      });
+
     function isForbiddenConsecutive(prevAction, nextAction){
       const p = String(prevAction||"").toLowerCase();
       const n = String(nextAction||"").toLowerCase();
       const A = ACTION_MARK_UNREAD.toLowerCase();
       const B = ACTION_OPEN_UNREAD.toLowerCase();
-
+      // block A->B, B->A, A->A, B->B
       if((p === A && n === B) || (p === B && n === A)) return true;
-      if((p === A && n === A) || (p === B && n === B)) return true; // optional: block unread back-to-back
+      if((p === A && n === A) || (p === B && n === B)) return true;
       return false;
     }
 
-    function isOneTimeAction(action){
-  const a = String(action||"").toLowerCase();
-  return ACTIONS_ONE_TIME.some(x => String(x).toLowerCase() === a);
-}
+    function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevAction){
+      const pickFromListNoWeekRepeat = (list) => {
+        for(let i=0;i<list.length;i++){
+          const a = list[i];
+          const lower = a.toLowerCase();
+          if(weekUsedSet.has(lower)) continue;
+          if(isForbiddenConsecutive(prevAction, a)) continue;
+          return { action:a, index:i };
+        }
+        return null;
+      };
 
-function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevAction){
-  // ✅ one-time actions: random, but NOT consecutive and NOT repeat in same week
-  if(oneTimeQueue.length){
-    // try random picks up to N tries
-    for(let tries=0; tries<20; tries++){
-      const i = Math.floor(Math.random() * oneTimeQueue.length);
-      const a = oneTimeQueue[i];
-      const lower = String(a).toLowerCase();
+      // limited/one-time first
+      if(oneTimeQueue.length){
+        const cand = pickFromListNoWeekRepeat(oneTimeQueue);
+        if(cand){
+          oneTimeQueue.splice(cand.index, 1);
+          weekUsedSet.add(cand.action.toLowerCase());
+          return cand.action;
+        }
+      }
 
-      if(weekUsedSet.has(lower)) continue;                 // no same week repeat
-      if(isForbiddenConsecutive(prevAction, a)) continue;  // unread/open rule
-      if(isOneTimeAction(prevAction)) continue;            // ✅ prevent one-time after one-time
+      // repeating pool
+      if(!poolState.pool || !poolState.pool.length){
+        poolState.pool = shuffle(poolBase);
+        poolState.cursor = 0;
+      }
 
-      oneTimeQueue.splice(i, 1);                           // consume it once
-      weekUsedSet.add(lower);
-      return a;
+      for(let tries=0; tries < poolState.pool.length; tries++){
+        const a = poolState.pool[poolState.cursor % poolState.pool.length];
+        poolState.cursor++;
+        const lower = String(a).toLowerCase();
+
+        if(weekUsedSet.has(lower)) continue;
+        if(isForbiddenConsecutive(prevAction, a)) continue;
+
+        weekUsedSet.add(lower);
+        return a;
+      }
+
+      // fallback: first allowed
+      for(const a of (poolState.pool || []).concat(poolBase || [])){
+        if(!a) continue;
+        if(isForbiddenConsecutive(prevAction, a)) continue;
+        weekUsedSet.add(String(a).toLowerCase());
+        return a;
+      }
+
+      const fallback = poolBase[0] || "UNKNOWN";
+      weekUsedSet.add(String(fallback).toLowerCase());
+      return fallback;
     }
-  }
-
-  // 🔁 repeating pool
-  if(!poolState.pool || !poolState.pool.length){
-    poolState.pool = shuffle(poolBase);
-    poolState.cursor = 0;
-  }
-
-  for(let tries=0; tries < poolState.pool.length; tries++){
-    const a = poolState.pool[poolState.cursor % poolState.pool.length];
-    poolState.cursor++;
-    const lower = String(a).toLowerCase();
-
-    if(weekUsedSet.has(lower)) continue;
-    if(isForbiddenConsecutive(prevAction, a)) continue;
-
-    weekUsedSet.add(lower);
-    return a;
-  }
-
-  // fallback
-  const fallback = poolBase[0] || "UNKNOWN";
-  weekUsedSet.add(String(fallback).toLowerCase());
-  return fallback;
-}
-
 
     function buildPlanForSession(session, startISO, calendarDays=30){
-      // force first 2 workdays => Connect then Language
-      const oneTimeQueue = ACTIONS_ONE_TIME.slice()
-        .filter(a => ![ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase()));
+      // ✅ per-session seed => different random plan per session (except Connect/Language)
+      const seed = hashString32(`${normalizeSessionName(session)}|${startISO}`);
 
+      // limited queue:
+      // - classic one-time actions (once)
+      // - Tracking once (1x/30d)
+      function buildLimitedQueue(){
+        const q = [];
+
+        for(const a of ACTIONS_ONE_TIME){
+          if([ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase())) continue;
+          q.push(a);
+        }
+
+        for(let i=0;i<(ACTION_LIMITS_30D[ACTION_NEWS_TRACK]||0);i++){
+          q.push(ACTION_NEWS_TRACK);
+        }
+
+        return shuffleSeeded(q, seed ^ 0xA53C9E17);
+      }
+
+      const oneTimeQueue = buildLimitedQueue();
       const poolBase = ACTIONS_REPEAT_BASE.slice();
-      const poolState = { pool: shuffle(poolBase), cursor: 0 };
+      const poolState = { pool: shuffleSeeded(poolBase, seed ^ 0x1F123BB5), cursor: 0 };
 
       const rows = [];
       let currentWeek = null;
@@ -1958,12 +2201,16 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
       let workdayIndex = 0;
       let prevAction = "";
 
-      // dateISO => true (force confirmation on that workday)
-      const confirmDue = new Map();
+      // Confirmation due after tracking (+3 workdays)
+      const confirmDue = new Map(); // dateISO -> true
+      let confirmUsed = 0;
 
       const scheduleConfirmation = (fromDateISO) => {
+        if(confirmUsed >= (ACTION_LIMITS_30D[ACTION_NEWS_CONFIRM] || 0)) return;
+
         let due = addDaysISO(fromDateISO, 3);
         if(!due) return;
+
         while(isWeekendISO(due)){
           due = addDaysISO(due, 1);
           if(!due) break;
@@ -1986,17 +2233,20 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
           continue;
         }
 
-        // WORKDAY
         workdayIndex++;
 
         let action = "";
+
+        // First 2 workdays fixed
         if(workdayIndex === 1){
           action = ACTION_CONNECT;
         }else if(workdayIndex === 2){
           action = ACTION_LANGUAGE;
         }else{
-          if(confirmDue.get(dateISO)){
+          // if confirmation due today => force it (only once)
+          if(confirmDue.get(dateISO) && confirmUsed < (ACTION_LIMITS_30D[ACTION_NEWS_CONFIRM]||0)){
             action = ACTION_NEWS_CONFIRM;
+            confirmUsed++;
           }else{
             action = chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsed, prevAction);
           }
@@ -2004,6 +2254,7 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
 
         weekUsed.add(String(action).toLowerCase());
 
+        // if tracking today => schedule confirmation +3 workdays
         if(String(action).toLowerCase() === ACTION_NEWS_TRACK.toLowerCase()){
           scheduleConfirmation(dateISO);
         }
@@ -2101,16 +2352,16 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
       setStatus(true, `Planner ✅ (${sessions.length} sessions)`);
     }
 
-    $("pGenerateBtn").onclick = generatePlan;
+    if($("pGenerateBtn")) $("pGenerateBtn").onclick = generatePlan;
 
-    $("pCopyBtn").onclick = async ()=>{
+    if($("pCopyBtn")) $("pCopyBtn").onclick = async ()=>{
       const txt = $("pPreview").value.trim();
       if(!txt){ toast("warn","Planner","Generate first."); return; }
       await copyToClipboard(txt);
       toast("good","Planner","Plan copied.");
     };
 
-    $("pExportBtn").onclick = ()=>{
+    if($("pExportBtn")) $("pExportBtn").onclick = ()=>{
       if(!PLAN.rows.length){ toast("warn","Planner","Generate first."); return; }
 
       const header = "session;day;date;week;type;action\n";
@@ -2132,7 +2383,33 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
       toast("good","Planner","CSV exported.");
     };
 
+    // planner default date
     if($("pStart")) $("pStart").value = todayISOByTZ(PLANNER_TZ);
+
+    /***********************
+     * Maintenance screenshot
+     ***********************/
+    $("maintenanceBtn").onclick = async ()=>{
+      try{
+        toast("warn","Maintenance","Capturing screenshot...");
+        const root = $("appRoot");
+        const canvas = await html2canvas(root, {backgroundColor: null, scale: 2});
+        canvas.toBlob((blob)=>{
+          if(!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `maintenance_${Date.now()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=>URL.revokeObjectURL(url), 1000);
+          toast("good","Maintenance","Downloaded screenshot ✅");
+        }, "image/png");
+      }catch(e){
+        toast("bad","Maintenance", String(e && e.message ? e.message : e));
+      }
+    };
 
     /***********************
      * Boot
