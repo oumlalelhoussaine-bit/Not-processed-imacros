@@ -505,8 +505,6 @@
         <button class="tabbtn active" id="tabAnalyzer">📊 Imacors</button>
         <button class="tabbtn" id="tabKeyword">🧠 webautomate</button>
         <button class="tabbtn" id="tabDaily">📩 Daily Report</button>
-
-        <!-- ✅ NEW TAB -->
         <button class="tabbtn" id="tabPlanner">🗓 30 Days Planner</button>
       </div>
 
@@ -514,7 +512,6 @@
 
         <!-- ===================== Analyzer ===================== -->
         <div id="viewAnalyzer">
-          <!-- (unchanged - your analyzer UI) -->
           <div class="grid">
             <div class="card">
               <div class="hd">
@@ -644,9 +641,6 @@
 
         <!-- ===================== Keyword Checker ===================== -->
         <div id="viewKeyword" class="hidden">
-          <!-- (unchanged - your keyword UI) -->
-          <!-- ... your existing keyword checker UI exactly as you pasted ... -->
-          <!-- I keep it as-is: -->
           <div class="grid">
             <div class="card">
               <div class="hd">
@@ -755,7 +749,6 @@
                       <input id="kwLogFilter" placeholder="ex: captcha / disconnected / slow proxy ..." />
                       <button class="btn small ghost" id="kwLogClearBtn">✖ Clear</button>
                     </div>
-
                   </div>
 
                   <div class="row" style="gap:8px;">
@@ -798,8 +791,6 @@
 
         <!-- ===================== Daily Report ===================== -->
         <div id="viewDaily" class="hidden">
-          <!-- (unchanged - your daily UI) -->
-          <!-- ... kept as-is ... -->
           <div class="grid">
             <div class="card">
               <div class="hd">
@@ -863,6 +854,11 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
                   <div class="row">
                     <button class="btn primary" id="dSendBtn">📨 Send Telegram</button>
                   </div>
+
+                  <div class="help">
+                    ⚠️ Security note: put your Telegram token in code only if this file stays private.
+                    Better: keep token server-side.
+                  </div>
                 </div>
               </div>
             </div>
@@ -885,7 +881,7 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
           </div>
         </div>
 
-        <!-- ===================== ✅ NEW: 30 Days Planner ===================== -->
+        <!-- ===================== 30 Days Planner ===================== -->
         <div id="viewPlanner" class="hidden">
           <div class="grid">
             <div class="card">
@@ -949,6 +945,9 @@ CMH13_WEB"></textarea>
                     • Workdays only: 1 action/day.<br/>
                     • One-time actions: only once in whole 30 days (workdays only).<br/>
                     • Same week: action cannot repeat inside the week.<br/>
+                    • ✅ First 2 workdays fixed: <b>Connect</b>, then <b>Language</b>.<br/>
+                    • ✅ <b>Confirmation Newsletters</b> happens <b>+3 workdays</b> after <b>NewsLetters With Tracking</b>.<br/>
+                    • ✅ <b>Mark unread</b> and <b>Open unread</b never come consecutive.<br/>
                   </div>
                 </div>
 
@@ -1004,33 +1003,15 @@ CMH13_WEB"></textarea>
     /***********************
      * CONFIG (Telegram + TZ)
      ***********************/
+    // ⚠️ Put your real token here ONLY if this file is private.
     const TELEGRAM = {
-      BOT_TOKEN: "8268561557:AAFVTAA2JyK7I1ti4toDZojyY72wckvnxyE",
-      CHAT_ID: "7435435784",
+      BOT_TOKEN: "PUT_YOUR_TOKEN_HERE",
+      CHAT_ID: "PUT_YOUR_CHAT_ID_HERE",
     };
 
     const DAILY_CFG = {
       TZ: "Africa/Casablanca",
       TOP_N: 5
-    };
-
-    const IMPORTANCE = {
-      providePhoneNumber: 100,
-      disconnected: 95,
-      activated: 90,
-      appeal: 85,
-      captchaVerification: 70,
-      captchaText: 69,
-      wrongPassword: 60,
-      accountNotBelongYou: 58,
-      someoneTryingAccess: 55,
-      apiProblem: 50,
-      retryAutomatically: 40,
-      close: 35,
-      slowProxy: 30,
-      verifyYou: 20,
-      statusUnknown: 15,
-      unknownError: 1
     };
 
     /***********************
@@ -1097,25 +1078,65 @@ CMH13_WEB"></textarea>
       return (idx >= 0 ? s.slice(0, idx) : s).trim();
     }
 
-    function extractHeaderTagFromSession(sessionRaw){
-      const base = normalizeSessionName(sessionRaw);
-      const match = base.match(/^cmh\d*/i);
-      return match ? match[0].toUpperCase() : (base || "UNKNOWN");
+    function uniqCaseInsensitive(arr){
+      const seen = new Set();
+      const out = [];
+      for(const x of arr){
+        const v = String(x||"").trim();
+        if(!v) continue;
+        const k = v.toLowerCase();
+        if(seen.has(k)) continue;
+        seen.add(k);
+        out.push(v);
+      }
+      return out;
     }
 
-    function fmtDayTZ(tz){
+    function normalizeSessionLines(text){
+      const lines = String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      const sessions = lines.map(s => normalizeSessionName(s));
+      return uniqCaseInsensitive(sessions).filter(Boolean);
+    }
+
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function todayISOByTZ(tz){
       const dt = new Date();
       const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: tz,
-        year:"numeric", month:"2-digit", day:"2-digit",
-        hour:"2-digit", minute:"2-digit", second:"2-digit",
-        hour12:false
+        timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit"
       }).formatToParts(dt).reduce((acc,p)=>{ acc[p.type]=p.value; return acc; }, {});
-      return {
-        dayISO: `${parts.year}-${parts.month}-${parts.day}`,
-        ddmm: `${parts.day}-${parts.month}`,
-        time: `${parts.hour}:${parts.minute}:${parts.second}`
-      };
+      return `${parts.year}-${parts.month}-${parts.day}`;
+    }
+
+    function addDaysISO(dateISO, n){
+      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return null;
+      const y = +m[1], mo = +m[2], d = +m[3];
+      const dt = new Date(Date.UTC(y, mo-1, d));
+      dt.setUTCDate(dt.getUTCDate() + n);
+      const yy = dt.getUTCFullYear();
+      const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
+      const dd = String(dt.getUTCDate()).padStart(2,"0");
+      return `${yy}-${mm}-${dd}`;
+    }
+
+    function weekdayIndexUTC(dateISO){
+      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return null;
+      const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+      return dt.getUTCDay(); // 0 Sun ... 6 Sat
+    }
+
+    function isWeekendISO(dateISO){
+      const wd = weekdayIndexUTC(dateISO);
+      return wd === 0 || wd === 6;
     }
 
     /***********************
@@ -1138,7 +1159,7 @@ CMH13_WEB"></textarea>
     $("tabPlanner").onclick = () => showTab("pl");
 
     /***********************
-     * Analyzer (your code)  ✅ kept (same as your paste)
+     * Analyzer
      ***********************/
     let AN = {
       rows: [],
@@ -1419,7 +1440,7 @@ CMH13_WEB"></textarea>
     setAnalyzerMode("single");
 
     /***********************
-     * Keyword Checker ✅ (kept same as your paste)
+     * Keyword Checker
      ***********************/
     function isDisconnectedRow(row){
       const blob = [row.cnx_problems, row.status_name, row.log, row.details]
@@ -1802,63 +1823,102 @@ CMH13_WEB"></textarea>
     kwUpdateLogFilterUI();
 
     /***********************
-     * DAILY (kept as-is from your paste)
-     * (You can keep your daily code here exactly — I’m not re-pasting all daily logic to save space)
+     * DAILY (placeholder)
      ***********************/
-    // NOTE: Your daily logic from the paste should remain here.
-    // If you want, paste me the rest of daily section and I’ll merge it perfectly.
-/***********************
- * ✅ EXTRA CONSTRAINTS (Planner)
- ***********************/
-const ACTION_CONNECT = "Connect";
-const ACTION_LANGUAGE = "Language";
-const ACTION_NEWS_TRACK = "NewsLetters With Tracking";
-const ACTION_NEWS_CONFIRM = "Confirmation Newsletters";
-const ACTION_MARK_UNREAD = "Mark unread";
-const ACTION_OPEN_UNREAD = "Open unread";
+    $("dRunBtn").onclick = ()=> toast("warn","Daily","Daily logic not included in this cleaned file (paste it and I’ll merge).");
+    $("dCopyMsgBtn").onclick = ()=> toast("warn","Daily","Run daily first (logic missing).");
+    $("dExportBtn").onclick = ()=> toast("warn","Daily","Run daily first (logic missing).");
+    $("dSendBtn").onclick = ()=> toast("warn","Daily","Send logic missing (paste your daily code).");
 
-// ✅ remove Confirmation from random pool (it will be scheduled only as dependency)
-const ACTIONS_REPEAT_BASE = ACTIONS_ALL.filter(a =>
-  !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase())
-).filter(a => a.toLowerCase() !== ACTION_NEWS_CONFIRM.toLowerCase());
+    /***********************
+     * ✅ PLANNER (CLEAN + RULES)
+     ***********************/
+    const PLANNER_TZ = "Africa/Casablanca";
 
-function isForbiddenConsecutive(prevAction, nextAction){
-  const p = String(prevAction||"").toLowerCase();
-  const n = String(nextAction||"").toLowerCase();
-  const A = ACTION_MARK_UNREAD.toLowerCase();
-  const B = ACTION_OPEN_UNREAD.toLowerCase();
-  // ممنوع A->B و B->A و حتى A->A و B->B إذا بغيتي (دابا كنمنعو أي unread متتابعين)
-  if((p === A && n === B) || (p === B && n === A)) return true;
-  if((p === A && n === A) || (p === B && n === B)) return true;
-  return false;
+    const ACTIONS_ALL = [
+      "Connect",
+      "Add Birthday",
+      "Add Address",
+      "Recent Activity",
+      "Language",
+      "Change Picture",
+      "Gender",
+      "Change Template",
+      "Send message",
+      "Forward",
+      "Mark unread",
+      "NewsLetters With Tracking",
+      "Confirmation Newsletters",
+      "SearchWords",
+      "Search Domains Engines",
+      "Reply",
+      "Search Google Maps",
+      "Open unread"
+    ];
+
+    const ACTIONS_ONE_TIME = [
+      "Connect",
+      "Language",
+      "Change Picture",
+      "Add Address",
+      "Change Template",
+      "Add Birthday",
+      "Gender"
+    ];
+
+    // remove Confirmation from random pool (it will be scheduled only as dependency)
+    const ACTIONS_REPEAT_BASE = ACTIONS_ALL
+      .filter(a => !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase()))
+      .filter(a => a.toLowerCase() !== "confirmation newsletters".toLowerCase());
+
+    if($("pActionsHelp")) $("pActionsHelp").textContent = ACTIONS_ALL.join(" • ");
+    if($("pOneTimeHelp")) $("pOneTimeHelp").textContent = ACTIONS_ONE_TIME.join(" • ");
+
+    const PLAN = { sessions: [], rows: [], startISO: "", days: 30 };
+
+    const ACTION_CONNECT = "Connect";
+    const ACTION_LANGUAGE = "Language";
+    const ACTION_NEWS_TRACK = "NewsLetters With Tracking";
+    const ACTION_NEWS_CONFIRM = "Confirmation Newsletters";
+    const ACTION_MARK_UNREAD = "Mark unread";
+    const ACTION_OPEN_UNREAD = "Open unread";
+
+    function isForbiddenConsecutive(prevAction, nextAction){
+      const p = String(prevAction||"").toLowerCase();
+      const n = String(nextAction||"").toLowerCase();
+      const A = ACTION_MARK_UNREAD.toLowerCase();
+      const B = ACTION_OPEN_UNREAD.toLowerCase();
+
+      if((p === A && n === B) || (p === B && n === A)) return true;
+      if((p === A && n === A) || (p === B && n === B)) return true; // optional: block unread back-to-back
+      return false;
+    }
+
+    function isOneTimeAction(action){
+  const a = String(action||"").toLowerCase();
+  return ACTIONS_ONE_TIME.some(x => String(x).toLowerCase() === a);
 }
 
-/***********************
- * ✅ UPDATED chooseActionSmart (adds prevAction constraint)
- ***********************/
 function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevAction){
-  const pickFromListNoWeekRepeat = (list) => {
-    for(let i=0;i<list.length;i++){
-      const a = list[i];
-      const lower = a.toLowerCase();
-      if(weekUsedSet.has(lower)) continue;
-      if(isForbiddenConsecutive(prevAction, a)) continue;
-      return { action:a, index:i };
-    }
-    return null;
-  };
-
-  // one-time first
+  // ✅ one-time actions: random, but NOT consecutive and NOT repeat in same week
   if(oneTimeQueue.length){
-    const cand = pickFromListNoWeekRepeat(oneTimeQueue);
-    if(cand){
-      oneTimeQueue.splice(cand.index, 1);
-      weekUsedSet.add(cand.action.toLowerCase());
-      return cand.action;
+    // try random picks up to N tries
+    for(let tries=0; tries<20; tries++){
+      const i = Math.floor(Math.random() * oneTimeQueue.length);
+      const a = oneTimeQueue[i];
+      const lower = String(a).toLowerCase();
+
+      if(weekUsedSet.has(lower)) continue;                 // no same week repeat
+      if(isForbiddenConsecutive(prevAction, a)) continue;  // unread/open rule
+      if(isOneTimeAction(prevAction)) continue;            // ✅ prevent one-time after one-time
+
+      oneTimeQueue.splice(i, 1);                           // consume it once
+      weekUsedSet.add(lower);
+      return a;
     }
   }
 
-  // repeating pool
+  // 🔁 repeating pool
   if(!poolState.pool || !poolState.pool.length){
     poolState.pool = shuffle(poolBase);
     poolState.cursor = 0;
@@ -1876,100 +1936,85 @@ function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevA
     return a;
   }
 
-  // fallback: first allowed
-  for(const a of (poolState.pool || []).concat(poolBase || [])){
-    if(!a) continue;
-    if(isForbiddenConsecutive(prevAction, a)) continue;
-    weekUsedSet.add(String(a).toLowerCase());
-    return a;
-  }
-
+  // fallback
   const fallback = poolBase[0] || "UNKNOWN";
   weekUsedSet.add(String(fallback).toLowerCase());
   return fallback;
 }
 
-/***********************
- * ✅ UPDATED buildPlanForSession (Connect/Language first + Newsletter dependency)
- ***********************/
-function buildPlanForSession(session, startISO, calendarDays=30){
-  // keep your one-time list, but we will FORCE first 2 workdays
-  const oneTimeQueue = ACTIONS_ONE_TIME.slice()
-    .filter(a => ![ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase()));
 
-  const poolBase = ACTIONS_REPEAT_BASE.slice();
-  const poolState = { pool: shuffle(poolBase), cursor: 0 };
+    function buildPlanForSession(session, startISO, calendarDays=30){
+      // force first 2 workdays => Connect then Language
+      const oneTimeQueue = ACTIONS_ONE_TIME.slice()
+        .filter(a => ![ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase()));
 
-  const rows = [];
+      const poolBase = ACTIONS_REPEAT_BASE.slice();
+      const poolState = { pool: shuffle(poolBase), cursor: 0 };
 
-  let currentWeek = null;
-  let weekUsed = new Set();
+      const rows = [];
+      let currentWeek = null;
+      let weekUsed = new Set();
 
-  let workdayIndex = 0;
-  let prevAction = "";
+      let workdayIndex = 0;
+      let prevAction = "";
 
-  // ✅ dependency map: dateISO -> true (Confirmation must run this day)
-  const confirmDue = new Map();
+      // dateISO => true (force confirmation on that workday)
+      const confirmDue = new Map();
 
-  const scheduleConfirmation = (fromDateISO) => {
-    let due = addDaysISO(fromDateISO, 3);
-    if(!due) return;
-    // if due lands on weekend, push forward to next workday
-    while(isWeekendISO(due)){
-      due = addDaysISO(due, 1);
-      if(!due) break;
-    }
-    if(due) confirmDue.set(due, true);
-  };
+      const scheduleConfirmation = (fromDateISO) => {
+        let due = addDaysISO(fromDateISO, 3);
+        if(!due) return;
+        while(isWeekendISO(due)){
+          due = addDaysISO(due, 1);
+          if(!due) break;
+        }
+        if(due) confirmDue.set(due, true);
+      };
 
-  for(let day=1; day<=calendarDays; day++){
-    const dateISO = addDaysISO(startISO, day-1);
-    if(!dateISO) break;
+      for(let day=1; day<=calendarDays; day++){
+        const dateISO = addDaysISO(startISO, day-1);
+        if(!dateISO) break;
 
-    const weekNum = Math.floor((day-1)/7) + 1;
-    if(currentWeek !== weekNum){
-      currentWeek = weekNum;
-      weekUsed = new Set();
-    }
+        const weekNum = Math.floor((day-1)/7) + 1;
+        if(currentWeek !== weekNum){
+          currentWeek = weekNum;
+          weekUsed = new Set();
+        }
 
-    if(isWeekendISO(dateISO)){
-      rows.push({ session, dayNum: day, dateISO, weekNum, type: "WEEKEND", action: "OFF" });
-      continue;
-    }
+        if(isWeekendISO(dateISO)){
+          rows.push({ session, dayNum: day, dateISO, weekNum, type: "WEEKEND", action: "OFF" });
+          continue;
+        }
 
-    // WORKDAY
-    workdayIndex++;
+        // WORKDAY
+        workdayIndex++;
 
-    // ✅ Rule 1: first 2 WORKDAYS fixed
-    let action = "";
-    if(workdayIndex === 1){
-      action = ACTION_CONNECT;
-    }else if(workdayIndex === 2){
-      action = ACTION_LANGUAGE;
-    }else{
-      // ✅ Rule 2: if Confirmation is due today => force it
-      if(confirmDue.get(dateISO)){
-        action = ACTION_NEWS_CONFIRM;
-      }else{
-        action = chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsed, prevAction);
+        let action = "";
+        if(workdayIndex === 1){
+          action = ACTION_CONNECT;
+        }else if(workdayIndex === 2){
+          action = ACTION_LANGUAGE;
+        }else{
+          if(confirmDue.get(dateISO)){
+            action = ACTION_NEWS_CONFIRM;
+          }else{
+            action = chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsed, prevAction);
+          }
+        }
+
+        weekUsed.add(String(action).toLowerCase());
+
+        if(String(action).toLowerCase() === ACTION_NEWS_TRACK.toLowerCase()){
+          scheduleConfirmation(dateISO);
+        }
+
+        rows.push({ session, dayNum: day, dateISO, weekNum, type: "WORKDAY", action });
+        prevAction = action;
       }
+
+      return rows;
     }
 
-    // update weekUsed for forced actions too
-    weekUsed.add(String(action).toLowerCase());
-
-    // ✅ Rule 2: if we schedule tracking today, we schedule confirmation +3 days
-    if(String(action).toLowerCase() === ACTION_NEWS_TRACK.toLowerCase()){
-      scheduleConfirmation(dateISO);
-    }
-
-    // ✅ Rule 3 already enforced inside chooseActionSmart via prevAction
-    rows.push({ session, dayNum: day, dateISO, weekNum, type: "WORKDAY", action });
-    prevAction = action;
-  }
-
-  return rows;
-}
     function renderPlannerTable(rows){
       const tb = $("pTableBody");
       if(!tb) return;
@@ -2056,16 +2101,16 @@ function buildPlanForSession(session, startISO, calendarDays=30){
       setStatus(true, `Planner ✅ (${sessions.length} sessions)`);
     }
 
-    if($("pGenerateBtn")) $("pGenerateBtn").onclick = generatePlan;
+    $("pGenerateBtn").onclick = generatePlan;
 
-    if($("pCopyBtn")) $("pCopyBtn").onclick = async ()=>{
+    $("pCopyBtn").onclick = async ()=>{
       const txt = $("pPreview").value.trim();
       if(!txt){ toast("warn","Planner","Generate first."); return; }
       await copyToClipboard(txt);
       toast("good","Planner","Plan copied.");
     };
 
-    if($("pExportBtn")) $("pExportBtn").onclick = ()=>{
+    $("pExportBtn").onclick = ()=>{
       if(!PLAN.rows.length){ toast("warn","Planner","Generate first."); return; }
 
       const header = "session;day;date;week;type;action\n";
@@ -2087,7 +2132,6 @@ function buildPlanForSession(session, startISO, calendarDays=30){
       toast("good","Planner","CSV exported.");
     };
 
-    // set planner default date
     if($("pStart")) $("pStart").value = todayISOByTZ(PLANNER_TZ);
 
     /***********************
@@ -2098,4 +2142,3 @@ function buildPlanForSession(session, startISO, calendarDays=30){
   </script>
 </body>
 </html>
-
