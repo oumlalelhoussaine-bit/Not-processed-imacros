@@ -1807,183 +1807,169 @@ CMH13_WEB"></textarea>
      ***********************/
     // NOTE: Your daily logic from the paste should remain here.
     // If you want, paste me the rest of daily section and I’ll merge it perfectly.
+/***********************
+ * ✅ EXTRA CONSTRAINTS (Planner)
+ ***********************/
+const ACTION_CONNECT = "Connect";
+const ACTION_LANGUAGE = "Language";
+const ACTION_NEWS_TRACK = "NewsLetters With Tracking";
+const ACTION_NEWS_CONFIRM = "Confirmation Newsletters";
+const ACTION_MARK_UNREAD = "Mark unread";
+const ACTION_OPEN_UNREAD = "Open unread";
 
-    /***********************
-     * ✅ NEW: 30 Days Planner Logic
-     ***********************/
-    const PLANNER_TZ = "Africa/Casablanca";
+// ✅ remove Confirmation from random pool (it will be scheduled only as dependency)
+const ACTIONS_REPEAT_BASE = ACTIONS_ALL.filter(a =>
+  !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase())
+).filter(a => a.toLowerCase() !== ACTION_NEWS_CONFIRM.toLowerCase());
 
-    const ACTIONS_ALL = [
-      "Connect",
-      "Add Birthday",
-      "Add Address",
-      "Recent Activity",
-      "Language",
-      "Change Picture",
-      "Gender",
-      "Change Template",
-      "Send message",
-      "Forward",
-      "Mark unread",
-      "NewsLetters With Tracking",
-      "Confirmation Newsletters",
-      "SearchWords",
-      "Search Domains Engines",
-      "Reply",
-      "Search Google Maps",
-      "Open unread"
-    ];
+function isForbiddenConsecutive(prevAction, nextAction){
+  const p = String(prevAction||"").toLowerCase();
+  const n = String(nextAction||"").toLowerCase();
+  const A = ACTION_MARK_UNREAD.toLowerCase();
+  const B = ACTION_OPEN_UNREAD.toLowerCase();
+  // ممنوع A->B و B->A و حتى A->A و B->B إذا بغيتي (دابا كنمنعو أي unread متتابعين)
+  if((p === A && n === B) || (p === B && n === A)) return true;
+  if((p === A && n === A) || (p === B && n === B)) return true;
+  return false;
+}
 
-    const ACTIONS_ONE_TIME = [
-      "Connect",
-      "Language",
-      "Change Picture",
-      "Add Address",
-      "Change Template",
-      "Add Birthday",
-      "Gender"
-    ];
+/***********************
+ * ✅ UPDATED chooseActionSmart (adds prevAction constraint)
+ ***********************/
+function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet, prevAction){
+  const pickFromListNoWeekRepeat = (list) => {
+    for(let i=0;i<list.length;i++){
+      const a = list[i];
+      const lower = a.toLowerCase();
+      if(weekUsedSet.has(lower)) continue;
+      if(isForbiddenConsecutive(prevAction, a)) continue;
+      return { action:a, index:i };
+    }
+    return null;
+  };
 
-    const ACTIONS_REPEAT_BASE = ACTIONS_ALL.filter(a =>
-      !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase())
-    );
+  // one-time first
+  if(oneTimeQueue.length){
+    const cand = pickFromListNoWeekRepeat(oneTimeQueue);
+    if(cand){
+      oneTimeQueue.splice(cand.index, 1);
+      weekUsedSet.add(cand.action.toLowerCase());
+      return cand.action;
+    }
+  }
 
-    if($("pActionsHelp")) $("pActionsHelp").textContent = ACTIONS_ALL.join(" • ");
-    if($("pOneTimeHelp")) $("pOneTimeHelp").textContent = ACTIONS_ONE_TIME.join(" • ");
+  // repeating pool
+  if(!poolState.pool || !poolState.pool.length){
+    poolState.pool = shuffle(poolBase);
+    poolState.cursor = 0;
+  }
 
-    const PLAN = { sessions: [], rows: [], startISO: "", days: 30 };
+  for(let tries=0; tries < poolState.pool.length; tries++){
+    const a = poolState.pool[poolState.cursor % poolState.pool.length];
+    poolState.cursor++;
+    const lower = String(a).toLowerCase();
 
-    function uniqCaseInsensitive(arr){
-      const seen = new Set();
-      const out = [];
-      for(const x of arr){
-        const v = String(x||"").trim();
-        if(!v) continue;
-        const k = v.toLowerCase();
-        if(seen.has(k)) continue;
-        seen.add(k);
-        out.push(v);
+    if(weekUsedSet.has(lower)) continue;
+    if(isForbiddenConsecutive(prevAction, a)) continue;
+
+    weekUsedSet.add(lower);
+    return a;
+  }
+
+  // fallback: first allowed
+  for(const a of (poolState.pool || []).concat(poolBase || [])){
+    if(!a) continue;
+    if(isForbiddenConsecutive(prevAction, a)) continue;
+    weekUsedSet.add(String(a).toLowerCase());
+    return a;
+  }
+
+  const fallback = poolBase[0] || "UNKNOWN";
+  weekUsedSet.add(String(fallback).toLowerCase());
+  return fallback;
+}
+
+/***********************
+ * ✅ UPDATED buildPlanForSession (Connect/Language first + Newsletter dependency)
+ ***********************/
+function buildPlanForSession(session, startISO, calendarDays=30){
+  // keep your one-time list, but we will FORCE first 2 workdays
+  const oneTimeQueue = ACTIONS_ONE_TIME.slice()
+    .filter(a => ![ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase()));
+
+  const poolBase = ACTIONS_REPEAT_BASE.slice();
+  const poolState = { pool: shuffle(poolBase), cursor: 0 };
+
+  const rows = [];
+
+  let currentWeek = null;
+  let weekUsed = new Set();
+
+  let workdayIndex = 0;
+  let prevAction = "";
+
+  // ✅ dependency map: dateISO -> true (Confirmation must run this day)
+  const confirmDue = new Map();
+
+  const scheduleConfirmation = (fromDateISO) => {
+    let due = addDaysISO(fromDateISO, 3);
+    if(!due) return;
+    // if due lands on weekend, push forward to next workday
+    while(isWeekendISO(due)){
+      due = addDaysISO(due, 1);
+      if(!due) break;
+    }
+    if(due) confirmDue.set(due, true);
+  };
+
+  for(let day=1; day<=calendarDays; day++){
+    const dateISO = addDaysISO(startISO, day-1);
+    if(!dateISO) break;
+
+    const weekNum = Math.floor((day-1)/7) + 1;
+    if(currentWeek !== weekNum){
+      currentWeek = weekNum;
+      weekUsed = new Set();
+    }
+
+    if(isWeekendISO(dateISO)){
+      rows.push({ session, dayNum: day, dateISO, weekNum, type: "WEEKEND", action: "OFF" });
+      continue;
+    }
+
+    // WORKDAY
+    workdayIndex++;
+
+    // ✅ Rule 1: first 2 WORKDAYS fixed
+    let action = "";
+    if(workdayIndex === 1){
+      action = ACTION_CONNECT;
+    }else if(workdayIndex === 2){
+      action = ACTION_LANGUAGE;
+    }else{
+      // ✅ Rule 2: if Confirmation is due today => force it
+      if(confirmDue.get(dateISO)){
+        action = ACTION_NEWS_CONFIRM;
+      }else{
+        action = chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsed, prevAction);
       }
-      return out;
     }
 
-    function normalizeSessionLines(text){
-      const lines = String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-      const sessions = lines.map(s => normalizeSessionName(s));
-      return uniqCaseInsensitive(sessions).filter(Boolean);
+    // update weekUsed for forced actions too
+    weekUsed.add(String(action).toLowerCase());
+
+    // ✅ Rule 2: if we schedule tracking today, we schedule confirmation +3 days
+    if(String(action).toLowerCase() === ACTION_NEWS_TRACK.toLowerCase()){
+      scheduleConfirmation(dateISO);
     }
 
-    function shuffle(arr){
-      const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
+    // ✅ Rule 3 already enforced inside chooseActionSmart via prevAction
+    rows.push({ session, dayNum: day, dateISO, weekNum, type: "WORKDAY", action });
+    prevAction = action;
+  }
 
-    function todayISOByTZ(tz){
-      const dt = new Date();
-      const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit"
-      }).formatToParts(dt).reduce((acc,p)=>{ acc[p.type]=p.value; return acc; }, {});
-      return `${parts.year}-${parts.month}-${parts.day}`;
-    }
-
-    function addDaysISO(dateISO, n){
-      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return null;
-      const y = +m[1], mo = +m[2], d = +m[3];
-      const dt = new Date(Date.UTC(y, mo-1, d));
-      dt.setUTCDate(dt.getUTCDate() + n);
-      const yy = dt.getUTCFullYear();
-      const mm = String(dt.getUTCMonth()+1).padStart(2,"0");
-      const dd = String(dt.getUTCDate()).padStart(2,"0");
-      return `${yy}-${mm}-${dd}`;
-    }
-
-    function weekdayIndexUTC(dateISO){
-      const m = String(dateISO||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!m) return null;
-      const dt = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
-      return dt.getUTCDay(); // 0 Sun ... 6 Sat
-    }
-
-    function isWeekendISO(dateISO){
-      const wd = weekdayIndexUTC(dateISO);
-      return wd === 0 || wd === 6;
-    }
-
-    function chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsedSet){
-      const pickFromListNoWeekRepeat = (list) => {
-        for(let i=0;i<list.length;i++){
-          const a = list[i];
-          if(!weekUsedSet.has(a.toLowerCase())) return { action:a, index:i };
-        }
-        return null;
-      };
-
-      // one-time first
-      if(oneTimeQueue.length){
-        const cand = pickFromListNoWeekRepeat(oneTimeQueue);
-        if(cand){
-          oneTimeQueue.splice(cand.index, 1);
-          weekUsedSet.add(cand.action.toLowerCase());
-          return cand.action;
-        }
-      }
-
-      // repeating pool
-      if(!poolState.pool || !poolState.pool.length){
-        poolState.pool = shuffle(poolBase);
-        poolState.cursor = 0;
-      }
-
-      for(let tries=0; tries < poolState.pool.length; tries++){
-        const a = poolState.pool[poolState.cursor % poolState.pool.length];
-        poolState.cursor++;
-        if(!weekUsedSet.has(a.toLowerCase())){
-          weekUsedSet.add(a.toLowerCase());
-          return a;
-        }
-      }
-
-      const fallback = poolState.pool[0] || poolBase[0] || "UNKNOWN";
-      weekUsedSet.add(String(fallback).toLowerCase());
-      return fallback;
-    }
-
-    function buildPlanForSession(session, startISO, calendarDays=30){
-      const oneTimeQueue = ACTIONS_ONE_TIME.slice();
-      const poolBase = ACTIONS_REPEAT_BASE.slice();
-      const poolState = { pool: shuffle(poolBase), cursor: 0 };
-
-      const rows = [];
-      let currentWeek = null;
-      let weekUsed = new Set();
-
-      for(let day=1; day<=calendarDays; day++){
-        const dateISO = addDaysISO(startISO, day-1);
-        if(!dateISO) break;
-
-        const weekNum = Math.floor((day-1)/7) + 1;
-        if(currentWeek !== weekNum){
-          currentWeek = weekNum;
-          weekUsed = new Set();
-        }
-
-        if(isWeekendISO(dateISO)){
-          rows.push({ session, dayNum: day, dateISO, weekNum, type: "WEEKEND", action: "OFF" });
-          continue;
-        }
-
-        const action = chooseActionSmart(oneTimeQueue, poolBase, poolState, weekUsed);
-        rows.push({ session, dayNum: day, dateISO, weekNum, type: "WORKDAY", action });
-      }
-
-      return rows;
-    }
-
+  return rows;
+}
     function renderPlannerTable(rows){
       const tb = $("pTableBody");
       if(!tb) return;
@@ -2112,3 +2098,4 @@ CMH13_WEB"></textarea>
   </script>
 </body>
 </html>
+
