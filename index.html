@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -833,7 +834,7 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
                   <div class="kpi">
                     <div class="label">Errors</div>
                     <div class="value" id="dErrors">0</div>
-                    <div class="hint">total - others</div>
+                    <div class="hint">total - activated - appeals</div>
                   </div>
                 </div>
 
@@ -841,6 +842,16 @@ A1	Completed	s1	t1	[ Status => connected Updated!]	CMH13_WEB(1.2.3.4)
                   <button class="btn primary" id="dRunBtn">⚡ Run report</button>
                   <button class="btn" id="dCopyMsgBtn">📋 Copy msg</button>
                   <button class="btn" id="dExportBtn">⬇ Export Report</button>
+                </div>
+
+                <!-- ✅ manual blocked seeds -->
+                <div class="field">
+                  <div class="lbl">
+                    <span>Rate blocked seeds (manual)</span>
+                    <span class="muted">you fill it</span>
+                  </div>
+                  <input id="dBlockedManual" placeholder="3509" />
+                  <div class="help">🔴Rate blocked seeds kay3mr manual.</div>
                 </div>
 
                 <div class="field">
@@ -1000,8 +1011,9 @@ CMH13_WEB"></textarea>
      ***********************/
     // ⚠️ Replace with your real token/chat id. (Keep in mind: exposing token in HTML is unsafe for public hosting.)
     const TELEGRAM = {
-      BOT_TOKEN: "8268561557:AAFVTAA2JyK7I1ti4toDZojyY72wckvnxyE",
-      CHAT_ID: "7435435784",
+      // ✅ updated to your CFG token/chat
+      BOT_TOKEN: "8260378941:AAEdztsxw5b5c6i_kW0d1Hg3H8DbbscUATU",
+      CHAT_ID: "8469427662",
     };
 
     const DAILY_CFG = {
@@ -1772,7 +1784,7 @@ CMH13_WEB"></textarea>
     kwUpdateLogFilterUI();
 
     /***********************
-     * Daily Report (Simple working implementation)
+     * Daily Report (UPDATED to your GAS logic + manual blocked seeds)
      ***********************/
     function detectDelimiterDaily(text){
       if(/\t/.test(text)) return "\t";
@@ -1823,97 +1835,145 @@ CMH13_WEB"></textarea>
       return { rows: rows.filter(r=>r.profile), err: null };
     }
 
-   function dailyBuildMessage(rows){
-  const now = fmtDayTZ(DAILY_CFG.TZ);
+    function dailyBuildMessage(rows){
+      const now = fmtDayTZ(DAILY_CFG.TZ);
 
-  // --- helpers ---
-  const norm = (s) => normalizeForSearch(s || "");
-  const isConnected = (r) => /connected|activated|status\s*=>\s*connected/.test(norm((r.status||"") + " " + (r.log||"")));
-  const isAppeal = (r) => /\bappeal(s)?\b|appeals?/.test(norm((r.status||"") + " " + (r.log||"")));
-  const isBlocked = (r) => /rate\s*blocked|rateblocked|blocked|block(ed)?\s*seed/.test(norm((r.status||"") + " " + (r.log||"")));
+      // 🔴 manual blocked seeds
+      const blockedManual = (() => {
+        const v = String(($("dBlockedManual") && $("dBlockedManual").value) || "").trim();
+        const n = parseInt(v, 10);
+        return Number.isFinite(n) && n >= 0 ? n : 0;
+      })();
 
-  // Extract "error key" from log/status
-  function extractErrorKey(r){
-    const text = (r.log || r.status || "").trim();
-    if(!text) return "unknownError";
-
-    // If your log has patterns like "captchaCantSolve:" or "captchaCantSolve =>"
-    let m = text.match(/([A-Za-z][A-Za-z0-9_]+)\s*[:=>\-]/);
-    if(m) return m[1];
-
-    // Or something like "[ captchaCantSolve ]"
-    m = text.match(/\b([A-Za-z][A-Za-z0-9_]{2,})\b/);
-    if(m) return m[1];
-
-    return "unknownError";
-  }
-
-  // Group by session
-  const bySession = new Map();
-  for(const r of rows){
-    const s = r.session || "—";
-    if(!bySession.has(s)) bySession.set(s, []);
-    bySession.get(s).push(r);
-  }
-
-  // Build message sections
-  const sessions = Array.from(bySession.keys()).sort((a,b)=>a.localeCompare(b));
-  let full = "";
-
-  for(const sess of sessions){
-    const list = bySession.get(sess);
-
-    const checked = list.length;
-    const blocked = list.filter(isBlocked).length;
-    const connected = list.filter(isConnected).length;
-    const appeals = list.filter(isAppeal).length;
-
-    // Errors = checked - connected - appeals
-    const errors = Math.max(0, checked - connected - appeals);
-
-    // Top errors: only from rows that are NOT connected and NOT appeal
-    const freq = new Map();
-    for(const r of list){
-      if(isConnected(r) || isAppeal(r)) continue;
-      const key = extractErrorKey(r);
-      freq.set(key, (freq.get(key) || 0) + 1);
-    }
-
-    const top = Array.from(freq.entries())
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0, DAILY_CFG.TOP_N);
-
-    // Section formatting (same structure you asked)
-    full += `#${sess}\n`;
-    full += `━━━━━━━━━━━━━━━━━━\n`;
-    full += `🔴Rate blocked seeds :${blocked}\n`;
-    full += `🟡 Checked Seeds:   ${checked}\n`;
-    full += `🟢 Connected:        ${connected}\n`;
-    full += `🔵 Appeals:          ${appeals}\n\n`;
-    full += `⚠️ Errors:           ${errors}\n`;
-    full += `━━━━━━━━━━━━━━━━━━\n`;
-    full += `🔍 Top Errors:\n`;
-
-    if(top.length){
-      for(const [k,v] of top){
-        full += `– ${k}: ${v}\n`;
+      // header tag from first session
+      let headerTag = "UNKNOWN";
+      if(rows && rows.length){
+        const base = normalizeSessionName(rows[0].session || "").trim();
+        const m = base.match(/^cmh\d*/i);
+        headerTag = base ? (m ? (m[0].toUpperCase() + base.slice(m[0].length)) : base) : "UNKNOWN";
       }
-    }else{
-      full += `– none\n`;
+
+      function smartLabel(status, log){
+        const t = (String(status||"") + " ; " + String(log||""))
+          .toLowerCase()
+          .replace(/\s+/g," ");
+
+        const RULES = [
+          ["activated", [
+            /connected/,
+            /logged in/
+          ]],
+
+          ["appeal", [
+            /appeal/,
+            /appel/,
+            /account disabled/
+          ]],
+
+          // ✅ CAPTCHA TEXT (FIXED)
+          ["captchaText", [
+            /captcha\s*text/,
+            /text\s*captcha/,
+            /captchatext/,
+            /captcha[_\- ]?text/,
+            /status\s*=>\s*captchatext/,
+            /captchatext\s*updated/,
+            /captcha\s*text\s*updated/
+          ]],
+
+          ["captchaVerification", [
+            /captcha verification/,
+            /security check/
+          ]],
+
+          ["captchaCantSolve", [
+            /can't solved/,
+            /cant solved/,
+            /captcha can'?t/
+          ]],
+
+          ["wrongPassword", [
+            /wrong password/,
+            /incorrect password/
+          ]],
+
+          ["someoneTryingAccess", [
+            /trying to access/,
+            /suspicious/,
+            /unusual login/
+          ]],
+
+          ["accountDeleted", [
+            /account deleted/,
+            /deleted account/,
+            /no longer exists/
+          ]],
+
+          ["disconnected", [
+            /disconnected/,
+            /session expired/
+          ]],
+
+          ["apiProblem", [
+            /api problem/,
+            /server error/,
+            /no response/
+          ]]
+        ];
+
+        for(const [key, tests] of RULES){
+          for(const re of tests){
+            if(re.test(t)) return key;
+          }
+        }
+        return "unknownError";
+      }
+
+      let total=0, activated=0, appeals=0;
+      const errorCounts = {};
+
+      for(const r of rows){
+        const id = String(r.profile||"").trim();
+        if(!id) continue;
+        total++;
+
+        const label = smartLabel(r.status, r.log);
+
+        if(label === "activated") activated++;
+        else if(label === "appeal") appeals++;
+        else errorCounts[label] = (errorCounts[label] || 0) + 1;
+      }
+
+      const errors = Math.max(0, total - activated - appeals);
+
+      let topErrorsBlock = "";
+      if(errors > 0){
+        const sorted = Object.entries(errorCounts)
+          .sort((a,b)=>b[1]-a[1])
+          .slice(0, DAILY_CFG.TOP_N);
+
+        if(sorted.length){
+          topErrorsBlock =
+            "\n🔍 Top Errors:\n" +
+            sorted.map(([n,c])=>`– ${n}: ${c}`).join("\n");
+        }
+      }
+
+      const line = "━━━━━━━━━━━━━━━━━━";
+
+      const msg =
+`#${headerTag}
+${line}
+🔴Rate blocked seeds :${blockedManual}
+🟡 Checked Seeds:   ${total}
+🟢 Connected:        ${activated}
+🔵 Appeals:          ${appeals}
+
+⚠️ Errors:           ${errors}
+${line}${topErrorsBlock}`;
+
+      return { msg: msg.trim(), total, connected: activated, errors, dayISO: now.dayISO };
     }
-
-    full += `\n`; // space between sessions
-  }
-
-  full = full.trim();
-
-  // Total KPIs for UI (keep current behavior)
-  const total = rows.length;
-  const connectedAll = rows.filter(isConnected).length;
-  const errorsAll = Math.max(0, total - connectedAll);
-
-  return { msg: full, total, connected: connectedAll, errors: errorsAll, dayISO: now.dayISO };
-}
 
     function dailyRenderTable(rows, dayISO){
       const tb = $("dTableBody");
@@ -1982,7 +2042,7 @@ CMH13_WEB"></textarea>
       const res = await fetch(url, {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ chat_id: TELEGRAM.CHAT_ID, text })
+        body: JSON.stringify({ chat_id: TELEGRAM.CHAT_ID, text, disable_web_page_preview:true })
       });
       const data = await res.json().catch(()=>null);
       if(!res.ok || !data || data.ok !== true){
@@ -2475,4 +2535,4 @@ CMH13_WEB"></textarea>
   </script>
 </body>
 </html>
-
+```
