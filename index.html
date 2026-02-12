@@ -1823,41 +1823,97 @@ CMH13_WEB"></textarea>
       return { rows: rows.filter(r=>r.profile), err: null };
     }
 
-    function dailyBuildMessage(rows){
-      const now = fmtDayTZ(DAILY_CFG.TZ);
-      const total = rows.length;
+   function dailyBuildMessage(rows){
+  const now = fmtDayTZ(DAILY_CFG.TZ);
 
-      const connected = rows.filter(r=>/connected|activated/i.test(r.status+" "+r.log)).length;
-      const errors = Math.max(0, total - connected);
+  // --- helpers ---
+  const norm = (s) => normalizeForSearch(s || "");
+  const isConnected = (r) => /connected|activated|status\s*=>\s*connected/.test(norm((r.status||"") + " " + (r.log||"")));
+  const isAppeal = (r) => /\bappeal(s)?\b|appeals?/.test(norm((r.status||"") + " " + (r.log||"")));
+  const isBlocked = (r) => /rate\s*blocked|rateblocked|blocked|block(ed)?\s*seed/.test(norm((r.status||"") + " " + (r.log||"")));
 
-      const bySession = new Map();
-      for(const r of rows){
-        const s = r.session || "—";
-        if(!bySession.has(s)) bySession.set(s, {total:0, connected:0, errors:0});
-        const o = bySession.get(s);
-        o.total++;
-        if(/connected|activated/i.test(r.status+" "+r.log)) o.connected++;
-        else o.errors++;
-      }
+  // Extract "error key" from log/status
+  function extractErrorKey(r){
+    const text = (r.log || r.status || "").trim();
+    if(!text) return "unknownError";
 
-      let msg = "";
-      msg += `📩 Daily Report (${now.dayISO} ${now.time})\n`;
-      msg += `Total: ${total}\nConnected: ${connected}\nErrors: ${errors}\n\n`;
+    // If your log has patterns like "captchaCantSolve:" or "captchaCantSolve =>"
+    let m = text.match(/([A-Za-z][A-Za-z0-9_]+)\s*[:=>\-]/);
+    if(m) return m[1];
 
-      const sessions = Array.from(bySession.keys()).sort((a,b)=>a.localeCompare(b));
-      for(const s of sessions){
-        const o = bySession.get(s);
-        msg += `• ${s} => total:${o.total} | ok:${o.connected} | err:${o.errors}\n`;
-      }
+    // Or something like "[ captchaCantSolve ]"
+    m = text.match(/\b([A-Za-z][A-Za-z0-9_]{2,})\b/);
+    if(m) return m[1];
 
-      msg += `\nTop ${DAILY_CFG.TOP_N} errors (preview):\n`;
-      const errRows = rows.filter(r=>!(/connected|activated/i.test(r.status+" "+r.log))).slice(0, DAILY_CFG.TOP_N);
-      for(const r of errRows){
-        msg += `- ${r.profile} | ${r.session||"—"} | ${r.status} | ${(r.log||"").slice(0,90)}\n`;
-      }
+    return "unknownError";
+  }
 
-      return { msg, total, connected, errors, dayISO: now.dayISO };
+  // Group by session
+  const bySession = new Map();
+  for(const r of rows){
+    const s = r.session || "—";
+    if(!bySession.has(s)) bySession.set(s, []);
+    bySession.get(s).push(r);
+  }
+
+  // Build message sections
+  const sessions = Array.from(bySession.keys()).sort((a,b)=>a.localeCompare(b));
+  let full = "";
+
+  for(const sess of sessions){
+    const list = bySession.get(sess);
+
+    const checked = list.length;
+    const blocked = list.filter(isBlocked).length;
+    const connected = list.filter(isConnected).length;
+    const appeals = list.filter(isAppeal).length;
+
+    // Errors = checked - connected - appeals
+    const errors = Math.max(0, checked - connected - appeals);
+
+    // Top errors: only from rows that are NOT connected and NOT appeal
+    const freq = new Map();
+    for(const r of list){
+      if(isConnected(r) || isAppeal(r)) continue;
+      const key = extractErrorKey(r);
+      freq.set(key, (freq.get(key) || 0) + 1);
     }
+
+    const top = Array.from(freq.entries())
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0, DAILY_CFG.TOP_N);
+
+    // Section formatting (same structure you asked)
+    full += `#${sess}\n`;
+    full += `━━━━━━━━━━━━━━━━━━\n`;
+    full += `🔴Rate blocked seeds :${blocked}\n`;
+    full += `🟡 Checked Seeds:   ${checked}\n`;
+    full += `🟢 Connected:        ${connected}\n`;
+    full += `🔵 Appeals:          ${appeals}\n\n`;
+    full += `⚠️ Errors:           ${errors}\n`;
+    full += `━━━━━━━━━━━━━━━━━━\n`;
+    full += `🔍 Top Errors:\n`;
+
+    if(top.length){
+      for(const [k,v] of top){
+        full += `– ${k}: ${v}\n`;
+      }
+    }else{
+      full += `– none\n`;
+    }
+
+    full += `\n`; // space between sessions
+  }
+
+  full = full.trim();
+
+  // Total KPIs for UI (keep current behavior)
+  const total = rows.length;
+  const connectedAll = rows.filter(isConnected).length;
+  const errorsAll = Math.max(0, total - connectedAll);
+
+  return { msg: full, total, connected: connectedAll, errors: errorsAll, dayISO: now.dayISO };
+}
 
     function dailyRenderTable(rows, dayISO){
       const tb = $("dTableBody");
@@ -2419,3 +2475,4 @@ CMH13_WEB"></textarea>
   </script>
 </body>
 </html>
+
