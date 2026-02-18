@@ -504,7 +504,7 @@
         <button class="tabbtn active" id="tabAnalyzer">📊 Imacors</button>
         <button class="tabbtn" id="tabKeyword">🧠 webautomate</button>
         <button class="tabbtn" id="tabDaily">📩 Daily Report</button>
-        <button class="tabbtn" id="tabPlanner">🗓 30 Days Planner</button>  
+        <button class="tabbtn" id="tabPlanner">🗓 30 Days Planner</button>
       </div>
 
       <div class="content">
@@ -591,11 +591,28 @@
 
                 <div class="field">
                   <div class="lbl">
-                    <span>ID range check</span>
-                    <span class="muted">Type: 3376 - 4375</span>
+                    <span>ID check</span>
+                    <span class="muted">Range + Profile IDs list</span>
                   </div>
+
                   <input id="anIdRange" placeholder="1961 - 2240" />
-                  <div class="help">You can type: <b>1961-2240</b> or <b>1961 - 2240</b>. We compare on visible rows.</div>
+                  <div class="help">Range is optional. Example: <b>1961-2240</b> or <b>1961 - 2240</b>. We compare on visible rows.</div>
+
+                  <div class="hr"></div>
+
+                  <div class="lbl" style="margin-top:6px;">
+                    <span>Profile IDs list (optional)</span>
+                    <span class="muted">one ID per line</span>
+                  </div>
+
+                  <textarea id="anIdList" style="min-height:120px" placeholder="5731
+5732
+5733"></textarea>
+
+                  <div class="help">
+                    If you fill <b>range</b> + <b>list</b>, Check will return BOTH:
+                    missing IDs from the range AND missing IDs from your list.
+                  </div>
 
                   <div class="row">
                     <button class="btn primary" id="anCheckBtn">🔎 Check</button>
@@ -1010,7 +1027,6 @@ CMH13_WEB"></textarea>
      ***********************/
     // ⚠️ Replace with your real token/chat id. (Keep in mind: exposing token in HTML is unsafe for public hosting.)
     const TELEGRAM = {
-      // ✅ updated to your CFG token/chat
       BOT_TOKEN: "",
       CHAT_ID: "",
     };
@@ -1319,49 +1335,88 @@ CMH13_WEB"></textarea>
       return { from:a, to:b };
     }
 
+    // ✅ NEW: parse list of profile IDs (one per line)
+    function parseIdList(text){
+      const lines = String(text||"").split(/\r?\n/);
+      const ids = [];
+      for(const l of lines){
+        const m = String(l).match(/\b(\d{1,9})\b/);
+        if(m) ids.push(+m[1]);
+      }
+      return Array.from(new Set(ids)).sort((a,b)=>a-b);
+    }
+
+    // ✅ UPDATED: Check supports range + list (both)
     function analyzerCheck(){
       $("anErr").textContent = "";
       $("anLog").textContent = "";
+
       if(!AN.visible.length){
         $("anErr").textContent = "No visible rows to check.";
         toast("warn","Check","No visible rows.");
         return;
       }
 
-      const range = parseIdRange($("anIdRange").value);
-      if(!range){
-        $("anErr").textContent = "Invalid ID range. Example: 3376 - 4375";
-        toast("bad","Check","Invalid ID range.");
-        return;
-      }
+      const idsVisible = AN.visible.map(r=>r.id);
+      const uniqueVisible = new Set(idsVisible);
 
-      const ids = AN.visible.map(r=>r.id);
-      const unique = new Set(ids);
-
+      // duplicates count
       const seen = new Set();
       let dup = 0;
-      for(const id of ids){
+      for(const id of idsVisible){
         if(seen.has(id)) dup++;
         else seen.add(id);
       }
 
-      const not = [];
-      for(let i=range.from; i<=range.to; i++){
-        if(!unique.has(i)) not.push(i);
+      // 1) RANGE check (optional)
+      const rangeText = $("anIdRange").value;
+      const range = parseIdRange(rangeText);
+      let notRange = [];
+      if(range){
+        for(let i=range.from; i<=range.to; i++){
+          if(!uniqueVisible.has(i)) notRange.push(i);
+        }
       }
 
-      AN.notList = not;
+      // 2) LIST check (optional)
+      const listIds = parseIdList($("anIdList").value);
+      let notList = [];
+      if(listIds.length){
+        notList = listIds.filter(id => !uniqueVisible.has(id));
+      }
 
-      $("anProcessedUnique").textContent = unique.size;
-      $("anNotCount").textContent = not.length;
+      // Combined missing list (used by Copy NOT / Export NOT)
+      const combinedNot = Array.from(new Set([...notRange, ...notList])).sort((a,b)=>a-b);
+      AN.notList = combinedNot;
+
+      // KPIs
+      $("anProcessedUnique").textContent = uniqueVisible.size;
       $("anDupCount").textContent = dup;
-      $("anNotProcessed").textContent = not.length;
 
-      $("anLog").textContent =
-        `Visible IDs unique: ${unique.size}\n` +
-        `Range: ${range.from} - ${range.to}\n` +
-        `Missing (NOT processed): ${not.length}\n` +
-        `Duplicates in visible: ${dup}`;
+      $("anNotCount").textContent = combinedNot.length;
+      $("anNotProcessed").textContent = combinedNot.length;
+
+      // Log
+      const parts = [];
+      parts.push(`Visible IDs unique: ${uniqueVisible.size}`);
+      parts.push(`Duplicates in visible: ${dup}`);
+
+      if(range){
+        parts.push(`Range: ${range.from} - ${range.to}`);
+        parts.push(`Missing from range: ${notRange.length}`);
+      }else{
+        parts.push(`Range: (not provided)`);
+      }
+
+      if(listIds.length){
+        parts.push(`List IDs provided: ${listIds.length}`);
+        parts.push(`Missing from list: ${notList.length}`);
+      }else{
+        parts.push(`List IDs: (empty)`);
+      }
+
+      parts.push(`TOTAL missing (combined): ${combinedNot.length}`);
+      $("anLog").textContent = parts.join("\n");
 
       if(AN.rows.length) setStatus(true, `Parsed ✅ ${AN.rows.length} rows`);
     }
@@ -1837,14 +1892,12 @@ CMH13_WEB"></textarea>
     function dailyBuildMessage(rows){
       const now = fmtDayTZ(DAILY_CFG.TZ);
 
-      // 🔴 manual blocked seeds
       const blockedManual = (() => {
         const v = String(($("dBlockedManual") && $("dBlockedManual").value) || "").trim();
         const n = parseInt(v, 10);
         return Number.isFinite(n) && n >= 0 ? n : 0;
       })();
 
-      // header tag from first session
       let headerTag = "UNKNOWN";
       if(rows && rows.length){
         const base = normalizeSessionName(rows[0].session || "").trim();
@@ -1858,66 +1911,16 @@ CMH13_WEB"></textarea>
           .replace(/\s+/g," ");
 
         const RULES = [
-          ["activated", [
-            /connected/,
-            /logged in/
-          ]],
-
-          ["appeal", [
-            /appeal/,
-            /appel/,
-            /account disabled/
-          ]],
-
-          // ✅ CAPTCHA TEXT (FIXED)
-          ["captchaText", [
-            /captcha\s*text/,
-            /text\s*captcha/,
-            /captchatext/,
-            /captcha[_\- ]?text/,
-            /status\s*=>\s*captchatext/,
-            /captchatext\s*updated/,
-            /captcha\s*text\s*updated/
-          ]],
-
-          ["captchaVerification", [
-            /captcha verification/,
-            /security check/
-          ]],
-
-          ["captchaCantSolve", [
-            /can't solved/,
-            /cant solved/,
-            /captcha can'?t/
-          ]],
-
-          ["wrongPassword", [
-            /wrong password/,
-            /incorrect password/
-          ]],
-
-          ["someoneTryingAccess", [
-            /trying to access/,
-            /suspicious/,
-            /unusual login/
-          ]],
-
-          ["accountDeleted", [
-            /account deleted/,
-            /deleted account/,
-            /no longer exists/
-          ]],
-
-          ["disconnected", [
-            /disconnected/,
-            /session expired/
-          ]],
-
-          ["apiProblem", [
-            /api problem/,
-            /server error/,
-            /no response/
-          ]]
+          ["activated", [/connected/, /logged in/]],
+          ["appeal", [/appeal/, /appel/, /account disabled/]],
+          ["captchaText", [/captcha\s*text/, /text\s*captcha/, /captchatext/, /captcha[_\- ]?text/, /status\s*=>\s*captchatext/, /captchatext\s*updated/, /captcha\s*text\s*updated/]],
+          ["captchaVerification", [/captcha verification/, /security check/]],
+          ["captchaCantSolve", [/can't solved/, /cant solved/, /captcha can'?t/]],
+          ["wrongPassword", [/wrong password/, /incorrect password/]],
+          ["someoneTryingAccess", [/trying to access/, /suspicious/, /unusual login/]],
+          ["accountDeleted", [/account deleted/, /deleted account/, /no longer exists/]],
+          ["disconnected", [/disconnected/, /session expired/]],
+          ["apiProblem", [/api problem/, /server error/, /no response/]]
         ];
 
         for(const [key, tests] of RULES){
@@ -2097,10 +2100,8 @@ ${line}${topErrorsBlock}`;
       "Gender"
     ];
 
-    // ✅ Plan state
     const PLAN = { sessions: [], rows: [], startISO: "", days: 30 };
 
-    // Show actions help
     if($("pActionsHelp")) $("pActionsHelp").textContent = ACTIONS_ALL.join(" • ");
     if($("pOneTimeHelp")) $("pOneTimeHelp").textContent = ACTIONS_ONE_TIME.join(" • ");
 
@@ -2133,7 +2134,6 @@ ${line}${topErrorsBlock}`;
       return a;
     }
 
-    // ✅ seeded shuffle (to make multi sessions different)
     function hashString32(str){
       let h = 2166136261;
       for (let i=0;i<str.length;i++){
@@ -2194,9 +2194,6 @@ ${line}${topErrorsBlock}`;
       return wd === 0 || wd === 6;
     }
 
-    /***********************
-     * Planner extra constraints
-     ***********************/
     const ACTION_CONNECT = "Connect";
     const ACTION_LANGUAGE = "Language";
     const ACTION_NEWS_TRACK = "NewsLetters With Tracking";
@@ -2204,13 +2201,11 @@ ${line}${topErrorsBlock}`;
     const ACTION_MARK_UNREAD = "Mark unread";
     const ACTION_OPEN_UNREAD = "Open unread";
 
-    // ✅ Tracking 1x/30d and Confirmation 1x/30d
     const ACTION_LIMITS_30D = {
       "NewsLetters With Tracking": 1,
       "Confirmation Newsletters": 1
     };
 
-    // ✅ remove Tracking + Confirmation from random repeat pool (scheduled by rules)
     const ACTIONS_REPEAT_BASE = ACTIONS_ALL
       .filter(a => !ACTIONS_ONE_TIME.some(o => o.toLowerCase() === a.toLowerCase()))
       .filter(a => {
@@ -2224,7 +2219,6 @@ ${line}${topErrorsBlock}`;
       const n = String(nextAction||"").toLowerCase();
       const A = ACTION_MARK_UNREAD.toLowerCase();
       const B = ACTION_OPEN_UNREAD.toLowerCase();
-      // block A->B, B->A, A->A, B->B
       if((p === A && n === B) || (p === B && n === A)) return true;
       if((p === A && n === A) || (p === B && n === B)) return true;
       return false;
@@ -2242,7 +2236,6 @@ ${line}${topErrorsBlock}`;
         return null;
       };
 
-      // limited/one-time first
       if(oneTimeQueue.length){
         const cand = pickFromListNoWeekRepeat(oneTimeQueue);
         if(cand){
@@ -2252,7 +2245,6 @@ ${line}${topErrorsBlock}`;
         }
       }
 
-      // repeating pool
       if(!poolState.pool || !poolState.pool.length){
         poolState.pool = shuffle(poolBase);
         poolState.cursor = 0;
@@ -2270,7 +2262,6 @@ ${line}${topErrorsBlock}`;
         return a;
       }
 
-      // fallback: first allowed
       for(const a of (poolState.pool || []).concat(poolBase || [])){
         if(!a) continue;
         if(isForbiddenConsecutive(prevAction, a)) continue;
@@ -2284,24 +2275,17 @@ ${line}${topErrorsBlock}`;
     }
 
     function buildPlanForSession(session, startISO, calendarDays=30){
-      // ✅ per-session seed => different random plan per session (except Connect/Language)
       const seed = hashString32(`${normalizeSessionName(session)}|${startISO}`);
 
-      // limited queue:
-      // - classic one-time actions (once)
-      // - Tracking once (1x/30d)
       function buildLimitedQueue(){
         const q = [];
-
         for(const a of ACTIONS_ONE_TIME){
           if([ACTION_CONNECT, ACTION_LANGUAGE].some(x => x.toLowerCase() === a.toLowerCase())) continue;
           q.push(a);
         }
-
         for(let i=0;i<(ACTION_LIMITS_30D[ACTION_NEWS_TRACK]||0);i++){
           q.push(ACTION_NEWS_TRACK);
         }
-
         return shuffleSeeded(q, seed ^ 0xA53C9E17);
       }
 
@@ -2316,8 +2300,7 @@ ${line}${topErrorsBlock}`;
       let workdayIndex = 0;
       let prevAction = "";
 
-      // Confirmation due after tracking (+3 workdays)
-      const confirmDue = new Map(); // dateISO -> true
+      const confirmDue = new Map();
       let confirmUsed = 0;
 
       const scheduleConfirmation = (fromDateISO) => {
@@ -2352,13 +2335,11 @@ ${line}${topErrorsBlock}`;
 
         let action = "";
 
-        // First 2 workdays fixed
         if(workdayIndex === 1){
           action = ACTION_CONNECT;
         }else if(workdayIndex === 2){
           action = ACTION_LANGUAGE;
         }else{
-          // if confirmation due today => force it (only once)
           if(confirmDue.get(dateISO) && confirmUsed < (ACTION_LIMITS_30D[ACTION_NEWS_CONFIRM]||0)){
             action = ACTION_NEWS_CONFIRM;
             confirmUsed++;
@@ -2369,7 +2350,6 @@ ${line}${topErrorsBlock}`;
 
         weekUsed.add(String(action).toLowerCase());
 
-        // if tracking today => schedule confirmation +3 workdays
         if(String(action).toLowerCase() === ACTION_NEWS_TRACK.toLowerCase()){
           scheduleConfirmation(dateISO);
         }
@@ -2498,7 +2478,6 @@ ${line}${topErrorsBlock}`;
       toast("good","Planner","CSV exported.");
     };
 
-    // planner default date
     if($("pStart")) $("pStart").value = todayISOByTZ(PLANNER_TZ);
 
     /***********************
@@ -2534,7 +2513,3 @@ ${line}${topErrorsBlock}`;
   </script>
 </body>
 </html>
-
-
-
-
