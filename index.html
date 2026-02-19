@@ -16,9 +16,15 @@
       --r18:18px;
       --r22:22px;
 
-      /* brand stays same */
-      --brandA:#6A5CFF;
-      --brandB:#2EC6FF;
+      /* ✅ Your palette (from image) */
+      --c1:#5138F8; /* rgb(81,56,248) */
+      --c2:#877DF9; /* rgb(135,125,249) */
+      --c3:#C2BEFC; /* rgb(194,190,252) */
+
+      /* brand */
+      --brandA: var(--c1);
+      --brandB: var(--c2);
+
       --good:#26E37A;
       --bad:#FF4D6D;
       --warn:#FFC857;
@@ -28,20 +34,40 @@
        LIGHT (default)
        ========================= */
     html[data-theme="light"]{
-      --bg0:#F7F8FC;
-      --bg1:#EEF2FF;
-
-      --card: rgba(255,255,255,.86);
-      --card2: rgba(255,255,255,.94);
-
-      --stroke:#D7DEFF;
-      --stroke2:#C9D2FF;
+      /* ✅ white background + soft lavender */
+      --bg0:#FFFFFF;
+      --bg1:#F6F5FF;
 
       --text:#0B1220;
       --muted:#4B5563;
       --muted2:#6B7280;
 
-      --shadow: 0 18px 60px rgba(17,24,39,.12);
+      /* ✅ “writing blue” vibe */
+      --textBlue:#1E2BFF;
+      --linkBlue: var(--c1);
+
+      /* surfaces */
+      --chipBg: rgba(255,255,255,.82);
+      --chipBorder: rgba(194,190,252,.95);
+
+      --panelBg1: rgba(255,255,255,.86);
+      --panelBg2: rgba(255,255,255,.72);
+      --panelBorder: rgba(194,190,252,.95);
+
+      --cardBg: rgba(255,255,255,.82);
+      --cardBorder: rgba(194,190,252,.95);
+
+      --inputBg: rgba(255,255,255,.90);
+      --inputBorder: rgba(194,190,252,.95);
+
+      --tableHeadBg: rgba(255,255,255,.92);
+      --tableBg: rgba(255,255,255,.72);
+      --tableBorder: rgba(194,190,252,.95);
+
+      --shadow: 0 18px 60px rgba(17,24,39,.10);
+      --shadow2: 0 12px 45px rgba(17,24,39,.08);
+
+      --hover: rgba(81,56,248,.06);
     }
 
     /* =========================
@@ -51,17 +77,34 @@
       --bg0:#070A12;
       --bg1:#090E1C;
 
-      --card:#0D1224cc;
-      --card2:#0C1122f0;
-
-      --stroke:#2B3350;
-      --stroke2:#384064;
-
       --text:#EAF0FF;
       --muted:#AEB8D9;
       --muted2:#7E89B2;
 
+      --textBlue:#AEB8FF;
+      --linkBlue: var(--c2);
+
+      --chipBg: rgba(12,17,34,.65);
+      --chipBorder: rgba(56,64,100,.75);
+
+      --panelBg1: rgba(13,18,36,.72);
+      --panelBg2: rgba(10,14,27,.65);
+      --panelBorder: rgba(56,64,100,.65);
+
+      --cardBg: rgba(10,14,27,.55);
+      --cardBorder: rgba(56,64,100,.55);
+
+      --inputBg: rgba(6,8,16,.55);
+      --inputBorder: rgba(56,64,100,.65);
+
+      --tableHeadBg: rgba(12,17,34,.55);
+      --tableBg: rgba(10,14,27,.35);
+      --tableBorder: rgba(56,64,100,.55);
+
       --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --shadow2: 0 12px 45px rgba(0,0,0,.32);
+
+      --hover: rgba(81,56,248,.08);
     }
 
     *{ box-sizing:border-box; }
@@ -71,9 +114,9 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       color:var(--text);
       background:
-        radial-gradient(1200px 600px at 20% 15%, rgba(106,92,255,.28), transparent 60%),
-        radial-gradient(900px 520px at 85% 22%, rgba(46,198,255,.22), transparent 55%),
-        radial-gradient(700px 600px at 60% 85%, rgba(26,227,122,.10), transparent 58%),
+        radial-gradient(1200px 600px at 18% 16%, rgba(81,56,248,.18), transparent 60%),
+        radial-gradient(900px 520px at 86% 20%, rgba(135,125,249,.14), transparent 55%),
+        radial-gradient(700px 600px at 60% 88%, rgba(194,190,252,.16), transparent 58%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
     }
@@ -91,12 +134,13 @@
     }
     .logo{
       width:42px; height:42px; border-radius: 14px;
-      background: linear-gradient(135deg, rgba(106,92,255,.95), rgba(46,198,255,.7));
-      box-shadow: 0 10px 30px rgba(106,92,255,.28);
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 10px 30px rgba(81,56,248,.25);
     }
     .brand h1{
       margin:0; font-size: 20px; line-height: 1.2;
       letter-spacing:.2px;
+      color: var(--textBlue);
     }
     .brand p{
       margin:2px 0 0; font-size: 12px; color: var(--muted);
@@ -109,22 +153,27 @@
     .chip{
       display:inline-flex; align-items:center; gap:8px;
       padding: 8px 10px;
-      border:1px solid rgba(56,64,100,.75);
-      background: rgba(12,17,34,.65);
+      border:1px solid var(--chipBorder);
+      background: var(--chipBg);
       border-radius: 999px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      box-shadow: 0 10px 30px rgba(17,24,39,.06);
       color: var(--muted);
       font-size: 12px;
       user-select:none;
       white-space:nowrap;
+      backdrop-filter: blur(10px);
     }
+    html[data-theme="dark"] .chip{
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
     .dot{ width:8px; height:8px; border-radius:50%; background: var(--bad); box-shadow:0 0 0 4px rgba(255,77,109,.15); }
     .dot.good{ background: var(--good); box-shadow:0 0 0 4px rgba(38,227,122,.12); }
     .dot.warn{ background: var(--warn); box-shadow:0 0 0 4px rgba(255,200,87,.12); }
 
     .panel{
-      border: 1px solid rgba(56,64,100,.65);
-      background: linear-gradient(180deg, rgba(13,18,36,.72), rgba(10,14,27,.65));
+      border: 1px solid var(--panelBorder);
+      background: linear-gradient(180deg, var(--panelBg1), var(--panelBg2));
       border-radius: var(--r22);
       box-shadow: var(--shadow);
       overflow:hidden;
@@ -137,25 +186,25 @@
       flex-wrap:wrap;
     }
     .tabbtn{
-      border:1px solid rgba(56,64,100,.75);
-      background: rgba(12,17,34,.6);
+      border:1px solid var(--chipBorder);
+      background: var(--chipBg);
       color: var(--muted);
       padding: 10px 12px;
       border-radius: 14px;
       cursor:pointer;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 13px;
       letter-spacing:.2px;
       transition: .18s ease;
       display:flex; align-items:center; gap:8px;
       user-select:none;
     }
-    .tabbtn:hover{ transform: translateY(-1px); border-color: rgba(106,92,255,.6); color: var(--text); }
+    .tabbtn:hover{ transform: translateY(-1px); border-color: rgba(81,56,248,.55); color: var(--text); }
     .tabbtn.active{
-      background: linear-gradient(135deg, rgba(106,92,255,.35), rgba(46,198,255,.16));
-      border-color: rgba(106,92,255,.65);
+      background: linear-gradient(135deg, rgba(81,56,248,.22), rgba(135,125,249,.12));
+      border-color: rgba(81,56,248,.55);
       color: var(--text);
-      box-shadow: 0 10px 40px rgba(106,92,255,.18);
+      box-shadow: 0 10px 40px rgba(81,56,248,.14);
     }
 
     .content{ padding: 14px; }
@@ -171,11 +220,12 @@
     }
 
     .card{
-      border:1px solid rgba(56,64,100,.55);
-      background: rgba(10,14,27,.55);
+      border:1px solid var(--cardBorder);
+      background: var(--cardBg);
       border-radius: var(--r18);
-      box-shadow: 0 12px 45px rgba(0,0,0,.32);
+      box-shadow: var(--shadow2);
       overflow:hidden;
+      backdrop-filter: blur(10px);
     }
     .card .hd{
       display:flex; align-items:flex-start; justify-content:space-between;
@@ -184,9 +234,10 @@
     }
     .title{
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       margin:0;
       letter-spacing:.2px;
+      color: var(--textBlue);
     }
     .sub{
       margin:4px 0 0;
@@ -195,13 +246,13 @@
       line-height: 1.35;
     }
     .badge{
-      border:1px solid rgba(56,64,100,.75);
-      background: rgba(12,17,34,.55);
+      border:1px solid var(--chipBorder);
+      background: var(--chipBg);
       color: var(--muted);
       padding: 6px 10px;
       border-radius: 999px;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       user-select:none;
       white-space:nowrap;
     }
@@ -211,20 +262,20 @@
       min-height: 320px;
       padding: 12px 12px 14px;
       border-radius: 16px;
-      border:1px solid rgba(56,64,100,.65);
-      background: rgba(6,8,16,.55);
+      border:1px solid var(--inputBorder);
+      background: var(--inputBg);
       color: var(--text);
       outline:none;
       resize: vertical;
       line-height: 1.35;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 12px;
-      box-shadow: inset 0 0 0 2px rgba(106,92,255,.06);
+      box-shadow: inset 0 0 0 2px rgba(81,56,248,.06);
       transition: .18s ease;
     }
     textarea:focus{
-      border-color: rgba(106,92,255,.75);
-      box-shadow: inset 0 0 0 2px rgba(106,92,255,.18), 0 0 0 4px rgba(106,92,255,.10);
+      border-color: rgba(81,56,248,.65);
+      box-shadow: inset 0 0 0 2px rgba(81,56,248,.14), 0 0 0 4px rgba(81,56,248,.10);
     }
 
     .controls{
@@ -240,17 +291,20 @@
       gap: 10px;
     }
     .kpi{
-      border: 1px solid rgba(56,64,100,.55);
-      background: rgba(12,17,34,.45);
+      border: 1px solid var(--cardBorder);
+      background: rgba(81,56,248,.04);
       border-radius: 16px;
       padding: 10px 10px 9px;
       min-height: 62px;
     }
-    .kpi .label{ color: var(--muted); font-size: 12px; font-weight: 800; }
+    html[data-theme="dark"] .kpi{ background: rgba(12,17,34,.45); }
+
+    .kpi .label{ color: var(--muted); font-size: 12px; font-weight: 900; }
     .kpi .value{
       margin-top: 6px;
-      font-size: 18px; font-weight: 900;
+      font-size: 18px; font-weight: 1000;
       letter-spacing:.3px;
+      color: var(--textBlue);
     }
     .kpi .hint{ margin-top: 6px; font-size: 11px; color: var(--muted2); }
 
@@ -261,13 +315,13 @@
       align-items:center;
     }
     .btn{
-      border:1px solid rgba(56,64,100,.75);
-      background: rgba(12,17,34,.55);
+      border:1px solid var(--chipBorder);
+      background: var(--chipBg);
       color: var(--text);
       padding: 11px 12px;
       border-radius: 14px;
       cursor:pointer;
-      font-weight: 900;
+      font-weight: 1000;
       font-size: 13px;
       letter-spacing:.2px;
       display:inline-flex;
@@ -278,14 +332,18 @@
       user-select:none;
       transition: .18s ease;
       white-space:nowrap;
+      backdrop-filter: blur(10px);
     }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(106,92,255,.7); }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(81,56,248,.60); }
     .btn.primary{
-      border-color: rgba(106,92,255,.7);
-      background: linear-gradient(135deg, rgba(106,92,255,.55), rgba(46,198,255,.25));
-      box-shadow: 0 12px 34px rgba(106,92,255,.18);
+      border-color: rgba(81,56,248,.65);
+      background: linear-gradient(135deg, rgba(81,56,248,.35), rgba(135,125,249,.18));
+      box-shadow: 0 12px 34px rgba(81,56,248,.14);
+      color: var(--text);
     }
-    .btn.ghost{ background: rgba(12,17,34,.30); }
+    .btn.ghost{ background: rgba(81,56,248,.03); }
+    html[data-theme="dark"] .btn.ghost{ background: rgba(12,17,34,.30); }
+
     .btn.warn{
       border-color: rgba(255,200,87,.55);
       background: linear-gradient(135deg, rgba(255,200,87,.20), rgba(255,77,109,.12));
@@ -301,33 +359,36 @@
       display:flex;
       flex-direction:column;
       gap: 8px;
-      border: 1px solid rgba(56,64,100,.55);
-      background: rgba(12,17,34,.35);
+      border: 1px solid var(--cardBorder);
+      background: rgba(81,56,248,.03);
       border-radius: 16px;
       padding: 10px;
+      backdrop-filter: blur(10px);
     }
+    html[data-theme="dark"] .field{ background: rgba(12,17,34,.35); }
+
     .field .lbl{
       display:flex; align-items:center; justify-content:space-between;
       gap:10px;
       color: var(--muted);
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 1000;
     }
     .field input, .field select{
       width:100%;
       padding: 11px 12px;
       border-radius: 14px;
-      border: 1px solid rgba(56,64,100,.70);
-      background: rgba(6,8,16,.45);
+      border: 1px solid var(--inputBorder);
+      background: var(--inputBg);
       color: var(--text);
       outline:none;
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       transition:.18s ease;
     }
     .field input:focus, .field select:focus{
-      border-color: rgba(46,198,255,.65);
-      box-shadow: 0 0 0 4px rgba(46,198,255,.10);
+      border-color: rgba(135,125,249,.65);
+      box-shadow: 0 0 0 4px rgba(135,125,249,.12);
     }
     .help{ color: var(--muted2); font-size: 11px; }
 
@@ -336,11 +397,11 @@
       display:inline-flex; align-items:center; gap:8px;
       padding: 8px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(56,64,100,.65);
-      background: rgba(6,8,16,.35);
+      border: 1px solid var(--chipBorder);
+      background: var(--chipBg);
       color: var(--text);
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 1000;
       user-select:none;
       max-width:100%;
     }
@@ -350,24 +411,26 @@
       display:grid; place-items:center;
       border:1px solid rgba(255,77,109,.35);
       background: rgba(255,77,109,.12);
-      color: rgba(255,200,210,.95);
+      color: rgba(255,77,109,.95);
       cursor:pointer;
-      font-weight: 900;
+      font-weight: 1000;
       line-height:1;
     }
 
     .hr{
       height:1px;
-      background: rgba(56,64,100,.45);
+      background: rgba(194,190,252,.65);
       margin: 4px 0;
     }
+    html[data-theme="dark"] .hr{ background: rgba(56,64,100,.45); }
 
     .tableWrap{
       margin-top: 14px;
-      border:1px solid rgba(56,64,100,.55);
-      background: rgba(10,14,27,.35);
+      border:1px solid var(--tableBorder);
+      background: var(--tableBg);
       border-radius: var(--r18);
       overflow:hidden;
+      backdrop-filter: blur(10px);
     }
     table{
       width:100%;
@@ -377,22 +440,29 @@
       text-align:left;
       font-size: 12px;
       color: var(--muted);
-      font-weight: 900;
+      font-weight: 1000;
       padding: 12px 12px;
-      background: rgba(12,17,34,.55);
-      border-bottom: 1px solid rgba(56,64,100,.45);
+      background: var(--tableHeadBg);
+      border-bottom: 1px solid rgba(194,190,252,.60);
       white-space:nowrap;
+    }
+    html[data-theme="dark"] thead th{
+      border-bottom: 1px solid rgba(56,64,100,.45);
     }
     tbody td{
       padding: 10px 12px;
-      border-bottom: 1px solid rgba(56,64,100,.28);
+      border-bottom: 1px solid rgba(194,190,252,.45);
       font-size: 12px;
       color: var(--text);
       vertical-align: top;
     }
-    tbody tr:hover{
-      background: rgba(106,92,255,.05);
+    html[data-theme="dark"] tbody td{
+      border-bottom: 1px solid rgba(56,64,100,.28);
     }
+    tbody tr:hover{
+      background: var(--hover);
+    }
+
     .statusPill{
       display:inline-flex; align-items:center; justify-content:center;
       padding: 6px 10px;
@@ -400,14 +470,20 @@
       font-size: 12px;
       font-weight: 1000;
       letter-spacing:.2px;
-      border: 1px solid rgba(56,64,100,.65);
-      background: rgba(6,8,16,.35);
+      border: 1px solid var(--chipBorder);
+      background: rgba(81,56,248,.06);
       user-select:none;
       white-space:nowrap;
     }
-    .statusPill.good{ border-color: rgba(38,227,122,.35); background: rgba(38,227,122,.10); color: #bfffe0; }
-    .statusPill.bad{ border-color: rgba(255,77,109,.35); background: rgba(255,77,109,.10); color: #ffd0d8; }
-    .statusPill.warn{ border-color: rgba(255,200,87,.40); background: rgba(255,200,87,.10); color: #ffe7b0; }
+    html[data-theme="dark"] .statusPill{ background: rgba(6,8,16,.35); }
+
+    .statusPill.good{ border-color: rgba(38,227,122,.35); background: rgba(38,227,122,.10); color: #0B3B22; }
+    .statusPill.bad{  border-color: rgba(255,77,109,.35); background: rgba(255,77,109,.10); color: #5A0B17; }
+    .statusPill.warn{ border-color: rgba(255,200,87,.40); background: rgba(255,200,87,.10); color: #5A3A00; }
+
+    html[data-theme="dark"] .statusPill.good{ color:#bfffe0; }
+    html[data-theme="dark"] .statusPill.bad{  color:#ffd0d8; }
+    html[data-theme="dark"] .statusPill.warn{ color:#ffe7b0; }
 
     .muted{ color: var(--muted); }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -428,18 +504,20 @@
       max-width: 420px;
       padding: 10px 12px;
       border-radius: 16px;
-      border:1px solid rgba(56,64,100,.75);
-      background: rgba(12,17,34,.78);
+      border:1px solid var(--chipBorder);
+      background: var(--chipBg);
       box-shadow: var(--shadow);
       color: var(--text);
       font-size: 12px;
       line-height: 1.35;
+      backdrop-filter: blur(10px);
     }
     .t .head{
       display:flex; align-items:center; justify-content:space-between;
       gap:10px;
       margin-bottom: 6px;
       font-weight: 1000;
+      color: var(--textBlue);
     }
     .t .close{
       cursor:pointer;
@@ -447,9 +525,11 @@
       font-weight: 1000;
       padding: 2px 6px;
       border-radius: 10px;
-      border:1px solid rgba(56,64,100,.55);
-      background: rgba(6,8,16,.35);
+      border:1px solid var(--chipBorder);
+      background: rgba(81,56,248,.04);
     }
+    html[data-theme="dark"] .t .close{ background: rgba(6,8,16,.35); }
+
     .t.good{ border-color: rgba(38,227,122,.35); }
     .t.bad{ border-color: rgba(255,77,109,.35); }
     .t.warn{ border-color: rgba(255,200,87,.40); }
@@ -460,15 +540,16 @@
     .thFilterBtn{
       width:22px; height:22px;
       border-radius: 10px;
-      border:1px solid rgba(56,64,100,.65);
-      background: rgba(6,8,16,.35);
+      border:1px solid var(--chipBorder);
+      background: rgba(81,56,248,.04);
       display:grid; place-items:center;
       cursor:pointer;
       color: var(--muted);
       font-weight: 1000;
       user-select:none;
     }
-    .thFilterBtn:hover{ border-color: rgba(46,198,255,.55); color: var(--text); }
+    html[data-theme="dark"] .thFilterBtn{ background: rgba(6,8,16,.35); }
+    .thFilterBtn:hover{ border-color: rgba(135,125,249,.55); color: var(--text); }
 
     .sessionList{
       margin-top: 10px;
@@ -480,8 +561,8 @@
       padding-right: 4px;
     }
     .sessionItem{
-      border:1px solid rgba(56,64,100,.45);
-      background: rgba(6,8,16,.25);
+      border:1px solid var(--cardBorder);
+      background: rgba(81,56,248,.03);
       border-radius: 14px;
       padding: 10px 10px;
       display:flex;
@@ -489,11 +570,13 @@
       justify-content:space-between;
       gap:10px;
     }
+    html[data-theme="dark"] .sessionItem{ background: rgba(6,8,16,.25); border-color: rgba(56,64,100,.45); }
+
     .sessionName{
       font-weight: 1000;
       font-size: 12px;
       letter-spacing:.2px;
-      color: var(--text);
+      color: var(--textBlue);
     }
     .sessionMeta{
       display:flex; gap:10px; flex-wrap:wrap;
@@ -505,67 +588,6 @@
     .sessionMeta b{ color: var(--text); }
 
     .hidden{ display:none !important; }
-
-    /* ===== Light-mode polish overrides (no logic) ===== */
-    html[data-theme="light"] body{
-      background:
-        radial-gradient(1200px 600px at 20% 15%, rgba(106,92,255,.12), transparent 60%),
-        radial-gradient(900px 520px at 85% 22%, rgba(46,198,255,.10), transparent 55%),
-        radial-gradient(700px 600px at 60% 85%, rgba(26,227,122,.06), transparent 58%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-    }
-    html[data-theme="light"] .chip{
-      border:1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.70);
-      box-shadow: 0 10px 30px rgba(17,24,39,.06);
-      color: var(--muted);
-    }
-    html[data-theme="light"] .panel{
-      border: 1px solid rgba(201,210,255,.95);
-      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.66));
-    }
-    html[data-theme="light"] .card{
-      border:1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.70);
-      box-shadow: 0 12px 45px rgba(17,24,39,.10);
-    }
-    html[data-theme="light"] textarea{
-      border:1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.78);
-      color: var(--text);
-    }
-    html[data-theme="light"] .field{
-      border: 1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.62);
-    }
-    html[data-theme="light"] .field input,
-    html[data-theme="light"] .field select{
-      border: 1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.80);
-      color: var(--text);
-    }
-    html[data-theme="light"] thead th{
-      background: rgba(255,255,255,.82);
-      border-bottom: 1px solid rgba(201,210,255,.75);
-    }
-    html[data-theme="light"] tbody td{
-      border-bottom: 1px solid rgba(201,210,255,.55);
-    }
-    html[data-theme="light"] .tableWrap{
-      border:1px solid rgba(201,210,255,.95);
-      background: rgba(255,255,255,.55);
-    }
-    html[data-theme="light"] .toast .t{
-      background: rgba(255,255,255,.90);
-      border:1px solid rgba(201,210,255,.95);
-      color: var(--text);
-    }
-    html[data-theme="light"] .statusPill.good{ color:#0B3B22; }
-    html[data-theme="light"] .statusPill.bad{  color:#5A0B17; }
-    html[data-theme="light"] .statusPill.warn{ color:#5A3A00; }
-    html[data-theme="light"] tbody tr:hover{
-      background: rgba(106,92,255,.06);
-    }
   </style>
 </head>
 
@@ -725,10 +747,10 @@
                     <span class="chip" style="pointer-events:none;"><span class="dot warn"></span> Duplicates: <b id="anDupCount">0</b></span>
                   </div>
 
-                  <div class="field" style="padding:10px; background: rgba(6,8,16,.25);">
+                  <div class="field" style="padding:10px;">
                     <div class="lbl"><span>Run “Check”…</span><span class="muted">log</span></div>
                     <div id="anLog" class="mono" style="font-size:12px; color:var(--muted); white-space:pre-wrap; min-height: 18px;"></div>
-                    <div id="anErr" class="mono" style="font-size:12px; color:#ff9fb0; white-space:pre-wrap;"></div>
+                    <div id="anErr" class="mono" style="font-size:12px; color:#ff4d6d; white-space:pre-wrap;"></div>
                   </div>
                 </div>
 
@@ -1058,7 +1080,7 @@ CMH13_WEB"></textarea>
                   <button class="btn" id="pExportBtn">⬇ Export CSV</button>
                 </div>
 
-                <div class="field" style="background: rgba(6,8,16,.25);">
+                <div class="field">
                   <div class="lbl"><span>Rules</span><span class="muted">smart</span></div>
                   <div class="help">
                     • Weekend (Sat/Sun) = OFF.<br/>
@@ -1072,7 +1094,7 @@ CMH13_WEB"></textarea>
                   </div>
                 </div>
 
-                <div class="field" style="background: rgba(6,8,16,.25);">
+                <div class="field">
                   <div class="lbl"><span>Actions</span><span class="muted">fixed</span></div>
                   <div class="help" id="pActionsHelp"></div>
                   <div class="hr"></div>
@@ -2653,4 +2675,3 @@ ${line}${topErrorsBlock}`;
   </script>
 </body>
 </html>
-
